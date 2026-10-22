@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#151512">
+    <meta name="description" content="A personal movie collection. Browse the posters, find a favorite, and make a night of it.">
+    <title>Movie Night</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/native-appearance.css">
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <div id="native-video-placeholder" aria-label="Movie picture" hidden></div>
+    <a class="skip-link" href="#collection">Skip to the films</a>
+    <div class="page-shell">
+      <header class="site-header">
+        <a class="wordmark" href="/" aria-label="Movie Night home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="M7 4v16M17 4v16M3 9h4M3 15h4M17 9h4M17 15h4" stroke="currentColor" stroke-width="1.5"/></svg>
+          </span>
+          <span id="site-title">Movie Night</span>
+        </a>
+        <a class="device-badge" href="#player-dock" aria-label="Playback controls for Aries"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span>Aries<span id="device-status" class="device-status">Connecting</span></span><span id="device-indicator" class="device-indicator" aria-hidden="true"></span></a>
+      </header>
+
+      <main id="collection" tabindex="-1">
+        <section class="hero" aria-labelledby="collection-title">
+          <div class="hero-copy">
+            <p class="eyebrow"><span aria-hidden="true"></span> The collection</p>
+            <h1 id="collection-title">Find tonight’s film.</h1>
+            <p id="collection-description" class="hero-description">Old favorites. New discoveries. A great night in.</p>
+          </div>
+          <div class="hero-aside">
+            <p class="collection-stat"><span id="collection-total">—</span><span id="collection-total-label">titles to explore</span></p>
+            <div id="collection-picker-wrap" class="collection-picker" hidden>
+              <label for="collection-picker">Browse a collection</label>
+              <select id="collection-picker"></select>
+            </div>
+          </div>
+        </section>
+
+        <section class="browse-section" aria-label="Browse films">
+          <p class="browse-intro">Choose a poster, then press <strong>Play on Aries</strong>.</p>
+          <div class="library-navigation" aria-label="Choose what to browse">
+            <div class="library-tabs">
+              <button type="button" data-collection="curated" class="library-tab is-active">My collections</button>
+              <button type="button" data-collection="nuvio-library" class="library-tab">Nuvio library</button>
+              <button type="button" data-collection="personal-favorites" class="library-tab">Favorites <span id="favorite-count">0</span></button>
+              <button type="button" data-collection="personal-recent" class="library-tab">Recent</button>
+              <button type="button" data-collection="browse-movie" class="library-tab">All movies</button>
+              <button type="button" data-collection="browse-series" class="library-tab">TV series</button>
+            </div>
+            <button id="import-library" class="small-button import-button" type="button">Import Nuvio library</button>
+          </div>
+          <p id="library-feedback" class="library-feedback" role="status" aria-live="polite"></p>
+          <p id="catalog-availability" class="catalog-availability" role="status" hidden>Movie and TV catalogue browsing is turned off in Settings. Your collections are still here.</p>
+          <section id="catalog-browse" class="catalog-browse" aria-label="Search the catalogue" hidden>
+            <div class="catalog-browse-heading"><div><p class="eyebrow">Explore the catalogue</p><p id="catalog-intro">Popular discoveries, featured picks, or a year worth revisiting.</p></div><span class="catalog-provider">Cinemeta</span></div>
+            <div class="catalog-controls">
+              <label class="catalog-select">Browse a list<select id="catalog-source"><option value="top">Popular</option><option value="imdbRating">Featured</option><option value="year">By year</option></select></label>
+              <label id="catalog-genre-wrap" class="catalog-select">Browse genre<select id="catalog-genre"><option value="">All genres</option></select></label>
+              <label id="catalog-year-wrap" class="catalog-select" hidden>Release year<select id="catalog-year"></select></label>
+              <form id="catalog-search-form" class="catalog-search-form">
+                <label class="visually-hidden" for="catalog-search">Search the catalogue by title</label>
+                <input id="catalog-search" type="search" placeholder="Search the movie catalogue…" maxlength="160" autocomplete="off">
+                <button id="catalog-search-button" class="small-button" type="submit">Search catalogue</button>
+              </form>
+            </div>
+            <p id="catalog-scope" class="catalog-scope">These choices browse the catalogue. The filters below refine the titles you have loaded.</p>
+          </section>
+          <div class="browse-toolbar">
+            <div class="search-field">
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.6"/><path d="m16 16 4.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              <label class="visually-hidden" for="film-search">Filter loaded titles by name, year, or genre</label>
+              <input id="film-search" type="search" placeholder="Filter loaded titles…" autocomplete="off" spellcheck="false" disabled>
+            </div>
+            <div class="select-field">
+              <label for="genre-filter">Genre</label>
+              <select id="genre-filter" disabled><option value="">All genres</option></select>
+            </div>
+            <div class="select-field sort-field">
+              <label for="film-sort">Sort</label>
+              <select id="film-sort" disabled>
+                <option value="rank">Curated order</option>
+                <option value="title">Title, A–Z</option>
+                <option value="year-desc">Newest first</option>
+                <option value="year-asc">Oldest first</option>
+                <option value="rating">Highest rated</option>
+                <option value="runtime">Shortest first</option>
+              </select>
+            </div>
+            <button id="open-filters" class="filter-trigger" type="button" aria-haspopup="dialog" aria-controls="filter-dialog"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3" fill="currentColor"/><circle cx="15" cy="17" r="3" fill="currentColor"/></svg>Filters <span id="filter-count" hidden>0</span></button>
+          </div>
+          <div id="active-filters" class="active-filters" aria-label="Active filters" hidden></div>
+          <div class="results-bar">
+            <p id="results-count" role="status" aria-live="polite">Getting the collection ready…</p>
+            <button id="clear-filters" class="text-button" type="button" hidden>Reset filters</button>
+          </div>
+          <p id="filter-scope" class="filter-scope">Filters apply to the titles in this collection.</p>
+          <div id="film-grid" class="film-grid" aria-busy="true"></div>
+          <div id="browse-more" class="browse-more" hidden><button id="load-more" class="small-button" type="button">Load more titles</button><p id="browse-feedback" role="status" aria-live="polite"></p></div>
+          <div id="empty-state" class="empty-state" hidden>
+            <span class="empty-symbol" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg></span>
+            <h2 id="empty-title">No titles found</h2>
+            <p id="empty-description">Try a different title, year, or genre.</p>
+            <button id="empty-reset" class="small-button" type="button">Reset filters</button>
+          </div>
+          <div id="error-state" class="empty-state" hidden>
+            <h2>The collection couldn’t be loaded.</h2>
+            <p>Check that Movie Night is running, then try again.</p>
+            <button id="retry-load" class="small-button" type="button">Try again</button>
+          </div>
+          <noscript><p class="empty-state">Enable JavaScript to browse and filter this collection.</p></noscript>
+        </section>
+      </main>
+
+      <footer class="site-footer"><span>A good film deserves a good evening.</span><span id="footer-count">Movie Night</span></footer>
+    </div>
+
+    <dialog id="filter-dialog" class="filter-dialog" aria-labelledby="filter-title">
+      <form id="filter-form" class="filter-panel">
+        <header class="filter-header"><div><p class="eyebrow">Find your kind of evening</p><h2 id="filter-title">Fine-tune the selection</h2><p>Combine a few details. Discover something that fits.</p></div><button id="close-filters" class="dialog-close" type="button" aria-label="Close filters">×</button></header>
+        <div class="filter-scroll">
+          <section class="filter-section"><div class="filter-section-heading"><h3>Release years</h3><span>Both years included</span></div><div class="filter-range-fields"><label>From<input id="filter-year-from" type="number" min="1800" max="2999" step="1" placeholder="Any year" inputmode="numeric"></label><span class="range-divider" aria-hidden="true">—</span><label>Through<input id="filter-year-to" type="number" min="1800" max="2999" step="1" placeholder="Any year" inputmode="numeric"></label></div><p id="filter-year-error" class="field-error" role="status" hidden>Choose a start year no later than the end year.</p></section>
+          <section class="filter-section"><div class="filter-section-heading"><h3>Genres to include</h3><label class="genre-mode-label">Match<select id="filter-genre-mode"><option value="any">Any selected</option><option value="all">All selected</option></select></label></div><div id="include-genres" class="genre-options"></div><details class="exclude-genres"><summary>Leave out a genre</summary><p>Titles with any excluded genre will be hidden.</p><div id="exclude-genres" class="genre-options"></div></details></section>
+          <section class="filter-section filter-two-columns"><div><label class="filter-label" for="filter-rating">Minimum rating <output id="filter-rating-value" for="filter-rating">Any</output></label><input id="filter-rating" class="rating-slider" type="range" min="0" max="10" step="0.5" value="0"><p class="filter-hint">Out of 10. Unrated titles are hidden when a minimum is set.</p></div><label class="filter-label">Maximum runtime<input id="filter-runtime" type="number" min="1" max="1440" step="1" placeholder="Any length" inputmode="numeric"><span class="filter-hint">Minutes · unknown runtimes are hidden when set.</span></label></section>
+          <section class="filter-section filter-two-columns"><label class="filter-label">Title type<select id="filter-type"><option value="">Movies &amp; TV</option><option value="movie">Movies</option><option value="series">TV series</option></select></label><label class="filter-label">In your library<select id="filter-watch"><option value="">Any status</option><option value="favorites">Favorites</option><option value="watching">Watching</option><option value="watched">Watched</option><option value="unwatched">Unwatched</option></select></label></section>
+          <section class="filter-section saved-views"><div class="filter-section-heading"><h3>Save this view</h3><span>On this device</span></div><div class="saved-view-create"><label class="visually-hidden" for="saved-view-name">Name this filter view</label><input id="saved-view-name" type="text" maxlength="60" placeholder="e.g. 80s comedies under two hours"><button id="save-view" class="small-button" type="button">Save view</button></div><div class="saved-view-select"><label class="visually-hidden" for="saved-views">Saved filter views</label><select id="saved-views"><option value="">Choose a saved view…</option></select><button id="delete-view" class="text-button" type="button" disabled>Delete</button></div><p id="saved-view-feedback" class="filter-hint" role="status" aria-live="polite"></p></section>
+        </div>
+        <footer class="filter-footer"><button id="reset-advanced-filters" class="text-button" type="button">Reset all filters</button><button id="apply-filters" class="primary-button" type="submit">Show titles</button><p id="drawer-filter-scope">Filters apply to loaded titles only.</p></footer>
+      </form>
+    </dialog>
+
+    <dialog id="film-dialog" class="film-dialog" aria-labelledby="dialog-title">
+      <button id="close-dialog" class="dialog-close" type="button" aria-label="Close film details"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="m6 6 12 12M18 6 6 18" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></button>
+      <div class="dialog-layout">
+        <div id="dialog-poster" class="dialog-poster"></div>
+        <div class="dialog-copy">
+          <p id="dialog-rank" class="eyebrow"></p>
+          <h2 id="dialog-title"></h2>
+          <p id="dialog-meta" class="dialog-meta"></p>
+          <div id="dialog-genres" class="genre-tags"></div>
+          <p id="dialog-description" class="dialog-description"></p>
+          <p id="dialog-metadata-status" class="dialog-metadata-status" role="status" aria-live="polite" hidden></p>
+          <section class="dialog-playback" aria-label="Play this film on Aries">
+            <div class="playback-actions">
+              <button id="play-on-aries" class="primary-button" type="button"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m8 5 11 7-11 7V5Z"/></svg><span id="play-on-aries-label">Play on Aries</span></button>
+              <button id="favorite-detail" class="detail-favorite small-button" type="button" aria-pressed="false">Add to favorites</button>
+            </div>
+            <p id="playback-explanation" class="playback-explanation">Picture and sound play on Aries. Control your film from the playback bar at the bottom of this page.</p>
+            <p id="playback-feedback" class="playback-feedback" role="status" aria-live="polite" aria-atomic="true"></p>
+          </section>
+          <p class="dialog-note">Your choice, your movie night.</p>
+        </div>
+      </div>
+    </dialog>
+
+    <section id="player-dock" class="player-dock" aria-label="Movie Night player on Aries" tabindex="-1">
+      <div class="player-main">
+        <div id="player-artwork" class="player-artwork" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+        <div class="player-details">
+          <p class="player-location">Movie Night on Aries</p>
+          <h2 id="player-title" class="player-title">Choose tonight’s film</h2>
+          <p id="player-state" class="player-state" role="status" aria-live="polite" aria-atomic="true">Connecting to your player…</p>
+        </div>
+        <div id="player-controls" class="player-controls" aria-label="Playback controls on Aries">
+          <button id="player-back" class="player-control player-skip" type="button" aria-label="Go back 10 seconds on Aries" title="Back 10 seconds" disabled><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10a9 9 0 1 1 2.6 8.4M3 4v6h6"/></svg><span>−10s</span></button>
+          <button id="player-toggle" class="player-control player-toggle" type="button" aria-label="Pause on Aries" title="Pause on Aries" disabled><span id="player-toggle-icon" class="control-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 5v14M16 5v14"/></svg></span><span id="player-toggle-label">Pause</span></button>
+          <button id="player-forward" class="player-control player-skip" type="button" aria-label="Go forward 10 seconds on Aries" title="Ahead 10 seconds" disabled><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10a9 9 0 1 0-2.6 8.4M21 4v6h-6"/></svg><span>+10s</span></button>
+          <button id="player-stop" class="player-control player-stop" type="button" aria-label="Stop on Aries" title="Stop on Aries" disabled><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="5" width="14" height="14" rx="2"/></svg><span>Stop</span></button>
+        </div>
+        <button id="player-close" class="player-close" type="button" aria-label="Close player controls" title="Close player controls"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+      </div>
+      <div id="player-timeline" class="player-timeline" hidden>
+        <span id="player-position" class="player-time">0:00</span>
+        <label class="visually-hidden" for="player-seek">Seek in the film playing on Aries</label>
+        <input id="player-seek" class="player-seek" type="range" min="0" max="1" step="1" value="0" disabled>
+        <span id="player-duration" class="player-time">0:00</span>
+      </div>
+      <div id="player-secondary" class="player-secondary">
+        <div id="player-view-actions" class="player-view-actions" hidden>
+          <button id="player-wall" class="player-control" type="button" hidden><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 5-7 7 7 7M5 12h15"/></svg><span>Back to wall</span></button>
+          <button id="player-watch" class="player-control player-watch" type="button" hidden><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m8 5 11 7-11 7V5Z"/></svg><span>Watch</span></button>
+        </div>
+        <div id="player-volume-group" class="player-volume-group">
+          <button id="player-mute" class="player-control player-icon-button" type="button" aria-label="Mute Aries" aria-pressed="false" title="Mute Aries" disabled><span id="player-volume-icon" class="control-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m11 5-6 4H2v6h3l6 4V5ZM15 8a6 6 0 0 1 0 8M18 5a10 10 0 0 1 0 14"/></svg></span></button>
+          <label for="player-volume">Volume</label>
+          <input id="player-volume" class="player-volume" type="range" min="0" max="100" step="1" value="100" disabled>
+          <output id="player-volume-value" for="player-volume">100%</output>
+        </div>
+        <button id="player-fullscreen" class="player-control player-fullscreen" type="button" aria-label="Enter full screen on Aries" aria-pressed="false" title="Full screen on Aries" disabled><span id="player-fullscreen-icon" class="control-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/></svg></span><span id="player-fullscreen-label">Full screen</span></button>
+      </div>
+      <div id="player-message-wrap" class="player-message-wrap" hidden>
+        <p id="player-message" class="player-message" role="status" aria-live="polite" aria-atomic="true"></p>
+        <button id="player-reconnect" class="text-button" type="button" hidden>Reconnect</button>
+      </div>
+    </section>
+  </body>
+</html>

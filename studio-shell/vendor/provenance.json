@@ -1,0 +1,621 @@
+{
+  "schema": "movie-night.studio-donor/v1",
+  "pin": "94c49141a132ed00cdd72d0457911fc40523794f",
+  "files": [
+    {
+      "file": "src/components/desktop/WindowFrame.jsx",
+      "sha256": "4c20a220bccd7bf10e2a3b754331e573a58f0cb791852b22a33456347a3d00ac",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/components/desktop/WindowFrame.jsx"
+      },
+      "local_patch": {
+        "file": "../patches/window-frame-native-window.patch",
+        "sha256": "dcbc3618b08d757989b431dd435e700a14f03aff88b2fcb261a8bb16ef4c8c55",
+        "upstream_sha256": "9fe963dc791a73c880693bdea85d9a338f84a7b233990a6c401ada87f586baae",
+        "description": "Opt-in nativeWindow delegation, titleBarActions, onOpenSettings and footerStatus for the personal Movie Night native host. Native mouse operations use mousedown after window-manager grabs; pen/touch use pointerdown. Existing browser desktop defaults remain."
+      }
+    },
+    {
+      "file": "src/components/chat/ChatSnapControl.jsx",
+      "sha256": "f09babc06b81a898b3148069a51a9a5b7214cc3c519b350f194e0b2270c5949a",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/components/chat/ChatSnapControl.jsx"
+      }
+    },
+    {
+      "file": "src/lib/snapGuide.jsx",
+      "sha256": "72c532b30fda16e68ccdc710ae385f2bbe5e8e6bb8d32941276f195027fe07e2",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/snapGuide.jsx"
+      }
+    },
+    {
+      "file": "src/index.css",
+      "sha256": "852b5176aa2475cb526984fa82f17cc102873bd7a84e7af2ecdbbb519b00b6c9",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/index.css"
+      }
+    },
+    {
+      "file": "src/components/framework/sdk.jsx",
+      "sha256": "87597627d06409b980f3f29694649e00ab385761d4b70b95c721daf8cb75fa01",
+      "source": {
+        "kind": "qualified-renderer",
+        "path": "/media/chrishallberg/Storage 22/001_Flatpack_installs/xi-io-studio/workspaces/base44-app-qualified/src/components/framework/sdk.jsx"
+      }
+    },
+    {
+      "file": "src/components/chat/ChatDockSlot.jsx",
+      "sha256": "4a3c25ac0fa2a6de1902ad14305ff7d0cd4341c50c2dd0e4833eff0f334fb354",
+      "source": {
+        "kind": "qualified-renderer",
+        "path": "/media/chrishallberg/Storage 22/001_Flatpack_installs/xi-io-studio/workspaces/base44-app-qualified/src/components/chat/ChatDockSlot.jsx"
+      }
+    },
+    {
+      "file": "src/components/desktop/WindowChatLanes.jsx",
+      "sha256": "678ec2edbd09600a9c28679f5961e383f4114e6cec4d018ff8421c355ac7da79",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/components/desktop/WindowChatLanes.jsx"
+      }
+    },
+    {
+      "file": "src/lib/chatDockStore.js",
+      "sha256": "8303f4eb798a0246de4a19db8ea1694834069cce25d2151b1ea8fd84f2576434",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/chatDockStore.js"
+      }
+    },
+    {
+      "file": "src/lib/surfaceIdentity.mjs",
+      "sha256": "60585018722e65f94e5a37bdf48ff3cada6b8a375990f8634844aceb906427ed",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/surfaceIdentity.mjs"
+      }
+    },
+    {
+      "file": "src/lib/paneContract.mjs",
+      "sha256": "ce9dd935a154191efd3e48ca7a96408c30483d42422f133574b4b72aac97d267",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/paneContract.mjs"
+      }
+    },
+    {
+      "file": "src/components/ui/context-menu.jsx",
+      "sha256": "d85ea66b481a339eb56d823811cf0c9b749e05b4acce4c3c7ee05036282e5256",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/components/ui/context-menu.jsx"
+      }
+    },
+    {
+      "file": "src/lib/utils.js",
+      "sha256": "d91702e474098c5f66d5cfe02336c0484b927c7a1d8d17a7e6dfca827021d4af",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/utils.js"
+      }
+    },
+    {
+      "file": "src/lib/eventStore.js",
+      "sha256": "d8fdfc0fce67e9d9dc204a715c8831e1bce433d75c557e71e13b337d5226e54a",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/eventStore.js"
+      }
+    },
+    {
+      "file": "src/components/ui/ChromePrimitives.jsx",
+      "sha256": "4fd353ae1bf3e4a4b046ad4167ad40862a64b8f72c659d336d5ee56b284e0b34",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/components/ui/ChromePrimitives.jsx"
+      }
+    },
+    {
+      "file": "src/lib/panelShadow.js",
+      "sha256": "354ad63eaad721f9c4fbaa61523f0c8f217e7b99e963dd28cef919e07bdfa52e",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/panelShadow.js"
+      }
+    },
+    {
+      "file": "src/lib/chromaMaterial.mjs",
+      "sha256": "02d0ac3367db8d94d801de9417009e6a95bc719162647e851a9a5c6a97f6b8a4",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/chromaMaterial.mjs"
+      }
+    },
+    {
+      "file": "src/components/desktop/DesktopGridSystem.jsx",
+      "sha256": "3ceb0302ef0c4c85eec6a51ef0ae82d93db888d193ccfede1a78a1be20182599",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/components/desktop/DesktopGridSystem.jsx"
+      }
+    },
+    {
+      "file": "src/components/desktop/AttachedChips.jsx",
+      "sha256": "ae3963a5f2da556bf91fc0e9e126b41e2fa7d6567895b4b21727941464f18dae",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/components/desktop/AttachedChips.jsx"
+      }
+    },
+    {
+      "file": "src/lib/desktopSnap.mjs",
+      "sha256": "344cd35715b3224f78214413b760dee4b96aacd3d86ce737575947a601b6921d",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/desktopSnap.mjs"
+      }
+    },
+    {
+      "file": "src/lib/desktopPane.mjs",
+      "sha256": "812dac605b425bbd76c2ac766d1e16e9dae5d60b99b2f9f7f7096a7d2ed27157",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/desktopPane.mjs"
+      }
+    },
+    {
+      "file": "src/components/desktop/embedded.css",
+      "sha256": "27148e4823d23e4b1670ccf98b40e65892b3c6d47887218bb89c3da7e5425712",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/components/desktop/embedded.css"
+      }
+    },
+    {
+      "file": "src/components/ui/utils.jsx",
+      "sha256": "889583b3b31c02195777de6c4295eadd69a5a4c81e97459a917a29bae1f6115b",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/components/ui/utils.jsx"
+      }
+    },
+    {
+      "file": "src/components/framework/SystemFileBar.jsx",
+      "sha256": "400a494cf124187f54e360d76239a5df139ded25e13338faaec18179dfc44070",
+      "source": {
+        "kind": "qualified-renderer",
+        "path": "/media/chrishallberg/Storage 22/001_Flatpack_installs/xi-io-studio/workspaces/base44-app-qualified/src/components/framework/SystemFileBar.jsx"
+      },
+      "local_patch": {
+        "file": "../patches/system-file-bar-settings-host.patch",
+        "sha256": "5e2730faac6e3893daf3941504702055ee60a1839b68bdfb095d55e0b3ab8df1",
+        "upstream_sha256": "b831d55f424baa77e0e1c290c58b3de89c3ffa37e33dce3189fcb0f1dcc86784",
+        "description": "Optional onSettings callback routes the personal host app menu to its shared settings panel. Existing managed route remains the default."
+      }
+    },
+    {
+      "file": "src/lib/whiteLabelStore.js",
+      "sha256": "cbbaab49c39d002cdadbfe07c17161b765b5b15d3e45bf2a5bc60dd5f846911d",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/whiteLabelStore.js"
+      }
+    },
+    {
+      "file": "src/lib/windowFormation.mjs",
+      "sha256": "5e665caf2b0ffdd111288544af2848dab1c865494201d8ca7e9de5aa3cd681e8",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/windowFormation.mjs"
+      }
+    },
+    {
+      "file": "src/hooks/use-device-shape.jsx",
+      "sha256": "45be444e68b873407170efb6d052df02ff5fe256b2ede6fc72d9faf0e772a9f9",
+      "source": {
+        "kind": "qualified-renderer",
+        "path": "/media/chrishallberg/Storage 22/001_Flatpack_installs/xi-io-studio/workspaces/base44-app-qualified/src/hooks/use-device-shape.jsx"
+      }
+    },
+    {
+      "file": "src/lib/chatSnap.mjs",
+      "sha256": "7e6d0a17d359956ef4e887285c35d58da5a30c1d106b73181b5924e3b9485d32",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/chatSnap.mjs"
+      }
+    },
+    {
+      "file": "src/lib/chatAttachments.js",
+      "sha256": "9150a15100c92770d92700af065ace2d140629c4a7ad9b8525cfe60b5203464f",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/chatAttachments.js"
+      }
+    },
+    {
+      "file": "src/lib/chatEdges.mjs",
+      "sha256": "1f33cefbe7bba317a57f7d4edd293885abb3c51375d56e0f8ddc082f6929176d",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/chatEdges.mjs"
+      }
+    },
+    {
+      "file": "src/lib/chatSnapContract.mjs",
+      "sha256": "d310d45198683a1c73b8a22bf2eeba42367a7ecdcd700efa7c1746c4b26bdb92",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/chatSnapContract.mjs"
+      }
+    },
+    {
+      "file": "src/lib/chatWorkProjection.mjs",
+      "sha256": "2814bc3fc0f16573890384a26bd828581de76d92064826065107438a2a12ba4f",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/chatWorkProjection.mjs"
+      }
+    },
+    {
+      "file": "src/components/framework/registry.jsx",
+      "sha256": "401cc8ea71cf4fcab1a7747b70967aecd507d400387da89a52527bdafec81d27",
+      "source": {
+        "kind": "qualified-renderer",
+        "path": "/media/chrishallberg/Storage 22/001_Flatpack_installs/xi-io-studio/workspaces/base44-app-qualified/src/components/framework/registry.jsx"
+      }
+    },
+    {
+      "file": "src/lib/eventPrimitive.mjs",
+      "sha256": "76aae940f96def5c1bcd4cad019197eb7eccec4a45f7eb7fed5a9c2cdea8d1e8",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/eventPrimitive.mjs"
+      }
+    },
+    {
+      "file": "src/lib/motion.js",
+      "sha256": "ce47550b441514ade06a960f056cd8eb774d7ca216059aeba5a00754787cee5e",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/motion.js"
+      }
+    },
+    {
+      "file": "src/lib/workspaceStore.js",
+      "sha256": "7e079bf17af1a83626598d8ea1941595b037697a450177a6242f53e7b777de75",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/workspaceStore.js"
+      }
+    },
+    {
+      "file": "src/lib/durableJson.js",
+      "sha256": "72c617a1394c35ba931599f1a63b809e0568438b3f0277a28f290ac632f331e2",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/durableJson.js"
+      }
+    },
+    {
+      "file": "src/lib/desktopAccess.mjs",
+      "sha256": "5fa834fb19d4a8b0c1cba632bc6839e0995a162bebc1c36e8ba4e9c0d8b89006",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/desktopAccess.mjs"
+      }
+    },
+    {
+      "file": "src/lib/chromeVisibility.js",
+      "sha256": "32311697aaf3c8fcce8b9695d2652b0ea222f995833c6d15781a279f26f5efdd",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/chromeVisibility.js"
+      }
+    },
+    {
+      "file": "src/lib/deskField.mjs",
+      "sha256": "84144cf7e96e765d5b3ee252ed7b0ec39b2e85ef84d9c077997e507a0ce1bcbf",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/deskField.mjs"
+      }
+    },
+    {
+      "file": "src/lib/attachedPanes.mjs",
+      "sha256": "bd5362eb0a5ca26eaf1786f224fbfd4ea5d9e8ec2037f07f5bdb5df98cfa207d",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/attachedPanes.mjs"
+      }
+    },
+    {
+      "file": "src/components/ui/design-system/StandardProgramMenu.jsx",
+      "sha256": "955ff72820dceeca05798d2415e57ab9e2bcabc5bd6f86901958425db1c9fde6",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/components/ui/design-system/StandardProgramMenu.jsx"
+      }
+    },
+    {
+      "file": "src/lib/fileMenuContract.mjs",
+      "sha256": "b2f45ab7317cb9c36a0542dae9f723ffb4c06f0d61df16567d13ef89b060909e",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/fileMenuContract.mjs"
+      }
+    },
+    {
+      "file": "src/lib/useUserSettings.js",
+      "sha256": "095dfba357fb51edf560d08c525e9009f7bf0737203283ac6eb485d73468502c",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/useUserSettings.js"
+      }
+    },
+    {
+      "file": "src/lib/compoundApproval.mjs",
+      "sha256": "3ceaa6182fdb52e11e174c258dffe64c62e25f45add2f4edd24fd6123b8ef7ba",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/compoundApproval.mjs"
+      }
+    },
+    {
+      "file": "src/lib/projectionState.mjs",
+      "sha256": "a633ec5efcbe427899f9b2784397203066c3b1b6694ac85213218240b501d041",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/projectionState.mjs"
+      }
+    },
+    {
+      "file": "src/lib/projectionBindingStore.js",
+      "sha256": "c8855115f9096e330eacf54a5bd17db5e7839d3b6876606fe0650e278f55a780",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/projectionBindingStore.js"
+      }
+    },
+    {
+      "file": "src/lib/attachedTools.js",
+      "sha256": "d9023f8e4e03057e1908311441b7f478bfce827c461fda1353b30707e3a72bbe",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/attachedTools.js"
+      }
+    },
+    {
+      "file": "src/lib/step5.mjs",
+      "sha256": "3c7f0c4346e5bba6ababfacbf90292cacb76599e0b8237a8ef4d34023cb99a97",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/step5.mjs"
+      }
+    },
+    {
+      "file": "src/lib/pneumaContract.mjs",
+      "sha256": "c564704e8b1bb90d5a983fd8c90cf67a26f52a7e6b8b82fd4a1147312c8ab01d",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/pneumaContract.mjs"
+      }
+    },
+    {
+      "file": "src/lib/shadowProjection.mjs",
+      "sha256": "533602b4a9b81180d68a1ef1fdd1abcd06b298021dbb154b42c9a635a583aa17",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/shadowProjection.mjs"
+      }
+    },
+    {
+      "file": "src/components/brand/rotfl.jsx",
+      "sha256": "10700cf15d7d72ab757aede73f7702ab8bdc3e58da850b54f1d221d044e2cf3a",
+      "source": {
+        "kind": "qualified-renderer",
+        "path": "/media/chrishallberg/Storage 22/001_Flatpack_installs/xi-io-studio/workspaces/base44-app-qualified/src/components/brand/rotfl.jsx"
+      }
+    },
+    {
+      "file": "src/lib/eventVisibility.mjs",
+      "sha256": "f127fd0a7e9d6ab0a96a685350c488c24d38c961dc68fb10d3fdba3cc78b8ad9",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/eventVisibility.mjs"
+      }
+    },
+    {
+      "file": "src/lib/chromeLayers.mjs",
+      "sha256": "db33d626e10b0aa11565101c7cb276296957715568dd7f503c87b55b6a9ae0f4",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/chromeLayers.mjs"
+      }
+    },
+    {
+      "file": "src/lib/compoundSurface.mjs",
+      "sha256": "fa95844ff889631d3c28c71d56ea7167f880c6c40408bea3fc3394d6a73e0f49",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/compoundSurface.mjs"
+      }
+    },
+    {
+      "file": "src/components/ui/dropdown-menu.jsx",
+      "sha256": "4e61e768b8015f9a70ddb03505f5910c9271628e843857a3d77fabe7958506aa",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/components/ui/dropdown-menu.jsx"
+      }
+    },
+    {
+      "file": "src/components/ui/button.jsx",
+      "sha256": "1d51d8e387e4e95c831bdd8d08a9a7dac334362c03fb2ac2deb98678612ea901",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/components/ui/button.jsx"
+      }
+    },
+    {
+      "file": "src/lib/storageProjection.mjs",
+      "sha256": "6f31ecb96238cd42a3ed4ba72815da6e2c37705047936e9cd16fe216e72861f1",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/storageProjection.mjs"
+      }
+    },
+    {
+      "file": "src/lib/pneumaFanIn.mjs",
+      "sha256": "816220757cdfbecdaf7929a02c839f78f36fb0d4b81c82e7111e576ce8d5bb14",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/pneumaFanIn.mjs"
+      }
+    },
+    {
+      "file": "src/lib/acronyms.js",
+      "sha256": "64573de9e9b2b317336e3df24460db087c98a349ca3d6af31f53ef4b8f60890d",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/acronyms.js"
+      }
+    },
+    {
+      "file": "src/lib/projectionContract.mjs",
+      "sha256": "a793e95824ea84108e8806842229a7ae4c948de95b609597ebcb526058f30bbd",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/projectionContract.mjs"
+      }
+    },
+    {
+      "file": "src/lib/toolCatalogue.mjs",
+      "sha256": "34f6e052829e09763f79dcee9038e95297be06d3aa76e8ceaee19c8a7157e02d",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/toolCatalogue.mjs"
+      }
+    },
+    {
+      "file": "src/lib/appToolCatalogue.mjs",
+      "sha256": "71d04fd752fc344a5a79b8cc7c95822717cca41cdd229d9569a09da20c3f487f",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/appToolCatalogue.mjs"
+      }
+    },
+    {
+      "file": "src/components/framework/trinityContract.js",
+      "sha256": "506bfe65d9b26b80f965d1fbc2ba959d2e8c04a0cefa9af2daf1785eecc9fd94",
+      "source": {
+        "kind": "qualified-renderer",
+        "path": "/media/chrishallberg/Storage 22/001_Flatpack_installs/xi-io-studio/workspaces/base44-app-qualified/src/components/framework/trinityContract.js"
+      }
+    },
+    {
+      "file": "src/lib/rootContext.mjs",
+      "sha256": "ab9637a9a7032dbc4fcc6f7f203320c4eb2274faebfeb1f3b39356561ad24706",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/lib/rootContext.mjs"
+      }
+    },
+    {
+      "file": "src/components/ui/iconButtonName.js",
+      "sha256": "3a4bb833069879eb781e9116a8bee9af24ef4680e0a95393c42192009de82d2b",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/src/components/ui/iconButtonName.js"
+      }
+    },
+    {
+      "file": "tailwind.config.cjs",
+      "sha256": "557677eb6a2920f2be789d9da986fe65076db772522645f9e5a00bce53f38c07",
+      "source": {
+        "kind": "git",
+        "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
+        "path": "base44-donor/xi-io-node/tailwind.config.js"
+      }
+    }
+  ],
+  "missing": [],
+  "packages": [
+    "@radix-ui/react-context-menu",
+    "@radix-ui/react-dropdown-menu",
+    "@radix-ui/react-slot",
+    "class-variance-authority",
+    "clsx",
+    "framer-motion",
+    "https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=JetBrains+Mono:wght@100..800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap",
+    "lucide-react",
+    "react",
+    "react-router-dom",
+    "sonner",
+    "tailwind-merge"
+  ],
+  "service_boundary": "@/api/base44Client is supplied by host/studio-services.js; unbound managed services refuse calls."
+}

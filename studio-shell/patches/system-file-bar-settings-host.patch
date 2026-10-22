@@ -1,0 +1,27 @@
+--- a/src/components/framework/SystemFileBar.jsx
++++ b/src/components/framework/SystemFileBar.jsx
+@@ -64,7 +64,7 @@
+   ]);
+ }
+ 
+-export function SystemFileBar({ appName, surfaceRef, workRef, artifactRef = null, className }) {
++export function SystemFileBar({ appName, surfaceRef, workRef, artifactRef = null, className, onSettings }) {
+   const navigate = useNavigate();
+   const frame = useContext(FileActions);
+   const whiteLabel = useWhiteLabel();
+@@ -129,7 +129,7 @@
+     artifactRef={artifact}
+     saveTargets={actions?.saveTargets || []}
+     saveGuidelines={guidelines}
+-    onSettings={() => navigate(`/Settings?tab=personalization&return=${encodeURIComponent(window.location.pathname + window.location.search)}`)}
++    onSettings={onSettings || (() => navigate(`/Settings?tab=personalization&return=${encodeURIComponent(window.location.pathname + window.location.search)}`))}
+     onNew={bound(FILE_ACTION.NEW, actions?.onNew)}
+     onSave={bound(FILE_ACTION.SAVE, actions?.saveEnabled ? actions?.onSave : null)}
+     onSaveAs={bound(FILE_ACTION.SAVE_AS, actions?.onSaveAs)}
+@@ -138,4 +138,4 @@
+     onShare={bound(FILE_ACTION.SHARE, actions?.onShare)}
+     fileStatus={actions?.status || 'File actions route through Switchboard; provider effects require readback.'}
+   />;
+-}
+\ No newline at end of file
++}

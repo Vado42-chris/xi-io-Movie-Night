@@ -1,0 +1,7 @@
+features:
+  - {id: wall, status: partial, ui: web, api: /api/browse, evidence: project-tracking/evidence-ledger.md}
+  - {id: details, status: in_build, ui: web, api: /api/browse/meta, evidence: project-tracking/evidence-ledger.md}
+  - {id: sources, status: in_build, ui: web, api: /api/player/sources, security: opaque_ids_no_urls}
+  - {id: player, status: partial, ui: web_and_native, api: /api/player/play, security: explicit_user_selection}
+  - {id: settings, status: partial, ui: studio-shell/src/Settings.jsx, api: /api/settings, security: revision_check}
+  - {id: concierge, status: partial, ui: studio-shell/src/Concierge.jsx, ai: optional_local_ollama}

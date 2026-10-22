@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-native-movie-window"
+description = "Enables the native_movie_window command without any pre-configured scope."
+commands.allow = ["native_movie_window"]
+
+[[permission]]
+identifier = "deny-native-movie-window"
+description = "Denies the native_movie_window command without any pre-configured scope."
+commands.deny = ["native_movie_window"]

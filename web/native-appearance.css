@@ -1,0 +1,10 @@
+/* Per-surface alpha only. Text, poster pixels and native video remain opaque. */
+html[data-window-material="glass"],
+html[data-window-material="glass"] body.studio-embedded { background:transparent; }
+html[data-window-material="glass"] body.studio-embedded { --bg:transparent; --surface:#1d211bc9; --surface-raised:#2b3025e8; }
+html[data-window-material="glass"] .catalog-browse { background:#1b211aa8; }
+html[data-window-material="glass"] .film-dialog,
+html[data-window-material="glass"] .filter-dialog { background:#1d211bf7; }
+html[data-window-material="glass"] .poster-wrap,
+html[data-window-material="glass"] .dialog-poster { background:#151812; }
+html[data-window-material="glass"] body.studio-embedded.native-player-mode { background:#10120f; }

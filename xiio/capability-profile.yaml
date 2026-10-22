@@ -1,0 +1,8 @@
+read_only: [catalogue, metadata, player_status, existing_nuvio_snapshot]
+proposal_only: [ollama_collection]
+explicit_user_actions: [favorite, save_collection, choose_source, play, player_command, save_preferences]
+forbidden: [reset_nuvio, publish_credentials, autoplay_on_open, arbitrary_shell, public_media_tunnel]
+api_owner: local_loopback_services
+mcp_runtime_binding: unverified
+source_selection: opaque_title_bound_expiring_id
+settings_contract: current app revisioned API; OS entry contract pending

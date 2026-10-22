@@ -1,0 +1,20 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "movie-night-local-window",
+  "description": "Only the Movie Night loopback frontend in its own main window.",
+  "windows": ["main"],
+  "local": false,
+  "remote": {
+    "urls": ["http://127.0.0.1:8789/*"]
+  },
+  "permissions": [
+    "core:default",
+    "allow-prepare-movie-player",
+    "allow-show-movie-player",
+    "allow-show-movie-wall",
+    "allow-toggle-movie-fullscreen",
+    "allow-set-movie-controls-height",
+    "allow-set-movie-viewport",
+    "allow-native-movie-window"
+  ]
+}

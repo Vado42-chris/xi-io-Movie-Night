@@ -1,0 +1,11 @@
+{
+  "title": "Movie Night",
+  "collections": [
+    {
+      "id": "top100-1980-1995",
+      "name": "Top 100 · 1980–1995",
+      "description": "One hundred great films from 1980 through 1995, in our original curated order.",
+      "file": "top100-1980-1995.json"
+    }
+  ]
+}

@@ -1,0 +1,134 @@
+{
+  "xiio_version": "source@f2976548b09743f0d54c308c44a71be30752152f",
+  "manifest_version": "1",
+  "project_id": "xi_io_movie_night",
+  "project_name": "xi-io movie night",
+  "project_type": "local_app",
+  "management_mode": "canonical_managed_project",
+  "implementation_focus": "external_separate_workstream",
+  "description": "Local-first media app and standalone Studio shell reference consumer.",
+  "repository": {
+    "provider": "github",
+    "full_name": "Vado42-chris/xi-io-Movie-Night",
+    "url": "https://github.com/Vado42-chris/xi-io-Movie-Night",
+    "default_branch": "main",
+    "repo_safe": true
+  },
+  "paths": {
+    "xiio_contract_root": "xiio",
+    "docs_root": "docs",
+    "engines_root": "player",
+    "schemas_root": "xiio/schemas",
+    "reports_root": "project-tracking",
+    "local_runtime_root": ".xiio"
+  },
+  "status": {
+    "lifecycle_state": "in_build",
+    "freshness_state": "needs_review",
+    "validation_state": "warning",
+    "repo_sync_state": "pending",
+    "known_blockers": [
+      "OS settings contract pending",
+      "Framework runtime admission not verified",
+      "Native current-build checks outstanding"
+    ],
+    "next_action": "Preserve source and connect movie detail/source selection; verify exact main and deployed behavior."
+  },
+  "ownership": {
+    "owner": "Vado42-chris",
+    "implementation_owner": "Movie Night app lane",
+    "management_owner": "xi-io suite dot",
+    "notes": "Do not duplicate suite registration or OS settings."
+  },
+  "privacy_posture": {
+    "default_visibility": "local_only",
+    "local_first": true,
+    "vault_required": true,
+    "repo_safe_by_default": false,
+    "sensitive_data_classes": [
+      "provider credentials",
+      "viewing history",
+      "personal collections",
+      "controller tokens"
+    ],
+    "excluded_patterns": [
+      ".xiio/**",
+      "*-runtime/**",
+      "*.properties",
+      ".env*",
+      "*.token"
+    ]
+  },
+  "runtime": {
+    "local_preview": {
+      "status": "implemented",
+      "command": "python3 server.py --port 8789",
+      "description": "Loopback metadata wall; private adapter configuration required for playback."
+    },
+    "build": {
+      "status": "implemented",
+      "command": "npm --prefix studio-shell run build"
+    },
+    "smoke_test": {
+      "status": "implemented",
+      "command": "python3 server.py --check"
+    },
+    "deploy": {
+      "status": "blocked",
+      "description": "Installed Aries prototype exists; portable public packaging and OS integration not qualified.",
+      "requires_confirmation": true
+    },
+    "rollback": {
+      "status": "implemented",
+      "description": "Restore scoped source from private pre-change archive and restart only idle owned services.",
+      "requires_confirmation": true
+    }
+  },
+  "documentation": {
+    "required_artifacts": [
+      {
+        "artifact_type": "handoff",
+        "path": "docs/CURRENT.md",
+        "status": "source_evidence_available"
+      },
+      {
+        "artifact_type": "shared_shell",
+        "path": "docs/architecture/shared-shell-foundation.md",
+        "status": "generated_draft"
+      }
+    ],
+    "hydration_report_path": "docs/ops/PROJECT-STARTUP-xi_io_movie_night-2026-10-22.md",
+    "handoff_pack_path": "docs/CURRENT.md"
+  },
+  "engines": {
+    "ingress": {
+      "status": "configured",
+      "notes": "Framework binding unverified; see explicit product gap record."
+    },
+    "binning": {
+      "status": "blocked",
+      "notes": "Framework binding unverified; see explicit product gap record."
+    },
+    "analysis": {
+      "status": "configured",
+      "notes": "Framework binding unverified; see explicit product gap record."
+    },
+    "lexicon": {
+      "status": "configured",
+      "notes": "Framework binding unverified; see explicit product gap record."
+    },
+    "egress": {
+      "status": "configured",
+      "notes": "Framework binding unverified; see explicit product gap record."
+    },
+    "observer": {
+      "status": "blocked",
+      "notes": "Framework binding unverified; see explicit product gap record."
+    },
+    "validation": {
+      "status": "configured",
+      "notes": "Framework binding unverified; see explicit product gap record."
+    }
+  },
+  "managed_project_notes": "Manifest metadata is not runtime admission. Human-only browsing/playback supported; Ollama optional. Owner authorized source preservation/main and local app work; no Nuvio mutation or public media hosting."
+}

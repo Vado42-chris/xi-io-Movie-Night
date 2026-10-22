@@ -1,0 +1,109 @@
+/* ── EMBEDDED, NOT GLOWING ───────────────────────────────────────────────────
+ *
+ * A widget or window at rest on the desktop is SET INTO it: a well cut in the
+ * surface, seen straight on. Depth from this angle is read from the walls of the
+ * well — the lip above throws its shadow down over the floor and the sides, and
+ * the only light that reaches the panel is the thin rim along the bottom edge.
+ *
+ * The chroma material does the opposite. It lights a surface standing ABOVE the
+ * field — gloss on the top edge, its own hue pooled at the foot, a cast shadow —
+ * and on a panel that is supposed to be inside the desktop that pooled hue is
+ * exactly the glow that reads as a lamp behind the glass. So at rest the gloss
+ * and the reflection are switched off and the walls are drawn instead.
+ *
+ * WHILE IT IS BEING CARRIED it is lifted out of the well and the chroma look is
+ * restored untouched, so the settle on release is the panel going back in.
+ * `data-lifted` is written straight onto the element by the drag handlers rather
+ * than held in state, so picking up a window never re-renders the application
+ * inside it.
+ *
+ * Ink and rim are tokens because the light flips with the reading: a shadow is
+ * dark ink in both, and the rim is the lit edge — faint on a dark field, bright
+ * on a pale one. */
+:root {
+  --embed-shade: 25 16% 10%;
+  --embed-depth: 0.34;
+  --embed-lip: 25 16% 100%;
+  --embed-lip-alpha: 0.9;
+}
+
+.dark {
+  --embed-shade: 25 16% 0%;
+  --embed-depth: 0.78;
+  --embed-lip: 25 16% 100%;
+  --embed-lip-alpha: 0.11;
+}
+
+.xi-chroma.xi-embedded {
+  transition: box-shadow var(--motion-settle) var(--ease-out-expo);
+}
+
+/* ── AND ONLY THE NEUTRAL CHROME IS SET IN ───────────────────────────────────
+ *
+ * `:not(.xi-chroma-lit)` is the whole correction. A surface that declares a HUE
+ * is a coloured window, and a coloured window is not a well — it is an object
+ * standing above the field. The well is the right drawing for the grey chrome
+ * and the wrong one for a colour, and the difference is declared at the hue's
+ * owner (src/lib/chromaMaterial.mjs) rather than re-decided here.
+ *
+ * What the well was doing to a coloured window, and why it read as mud:
+ *
+ *   · every layer of its box-shadow was INSET, so the window cast NO shadow and
+ *     did not separate from the desk at all;
+ *   · `inset 0 8px 14px -5px` at --embed-depth 0.78 lays a black wash three
+ *     quarters of the way to opaque down the top of the window, and
+ *     `inset 0 0 28px` lays another at a third across all of it — straight over
+ *     the luminance ladder the content inside sits on.
+ *
+ * So the CONTRAST layer was there and buried, and the SHADOW layer was absent
+ * entirely. Both come back by letting a coloured window be what it says it is. */
+.xi-chroma.xi-embedded:not([data-lifted='true']):not(.xi-chroma-lit) {
+  box-shadow:
+    /* ── THE CAST SHADOW, WHICH THE WELL USED TO REPLACE ────────────────────
+     *
+     * Every layer below this one is `inset`. The well was written as the whole
+     * of a resting panel's box-shadow, so a neutral window cast NOTHING — it did
+     * not separate from the desk at all, and the only thing saying where it
+     * ended was the hairline rim. That is the same missing shadow layer the
+     * coloured windows had, one reading further in, and it is why the neutral
+     * chrome reads as flat as the coloured chrome does.
+     *
+     * The well is a drawing of the INSIDE of a panel. It was never a reason for
+     * the panel to stop casting. So the reading's own float goes back on top of
+     * it, and the walls are added to the shadow rather than standing in for it. */
+    var(--projection-float),
+    /* the lip above throws its shadow down the wall */
+    inset 0 8px 14px -5px hsl(var(--embed-shade) / var(--embed-depth)),
+    /* the side walls, softer */
+    inset 0 0 28px hsl(var(--embed-shade) / calc(var(--embed-depth) * 0.45)),
+    inset 0 0 0 1px hsl(var(--embed-shade) / calc(var(--embed-depth) * 0.5)),
+    /* the rim: the one edge the light reaches, inside and just outside */
+    inset 0 -1px 0 hsl(var(--embed-lip) / var(--embed-lip-alpha)),
+    0 1px 0 hsl(var(--embed-lip) / var(--embed-lip-alpha));
+}
+
+.xi-chroma.xi-embedded:not([data-lifted='true']):not(.xi-chroma-lit)::before {
+  display: none;
+}
+
+/* ── THE SHADOW LAYER, ON A COLOURED WINDOW ──────────────────────────────────
+ *
+ * A coloured window stands above the field, so it casts. This is the reading's
+ * own float — so it is correct in both readings and flips with the light — given
+ * the window's own hue underneath it, because a coloured body does not cast a
+ * grey shadow. The inset bevel stays: the lit top edge is the one thing a raised
+ * body and a well have in common, and it is what says the surface has an edge.
+ *
+ * The gloss and the reflection are already drawn by `.xi-chroma::before`; the
+ * well was switching them off. Both are back for a colour, and the neutral
+ * chrome keeps the well it was argued for. */
+.xi-chroma.xi-chroma-lit {
+  box-shadow:
+    var(--projection-float),
+    0 22px 54px -24px hsl(var(--chroma-hue) 60% 12% / 0.62),
+    inset 0 1px 0 hsl(0 0% 100% / 0.09);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xi-chroma.xi-embedded { transition: none; }
+}

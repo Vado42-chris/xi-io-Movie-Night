@@ -1,0 +1,25 @@
+# Private state, credentials and generated outputs never belong in this public repo.
+.xiio/
+.env
+.env.*
+!.env.example
+*.token
+*.pem
+*.key
+*.properties
+*.sock
+*.log
+__pycache__/
+*.py[cod]
+node_modules/
+target/
+studio-web/
+*-runtime/
+*-backups/
+verification/*-results/
+verification/*.json
+!verification/*.schema.json
+.DS_Store
+
+# Also exclude dependency symlinks.
+node_modules

@@ -1,0 +1,10 @@
+profile: movie-night-studio-consumer
+owner: xi-io-studio
+frame: WindowFrame.jsx
+chat: ChatSnapControl.jsx
+frame_source_pin: 94c49141a132ed00cdd72d0457911fc40523794f
+native_mode: frame_is_actual_window
+virtual_mode: existing_workspace_frame
+settings_owner: Movie Night app settings until reviewed OS contract is bound
+accessibility: keyboard focus, escape/back, readable opaque fallback, touch-size controls
+native_effect_claims: require exact runtime evidence

@@ -1,0 +1,14 @@
+[Unit]
+Description=Personal Movie Night poster browser and Nuvio catalogue
+
+[Service]
+Type=simple
+WorkingDirectory=/home/chrishallberg/Documents/Personal-Movies/movie-night
+ExecStart=/usr/bin/python3 /home/chrishallberg/Documents/Personal-Movies/movie-night/server.py --port 8789
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+UMask=0077
+
+[Install]
+WantedBy=default.target

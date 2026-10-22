@@ -1,0 +1,9 @@
+namespace: movie_night
+terms:
+  wall: browsable title catalogue
+  detail: full-content title view inside the shared shell
+  source: a provider-reported playable choice, not a catalogue entry
+  collection: an explicit user or editorial list
+  host: virtual or native presentation adapter
+forbidden_equivalences: [metadata_equals_availability, button_equals_effect, manifest_equals_compliance]
+framework_promotion: requires owning framework review

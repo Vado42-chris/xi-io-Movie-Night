@@ -1,0 +1,1899 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=JetBrains+Mono:wght@100..800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* :root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: #646cff;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+} */
+
+
+
+@layer base {
+  :root {
+    /* ── THE BRAND: BROWNS AND BLACKS, AND THE SAME CYAN ──────────────────
+       xi-io.net is the light face of this estate; this shell is its dark
+       mirror — warm brown-blacks carrying the SAME cyan. So the neutral axis
+       is declared at hue 25 rather than 0. That is the whole change.
+
+       EVERY LIGHTNESS BELOW IS BYTE-FOR-BYTE WHAT IT WAS. The ladder owns the
+       step (L*(n) = 3.5 + 5.5n — see src/lib/surfaceRamp.mjs) and the brand
+       owns only the HUE, so two surfaces still differ by the same amount to
+       the eye at every nesting depth. Tinting the ladder is a CHROMA change
+       and not a contrast change, which is why every ink keeps the legibility
+       it was measured at.
+
+       The accent is deliberately not restated here. It is --color-brand below,
+       and it is the same 168 the light face carries. */
+    --background: 25 16% 100%;
+    --foreground: 25 16% 3.9%;
+    --card: 25 16% 100%;
+    --card-foreground: 25 16% 3.9%;
+    --popover: 25 16% 100%;
+    --popover-foreground: 25 16% 3.9%;
+    --primary: 25 16% 9%;
+    --primary-foreground: 25 16% 98%;
+    --secondary: 25 16% 96.1%;
+    --secondary-foreground: 25 16% 9%;
+    --muted: 25 16% 96.1%;
+    --muted-foreground: 25 16% 45.1%;
+    --accent: 25 16% 96.1%;
+    --accent-foreground: 25 16% 9%;
+    /* 42%, not 60.2%. A near-white label on a 60% red measured 3.6 — below the
+       body floor — so the destructive button was the least readable control in
+       the light shell. Deepened until the label clears 4.5. */
+    --destructive: 0 72% 42%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 25 16% 89.8%;
+    --input: 25 16% 89.8%;
+    --ring: 25 16% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+
+    /* The brand accent — the solar side of xi-io, carried into the dark shell.
+       Declared here so a runtime theme can never invent it. */
+    --color-brand: 168 34% 46%;
+
+    /* ── The seven states ─────────────────────────────────────────────────
+       One light in the dark. The brand teal is the only accent — it is the
+       flashlight, and it carries "intent" and "execution" alike, because a
+       thing you mean to do and a thing that is happening are the same light
+       at different brightness. Amber is the single caution, red the single
+       alarm. Everything else recedes into grey, so the one lit thing on the
+       screen is the thing you actually meant.
+
+       Declared here and nowhere else. Nothing writes these at runtime. */
+    --color-orientation: 210 12% 58%;
+    --color-intent: 168 34% 46%;
+    --color-execution: 168 38% 62%;
+    --color-review: 38 52% 60%;
+    /* 50%, not 46%: the owner reads this one as TEXT, and at 46% it measured
+       4.15:1 on --void in dark — under the body floor. The contrast contract
+       held it at the MARK floor (3.0), which is why nothing caught it. It is
+       now held at AA_BODY there, and scripts/guard-mobile-compat.mjs asserts it. */
+    --color-settled: 210 10% 50%;
+    --color-warning: 2 58% 58%;
+    --color-system: 210 8% 52%;
+
+    /* The status line under the system mark — a muted grey-green. The one
+       colour in the shell that is neither a state nor an action. */
+    --color-status: 128 4% 49%;
+
+    /* Legacy names, kept so older surfaces resolve to the same light instead
+       of inventing a colour of their own. */
+    --color-identity: 210 12% 58%;
+    --color-active: 168 38% 62%;
+    --color-pending: 38 52% 60%;
+    --color-error: 2 58% 58%;
+
+    /* The four sheets of construction paper the shell is built from, and the
+       text that sits on them. These used to be declared in an injected <style>
+       inside the layout, alongside a second copy of the whole palette — which
+       is how the app ended up with two of everything. They live here now. */
+    --void: 25 16% 5%;
+    --layer-orientation: 210 12% 58% / 0.10;
+    --layer-intent: 168 34% 46% / 0.10;
+    --layer-state: 210 20% 98% / 0.10;
+
+    --fg-orientation: 210 12% 62%;
+    /* 56%, not 46%: the intent reading measured 4.11 on a panel — a failing
+       pair in DARK, which is the mode nobody re-checks. */
+    --fg-intent: 168 42% 56%;
+    --fg-state: 210 10% 78%;
+
+    /* ── No radius ────────────────────────────────────────────────────────
+       The brand has no rounded corners. The whole shadcn family is remapped to
+       this one token (see tailwind.config.js), so setting it to zero squares
+       the component set in one move instead of two hundred edits that drift
+       back apart by next week. */
+    --radius: 0rem;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Typography roles — loaded once here, consumed via the font-* classes */
+    --font-heading: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --font-body: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --font-display: 'Playfair Display', ui-serif, Georgia, serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+    /* Single layer scale for the whole OS shell — nothing should hardcode z again.
+     *
+     * ── The lateral index ──────────────────────────────────────────────
+     * z says which plane a surface is on. It says nothing about the order of
+     * two surfaces sharing one: at equal z the winner is whichever happens to
+     * be later in the DOM, which flips on unrelated state. The lateral index
+     * is the order z cannot give.
+     *
+     * It is not a second z and it is never a number in this file. It is the
+     * order a surface renders in *within* its band, held as data on the surface
+     * (see `lane` on a pinned window). z decides the band and only the band;
+     * the lane decides position inside it. A surface can never leave its band
+     * by moving along the lane, and a lane can never lift a surface into
+     * another band — which is what a private integer was doing. */
+    --z-content: 10;
+    /* The shadow of a stack: drawn over the conversation it belongs to, and
+       under every band that carries a control. */
+    --z-subterranean: 15;
+    --z-widget: 20;
+    /* ── THE WORK FIELD, AND WHAT IS KEPT ON TOP OF IT ─────────────────────
+     *
+     * These two were the other way round, and the consequence was specific
+     * rather than theoretical: every PINNED surface was drawn under every
+     * WINDOW. A pinned chat is the clearest case — it is the surface somebody
+     * explicitly asked to keep, and it could be covered by any pane opened
+     * afterwards. Its own drag handle was then unreachable, which is why a
+     * conversation could not be dragged onto a work surface to dock: the thing
+     * being dragged was underneath the thing it was being dragged to.
+     *
+     * The desktop's own layer called itself the Z-STACK TOP while sitting
+     * underneath the window layer — one fact declared in two places, and the
+     * two disagreed. The band the code names is now the band the ladder
+     * declares.
+     *
+     * The order, read upwards: a window is the WORK, and a pin is what is kept
+     * in view while the work moves underneath it. A kept surface that a window
+     * can cover is not kept. */
+    --z-window: 25;
+    --z-pinned: 30;
+    --z-overlay: 40;
+    --z-panel: 50;
+    /* 85, not 60.
+     *
+     * A popup hangs from the surface that opened it, so it has to clear that
+     * surface — and the surface it most often hangs from is a dialog, declared
+     * at 80. At 60 every popup opened BEHIND the dialog that raised it:
+     * invisible, unselectable, and perfectly consistent on every page looked at
+     * on its own, which is why it survived so long. Above the modal band, below
+     * the inspector outlines and the toast.
+     *
+     * This is the popup band's ONE declaration. A popup that re-typed the
+     * number instead would be a second copy of this value, and a second copy is
+     * what drifted the first time. */
+    --z-popover: 85;
+    --z-modal: 80;
+    /* The builder's own outlines. They are drawn over the app they annotate —
+       including its dialogs — and under a toast, which must never be covered. */
+    --z-inspector: 90;
+    --z-toast: 100;
+
+    /* ── THE Φ PROPORTION ─────────────────────────────────────────────────
+       The split every viewport is a projection of. Declared in full in
+       src/lib/goldenLayout.mjs, which computes the two shares from Φ rather
+       than typing them — these three lines are that declaration's own numbers,
+       written once here because a stylesheet can only consume a value.
+
+       GEOMETRY, NOT COLOUR, so they are declared in this block only. The
+       `.dark` block exists because ink flips; a proportion does not flip with
+       the light, and giving it a second set of values would be two answers to
+       a question with one.
+
+       --golden-minor is the drawer's share of the FULL screen width, which is
+       what the note asks for — so the working surface beside it is what is
+       left after the rail, not a second hand-tuned number. */
+    --phi: 1.618033988749895;
+    --golden-major: 61.8%;
+    --golden-minor: 38.2%;
+
+    /* ── THE BRAND PLATE'S COMPOSITION ─────────────────────────────────────
+     *
+     * The owner's carved cog is not a wallpaper. It is the composition the mark
+     * is SET IN, and two numbers describe it. Neither existed, which is the
+     * whole of why the two drifted apart.
+     *
+     * The plate was painted `bg-cover bg-center`. `center` is the fault: the
+     * plate's middle landed on the viewport's middle — which is where the
+     * mark's middle already is — so the wheel sat BEHIND the mark rather than
+     * under it, and the gap the owner drew between the two read as zero. That
+     * is "all my atmosphere is gone between the ibal logo and the cog."
+     *
+     * --brand-plate-drop   how far the plate's centre sits BELOW the mark's
+     *                      base. THIS IS THE ATMOSPHERE: the visible gap
+     *                      between the foot of the ibal mark and the middle of
+     *                      the cog. Raise it and the wheel falls away from the
+     *                      mark; at 0px the two are concentric again.
+     * --brand-plate-size   the plate's size. Left at `cover` it is exactly what
+     *                      it was — the artwork cropped to fill — which is why
+     *                      the cog's circle met the mark wherever the crop
+     *                      happened to land rather than where it was drawn to
+     *                      meet. Set a width (e.g. 130%) to take the scale back
+     *                      from the crop and hold the intersection still.
+     *
+     * Both are GEOMETRY, so they are declared once here and read by the plate
+     * in AtmosphereSurface. A second copy of either is what drifts. */
+    --brand-plate-drop: 168px;
+    --brand-plate-size: cover;
+
+    /* ── THE CONTEXTUAL TOOL DRAWER, BOUNDED IN PIXELS ────────────────────
+     *
+     * The drawer opened to the Φ-minor share of the viewport, which reads as a
+     * proportion and behaves as a claim: at 1280px it was 489px, and on a 2927px
+     * display it was 1118px — a third of the screen given to a column whose own
+     * content said "nothing attached". A share of the viewport is an authority
+     * that grows with the monitor, which is the opposite of what a tool column
+     * is for.
+     *
+     * A tool drawer is sized by its CONTENT, not by the display: it holds rows,
+     * a label and a control or two, and none of that gets wider because somebody
+     * bought a bigger screen. So it is bounded, and the bound is the working
+     * range rather than a share — comfortably wide for a tool row at the bottom
+     * end, and never so wide that it competes with the artifact for the eye.
+     *
+     * CLOSED IS ZERO. The rail beside it is the global navigation's, not this
+     * drawer's, so this drawer has no collapsed width to occupy — a panel that
+     * keeps 56px while empty is 56px of reservation.
+     *
+     * Declared here rather than at the call site for the same reason every other
+     * geometry token is: a second copy of the number is what drifts. */
+    --tool-drawer: clamp(20rem, 26vw, 25rem);
+
+    /* ── THE READING RHYTHM ───────────────────────────────────────────────
+       The multiplier the document root is measured in. It is geometry, so it
+       is declared here and only here — it does not flip with the light.
+
+       It exists because the scale slider had nothing behind it. The panel wrote
+       a preference and the theme writer stored it as `--font-scale`, which
+       NOTHING anywhere read: moving the slider changed stored state and left
+       the rendered page byte for byte identical. A setting whose only effect is
+       on its own storage is not a setting.
+
+       This is the value `html` consumes (see the base layer below), so the
+       preference now moves type, control padding, line rhythm and container
+       spacing together — because every one of them is expressed in rem. */
+    --rem-scale: 1;
+
+    /* The touch floor, carried from the article tier (WCAG 2.1 AAA). A floor,
+       not a preference — which is why it is one token and not six. */
+    --touch-floor: 48px;
+
+    /* The motion contract, taken from the background tempo — the cogwheel's
+       parallax settle, subdivided. Declared in src/lib/motion.js, mirrored
+       here and in tailwind.config.js. Animation is part of the brand. */
+    --motion-instant: 120ms;
+    --motion-quick: 200ms;
+    --motion-base: 320ms;
+    --motion-settle: 480ms;
+    --motion-deliberate: 720ms;
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+
+    /* ── The projection ───────────────────────────────────────────────────
+       One cube. How far it is raised is the only thing that changes.
+
+       Measured off the owner's Stitch source — 129 screens carrying 23
+       distinct box-shadows — and reduced to the three that actually recur:
+       the inset bevel worn at rest, and the two lifts above it. Declared once
+       here so no surface can invent a fifth depth of its own. */
+    --projection-fill: rgba(255, 255, 255, 0.03);
+    --projection-border: rgba(255, 255, 255, 0.08);
+    --projection-blur: 10px;
+
+    /* ── THE PROJECTION, GIVEN BACK ITS VALUE ────────────────────────────
+     *
+     * These three were `none` in BOTH blocks, and that is the whole of "where
+     * is the depth": every surface that asked for a cube was handed an empty
+     * box-shadow, so `PROJECTION.resting`, `.lifted` and `.floating` all
+     * resolved to nothing and the SDK's entire depth axis was dead code.
+     *
+     * It was deliberate once. The note here argued that a raised surface
+     * "belongs to a document editor" and was "the single most Word-like thing
+     * the shell did" — and against a near-black field that argument holds,
+     * because a shadow on black is invisible anyway. What it missed is that
+     * the argument does not survive the LIGHT shell, where the same setting
+     * left a pale field with no hierarchy at all: every block the same value,
+     * separated only by a hairline, which reads as flat paper rather than as
+     * a shell. A mode is not an excuse to lose the third dimension.
+     *
+     * So the cube is lit again, and it is lit DIFFERENTLY by mode rather than
+     * turned off by one. Dark keeps a soft dark drop, because that is what a
+     * raised object does over a dark field. Light gets a tighter, darker
+     * shadow at lower alpha — the same lift, drawn the way a light page
+     * carries it. Both keep the inset bevel at rest, which is the one-pixel
+     * highlight along the top edge that says "this surface is above the one
+     * behind it" without moving anything.
+     *
+     * The luminance ladder below still does the work of telling two nested
+     * surfaces apart. This is what tells two OVERLAPPING ones apart. */
+    --projection-bevel: inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+    --projection-lift: 0 2px 6px -1px rgba(0, 0, 0, 0.55), 0 1px 2px rgba(0, 0, 0, 0.4);
+    --projection-float: 0 18px 44px -10px rgba(0, 0, 0, 0.72), 0 6px 16px rgba(0, 0, 0, 0.5);
+
+    /* ── THE LUMINANCE LADDER ────────────────────────────────────────────
+       Six levels, one step. L*(n) = 3.5 + 5.5n — and for a light shell the
+       same ladder mirrored through L* 50, so the step is the same size to
+       the eye whichever way up the shell is.
+
+       The point is not the numbers, it is that they are DERIVED. An equal
+       step in L* is an equally visible step, at every nesting depth: a frame
+       against its content and a card against its panel differ by the same
+       amount to the eye. That is what makes this fractal rather than a pair
+       of percentages someone liked. Hand-picking was the failure — two
+       surfaces derived from one value, a step of one RGB unit, and a window
+       whose content could not be read on its own frame.
+
+       src/lib/surfaceRamp.mjs computes these, and verifies the declared ink
+       set against them. Level 0 is the field the shell already declares as
+       --void. Nothing here is typed by hand. */
+    /* The same ladder, mirrored through L* 50. Derived, and left alone. */
+    --surface-frame: 25 16% 89.9%;
+    --surface-content: 25 16% 83.8%;
+    --surface-panel: 25 16% 77.8%;
+    --surface-raised: 25 16% 71.9%;
+    --surface-overlay: 25 16% 66%;
+
+    /* ── THE LATTICE ─────────────────────────────────────────────────────
+       The panel texture: 1px lines on a fixed 12px cell, low enough in
+       contrast to be felt before it is seen. It is a texture and not a
+       ruler — it carries no value, marks no column and measures nothing, so
+       it never competes with what is written on top of it.
+
+       Declared in both blocks because only the INK flips: dark lines on a
+       light shell, light lines on a dark one, at the same near-invisible
+       alpha. The cell is declared once and is the same on every panel, so
+       two windows side by side are ruled alike. */
+    --grid-cell: 12px;
+    /* ── THE CHAT IS A BALANCE, AND BOTH POLES ARE REPRESENTED ─────────────
+     *
+     * One conversation, two OPPOSING projections: a BRIGHT one and a DARK one,
+     * meeting at the seam and never blending. That is the estate's own law, and
+     * it is declared with its tones in src/lib/chatSnap.mjs — `golden.tone` is
+     * BRIGHT and `subterranean.tone` is DARK — with the seam between them drawn
+     * by .xi-chat-waterline below.
+     *
+     * So the two planes are NOT two rungs of the luminance ladder, and they are
+     * not the reading's sheets either: a ladder step between two dark rungs is
+     * a step, not a BALANCE, and it leaves one pole unrepresented. The tones
+     * are a fact about the PAIR, not about the light — which is why they are
+     * declared once here and not per reading.
+     *
+     * The brand reaches them through their HUE (the estate's neutral axis, hue
+     * 25, not a cool grey) and through everything standing on them — see the
+     * plane rules in src/components/chat/chatDock.css, whose fills, borders and
+     * muted inks sit on that same axis so a white-label knockout reaches them. */
+    --chat-face: 25 16% 94%;
+    --chat-ink: 25 16% 12%;
+    --chat-shadow: 25 16% 12%;
+    --chat-shadow-ink: 25 16% 94%;
+    --grid-line: 25 16% 0% / 0.05;
+
+    /* ── THE GLASS, OWNED BY THE MODE ─────────────────────────────────────
+       Base and edge are COLOUR, so they are declared per mode; how much of them
+       you want is preference and is declared by themeUtils at runtime.
+
+       These two were missing entirely. The material renderer has been asking
+       for `hsl(var(--glass-base) / …)` and `hsl(var(--glass-edge) / …)` all
+       along — and nothing ever declared either, so every glass plane in the
+       estate resolved its fill to nothing and the glass a person actually saw
+       came from rgba literals inlined in JavaScript. That is why light mode
+       could change its nominal palette and still be handed black glass with
+       white edges: the part that was mode-aware was never read, and the part
+       that was read was hardcoded.
+
+       LIGHT is a white pane with a dark edge. */
+    --glass-base: 25 16% 100%;
+    --glass-edge: 25 16% 0%;
+    /* ── A SHADOW IS INK, NOT A PANE ────────────────────────────────────────
+       The desktop glass cast its shadow in `--glass-base`, which is the pane's
+       own FILL — white in the light reading. So in Day mode every glass surface
+       dropped a white shadow onto the pale field it was supposed to be floating
+       above: a shadow that cannot be seen, in the one mode that needs one most.
+       A fill flips with the light; a shadow never does. Declared in both blocks
+       at the same value, because it is the same ink either way up. */
+    --glass-shadow: 25 16% 0%;
+  }
+  .dark {
+    --background: 25 16% 3.9%;
+    --foreground: 25 16% 98%;
+    --card: 25 16% 3.9%;
+    --card-foreground: 25 16% 98%;
+    --popover: 25 16% 3.9%;
+    --popover-foreground: 25 16% 98%;
+    --primary: 25 16% 98%;
+    --primary-foreground: 25 16% 9%;
+    --secondary: 25 16% 14.9%;
+    --secondary-foreground: 25 16% 98%;
+    --muted: 25 16% 14.9%;
+    /* 69%, not 63.9%: on the raised rung (23.5%) the old value measured 4.38. */
+    --muted-foreground: 25 16% 69%;
+    --accent: 25 16% 14.9%;
+    --accent-foreground: 25 16% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 25 16% 14.9%;
+    --input: 25 16% 14.9%;
+    --ring: 25 16% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    --color-brand: 168 34% 46%;
+
+    /* Same seven, same values. The shell is always dark, but they are declared
+       in both blocks so a surface can never fall through to a stray default. */
+    --color-orientation: 210 12% 58%;
+    --color-intent: 168 34% 46%;
+    --color-execution: 168 38% 62%;
+    --color-review: 38 52% 60%;
+    /* 50%, not 46%: the owner reads this one as TEXT, and at 46% it measured
+       4.15:1 on --void in dark — under the body floor. The contrast contract
+       held it at the MARK floor (3.0), which is why nothing caught it. It is
+       now held at AA_BODY there, and scripts/guard-mobile-compat.mjs asserts it. */
+    --color-settled: 210 10% 50%;
+    --color-warning: 2 58% 58%;
+    --color-system: 210 8% 52%;
+
+    --color-status: 128 4% 49%;
+
+    --color-identity: 210 12% 58%;
+    --color-active: 168 38% 62%;
+    --color-pending: 38 52% 60%;
+    --color-error: 2 58% 58%;
+
+    --void: 25 16% 5%;
+    --layer-orientation: 210 12% 58% / 0.10;
+    --layer-intent: 168 34% 46% / 0.10;
+    --layer-state: 210 20% 98% / 0.10;
+
+    --fg-orientation: 210 12% 62%;
+    /* 56%, not 46%: the intent reading measured 4.11 on a panel — a failing
+       pair in DARK, which is the mode nobody re-checks. */
+    --fg-intent: 168 42% 56%;
+    --fg-state: 210 10% 78%;
+
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* The ladder, dark side: L* 3.5 → 31.0, ΔL* 5.5 at every step.
+       #0D0D0D → #191919 → #252525 → #303030 → #3C3C3C → #494949.
+       Level 0 is --void. */
+    /* UNTOUCHED. These five are the ladder, and the ladder is derived — see
+       src/lib/surfaceRamp.mjs. An alpha was written into them once, by hand,
+       to make the shell look like glass; it did not make it look like glass,
+       it made every panel hide the room it was floating over, and it put the
+       values out of step with the file that computes them. Depth in this
+       shell comes from the projection tokens below, not from transparency. */
+    --surface-frame: 25 16% 9.8%;
+    --surface-content: 25 16% 14.5%;
+    --surface-panel: 25 16% 18.8%;
+    --surface-raised: 25 16% 23.5%;
+    --surface-overlay: 25 16% 28.6%;
+
+    /* The same lattice, lit from the other side. */
+    --grid-cell: 12px;
+    /* The chat's two planes are NOT restated here. They are the estate's
+       declared balance — one BRIGHT projection and one DARK one, meeting at the
+       seam and never blending — and a balance is a fact about the PAIR, not
+       about the light. Declared once, in :root. */
+    --grid-line: 25 16% 100% / 0.04;
+
+    /* DARK is the same pane, read the other way up: a black base with a light
+       edge. One material, one semantic depth, and the light it is lit by is the
+       only thing that changed. */
+    --glass-base: 25 16% 0%;
+    --glass-edge: 25 16% 100%;
+    --glass-shadow: 25 16% 0%;
+  }
+
+  /* ── DESKTOP GLASS MATERIAL ───────────────────────────────────────────
+   *
+   * The desktop frame used to blur the backdrop and then paint an almost-solid
+   * surface-frame over it. That is technically a backdrop-filter and visually
+   * an opaque card. The working artifact remains PAPER and therefore stays
+   * opaque; only the frame/chrome/window boundary uses this material.
+   *
+   * One atmosphere, several panes:
+   *   wallpaper/atmosphere -> glass frame/chrome -> opaque working canvas.
+   * Joined/snapped windows therefore lose their double-box seam instead of
+   * becoming two dark rectangles touching each other.
+   */
+  .xi-desktop-glass {
+    --xi-glass-alpha: clamp(0.10, var(--glass-opacity, 0.20), 0.38);
+    background:
+      linear-gradient(
+        180deg,
+        hsl(var(--glass-edge) / 0.045),
+        transparent 22%,
+        transparent 78%,
+        hsl(var(--glass-base) / 0.05)
+      ),
+      hsl(var(--glass-base) / var(--xi-glass-alpha));
+    -webkit-backdrop-filter:
+      blur(var(--glass-blur, 18px))
+      saturate(var(--glass-saturation, 125%));
+    backdrop-filter:
+      blur(var(--glass-blur, 18px))
+      saturate(var(--glass-saturation, 125%));
+    box-shadow:
+      inset 0 1px 0 hsl(var(--glass-edge) / 0.08),
+      0 18px 48px -22px hsl(var(--glass-shadow) / 0.72);
+  }
+
+  .xi-desktop-glass[data-hot='true'] {
+    --xi-glass-alpha: clamp(0.16, calc(var(--glass-opacity, 0.20) + 0.08), 0.46);
+    box-shadow:
+      inset 0 1px 0 hsl(var(--glass-edge) / 0.14),
+      0 0 0 1px hsl(var(--glass-edge) / 0.16),
+      0 22px 54px -22px hsl(var(--glass-shadow) / 0.76);
+  }
+
+  .xi-desktop-glass-chrome {
+    background:
+      linear-gradient(180deg, hsl(var(--glass-edge) / 0.035), transparent),
+      hsl(var(--glass-base) / 0.055);
+  }
+
+  .xi-desktop-glass-hot {
+    background:
+      linear-gradient(180deg, hsl(var(--glass-edge) / 0.075), transparent),
+      hsl(var(--glass-base) / 0.11);
+  }
+
+  .xi-standard-glass {
+    background: hsl(var(--glass-base) / clamp(0.08, var(--glass-opacity, 0.20), 0.30));
+    -webkit-backdrop-filter:
+      blur(var(--glass-blur, 14px))
+      saturate(var(--glass-saturation, 120%));
+    backdrop-filter:
+      blur(var(--glass-blur, 14px))
+      saturate(var(--glass-saturation, 120%));
+  }
+
+  /* ── ARTICLES FROSTED WORKING MEDIUM ──────────────────────────────────
+   *
+   * SDK is the underworld, Publisher is the egress, and ARTICLES is the
+   * readable/manipulable membrane between them. A coloured window therefore
+   * must not put an opaque construction-paper slab over its own atmosphere.
+   * The Article plane is frosted glass: enough neutral material to hold type,
+   * enough transparency to retain the window's hue, and enough blur to keep
+   * the underworld/context perceptible without becoming visual noise.
+   *
+   * This is a semantic material primitive, not a PrivacyPreferences patch.
+   * Every Layer consumer receives it, so brown, blue, green, red and future
+   * chroma windows all resolve through the same working medium. */
+  .xi-articles-glass {
+    --xi-article-alpha: 0.30;
+    background:
+      linear-gradient(
+        180deg,
+        hsl(var(--glass-edge) / 0.055),
+        transparent 18%,
+        transparent 82%,
+        hsl(var(--glass-base) / 0.055)
+      ),
+      hsl(var(--glass-base) / var(--xi-article-alpha));
+    /* ── THE SECOND BLUR IS THE ONE THAT COST DOUBLE ──────────────────────
+     *
+     * A window stacks two of these: the frame is `.xi-desktop-glass` and the
+     * working surface inside it is this. The inner one blurs a backdrop that the
+     * outer one has ALREADY blurred, so it compounds the most expensive property
+     * in the shell to produce a difference the eye cannot resolve — and it is
+     * paid again on every frame of any animation over it.
+     *
+     * Capped far lower than the frame, on purpose: the outer blur does the work,
+     * and this one only has to take the edge off the lattice it sits on. */
+    -webkit-backdrop-filter:
+      blur(min(var(--glass-blur, 16px), 8px))
+      saturate(var(--glass-saturation, 122%));
+    backdrop-filter:
+      blur(min(var(--glass-blur, 16px), 8px))
+      saturate(var(--glass-saturation, 122%));
+    border: 1px solid hsl(var(--glass-edge) / 0.08);
+    box-shadow: var(--projection-bevel), var(--projection-lift);
+  }
+
+  .xi-articles-glass[data-article-layer='orientation'] { --xi-article-alpha: 0.20; }
+  .xi-articles-glass[data-article-layer='state']       { --xi-article-alpha: 0.28; }
+  .xi-articles-glass[data-article-layer='intent']      { --xi-article-alpha: 0.34; }
+  .xi-articles-glass[data-article-layer='intervention'] {
+    --xi-article-alpha: 0.42;
+    box-shadow: var(--projection-bevel), var(--projection-float);
+  }
+
+  :root:not(.dark) .xi-articles-glass {
+    --xi-article-alpha: 0.58;
+  }
+  :root:not(.dark) .xi-articles-glass[data-article-layer='orientation'] { --xi-article-alpha: 0.46; }
+  :root:not(.dark) .xi-articles-glass[data-article-layer='state']       { --xi-article-alpha: 0.54; }
+  :root:not(.dark) .xi-articles-glass[data-article-layer='intent']      { --xi-article-alpha: 0.62; }
+  :root:not(.dark) .xi-articles-glass[data-article-layer='intervention'] {
+    --xi-article-alpha: 0.72;
+  }
+
+  /* Joined windows share one visual field. The join itself is already drawn by
+     the snap seam; rounding and a second heavy outer shadow at the touching
+     edge are visual duplication, so docked pins/windows expose a square edge
+     through their existing dock metadata/class hooks rather than painting an
+     extra line. */
+
+  /* ── THE MOBILE SHELL ──────────────────────────────────────────────────
+   *
+   * Everything a phone needs that a desktop does not, in one place. It is
+   * declared here rather than in the surfaces that use it, because the same
+   * six rules were otherwise about to be written into six components — which
+   * is exactly how five apps end up carrying five subtly different safe-area
+   * fixes and no one can tell which one is right.
+   */
+
+  :root {
+    /* iOS reports the notch, the status bar and the home indicator as insets,
+       and reports them as ZERO on every browser that has none. A surface
+       padded by them is therefore correct on a phone and unchanged on a
+       desktop, with no platform branch anywhere in the markup.
+
+       viewport-fit=cover in index.html is what makes them non-zero. Without
+       it iOS letterboxes the page inside the notch and reports zero — a safe
+       area that silently does not exist, which is indistinguishable from one
+       that was never needed. */
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+
+    /* The height the mobile tab bar occupies, insets included. Anything that
+       has to clear the bar clears it by this much rather than guessing a
+       number. 48px, not 56: the bar was condensed so five destinations fit a
+       360px screen without their labels colliding. */
+    --mobile-tabbar: 48px;
+
+    /* ── THE NAVIGATION RAIL, DECLARED ONCE ────────────────────────────────
+     *
+     * The width of the persistent navigation column at the left edge, so that
+     * anything floating over that edge can CLEAR it instead of being placed by
+     * eye. It has to exist as a token because the thing that got this wrong
+     * could not see the rail at all: the feedback primitive sat at `left-6`,
+     * which is inside the rail's own column — and the rail's footer ends with
+     * the person's own card. The button stood on top of the one control that
+     * says who you are, and neither could be used.
+     *
+     * Below lg this is the mobile rail, and at lg and up it is the 16rem column
+     * the shell renders. Two numbers kept in two places is how that happens, so
+     * there is one here — and `.xi-mobile-rail-clear` reads it rather than
+     * repeating it. */
+    --nav-rail: 44px;
+
+    /* ── WHERE THE WORK BEGINS ─────────────────────────────────────────────
+     *
+     * The shell reads left to right NAV | TOOL RAIL | WORK, and the first two
+     * are different widths depending on whether the column is open, pinned or
+     * put away. Each publishes its own live width — `--nav-width` from the
+     * navigation column, `--dock-width` from the tool dock — and this is their
+     * sum, declared once.
+     *
+     * Anything that floats on the left edge of the WORK anchors to this, and to
+     * nothing else. `left-0`, `left-6` and `--dock-width` alone are all the same
+     * mistake at different sizes: a position measured from the screen, standing
+     * on a column that is not part of the work. That is why the conversation
+     * chip, the assistant panel, the presence pill and the palette each sat on
+     * top of the navigation menu. */
+    --nav-width: 0px;
+    --work-left: calc(var(--nav-width, 0px) + var(--dock-width, 0px));
+
+    /* ── THE BOTTOM-RIGHT LANE ─────────────────────────────────────────────
+     *
+     * Three floating controls lived in this corner — the assistant launcher, the
+     * feedback button and the tips card — each anchored to the corner on its own
+     * terms, so each sat on the one before it. They are a STACK, and the stack
+     * is declared here: the launcher is the first slot, and each later one stands
+     * above the last by a slot and a gap. */
+    --fab-right: calc(var(--desk-rail-width, 0px) + 1rem);
+    --fab-bottom: var(--taskbar-height, 1.5rem);
+    --fab-slot: 3.5rem;
+    --fab-gap: 0.75rem;
+  }
+
+  /* ── The viewport a WebView actually has ───────────────────────────────
+   *
+   * `100vh` on iOS measures the page with the browser chrome RETRACTED, so a
+   * shell sized to it is taller than the screen whenever the chrome is up —
+   * and the bottom of it, which is where the tab bar lives, sits underneath.
+   * `100dvh` tracks the chrome as it moves. The vh pair stays first so a
+   * browser without dvh gets exactly the old behaviour. */
+  .xi-viewport {
+    height: 100vh;
+    max-height: 100vh;
+  }
+
+  @supports (height: 100dvh) {
+    .xi-viewport {
+      height: 100dvh;
+      max-height: 100dvh;
+    }
+  }
+
+  /* ── No rubber band ────────────────────────────────────────────────────
+   *
+   * A WebView scroll that runs past its end drags the whole document with it
+   * and leaves the shell half off the screen. `none` stops the chain at the
+   * element that owns the scroll instead of letting it propagate outward. */
+  /* ── #root IS THE SCROLL ROOT THE SHELL ACTUALLY USES ────────────────────
+   *
+   * `overscroll-behavior` does NOT inherit — it is a property of the box that
+   * owns the scroll, so declaring it on html and body says nothing about the
+   * element the shell's panes scroll inside. The app mounts into #root, and a
+   * WebView scroll that runs past the end of a pane chained outward to the
+   * document and dragged the whole shell with it.
+   *
+   * `user-select` DOES inherit, so the same declaration covers every
+   * interactive element below it; the explicit list further down is for the
+   * shapes that opt back in (fields, prose) and for the chrome that must not
+   * select even where a parent has opted back. */
+  html,
+  body,
+  #root {
+    overscroll-behavior: none;
+    overscroll-behavior-y: none;
+  }
+
+  /* Text is selectable by default. Only interactive chrome opts out below.
+     This keeps long-form content, receipts, logs and evidence copyable on touch
+     without making buttons, tabs or rails select themselves during a gesture. */
+  input,
+  textarea,
+  select,
+  [contenteditable='true'],
+  [contenteditable='plaintext-only'],
+  .xi-selectable,
+  pre,
+  code {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  .xi-scroll-root {
+    overscroll-behavior: none;
+  }
+
+  /* ── Chrome does not select ────────────────────────────────────────────
+   *
+   * A press that lingers on a control in a WebView selects its label and pops
+   * the iOS callout over the very thing the finger is on. A button, a tab and
+   * a taskbar are controls, never text — and permanently, not only for the
+   * duration of a drag.
+   *
+   * The list is the WHOLE set of shapes a control arrives in, because a shape
+   * it misses is a control that still selects. `nav` covers the rail and the tab
+   * bar; `.xi-chrome` covers the header, which is a <header> and so matched
+   * nothing at all; `.xi-tap` and `.xi-tab` cover the controls that are neither,
+   * including every anchor that behaves as a button.
+   *
+   * Prose is deliberately NOT in this list. A link inside a paragraph is text
+   * that happens to be clickable, and a reader must still be able to select it —
+   * so this is scoped to chrome, not to every anchor on the site. */
+  button,
+  [role='button'],
+  [role='link'],
+  [role='tab'],
+  [role='menuitem'],
+  [draggable='true'],
+  [class*='cursor-grab'],
+  [class*='cursor-move'],
+  [role='toolbar'],
+  [role='tablist'],
+  nav,
+  header,
+  [data-mobile-left-rail],
+  .xi-tabbar,
+  .xi-chrome,
+  .xi-tap,
+  .xi-tab {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  /* The top header carries the notch. Its height is declared WITH the inset
+     rather than beside it, so the bar grows by exactly the notch and its own
+     content is not squeezed into whatever is left over. */
+  .xi-header {
+    height: calc(3.5rem + var(--safe-top));
+    padding-top: var(--safe-top);
+  }
+
+  /* A bottom menu carries the home indicator. */
+  .xi-safe-bottom {
+    padding-bottom: var(--safe-bottom);
+    padding-left: var(--safe-left);
+    padding-right: var(--safe-right);
+  }
+
+  /* ── The sides of the screen ───────────────────────────────────────────
+   *
+   * A landscape phone puts a notch or a rounded corner over the left or right
+   * edge, and content laid to the physical edge of the glass sits under it.
+   *
+   * Applied to the content column and to the rail rather than to the shell
+   * root, and that is deliberate: an inset on the root would pull the field the
+   * shell paints away from the edge too, leaving two unpainted strips down a
+   * landscape screen that read as a rendering fault rather than as a margin.
+   *
+   * Zero on every device that reports no inset, so nothing on a desktop moves. */
+  .xi-safe-x {
+    padding-left: var(--safe-left);
+    padding-right: var(--safe-right);
+  }
+
+  /* Top and bottom together, for a panel that already runs the full height. */
+  .xi-safe-y {
+    padding-top: var(--safe-top);
+    padding-bottom: var(--safe-bottom);
+  }
+
+  /* The tab bar. Fixed to the bottom edge, clear of the indicator. */
+  .xi-tabbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: var(--z-pinned);
+    display: flex;
+    align-items: stretch;
+    background-color: hsl(var(--void) / 0.94);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-top: 1px solid hsl(var(--grid-line));
+    padding-bottom: var(--safe-bottom);
+    padding-left: var(--safe-left);
+    padding-right: var(--safe-right);
+  }
+
+  /* Content that scrolls under the bar clears it. Nothing at 1024px and up,
+     because the bar is not drawn there. */
+  .xi-mobile-bottom-pad {
+    padding-bottom: 0;
+  }
+
+  /* Mobile HOME has a 44px doorway rail on the left and the existing 56px
+     tool rail on the right. Primary navigation belongs to the bottom tabs;
+     the left rail is not a second navigation taxonomy. */
+  .xi-mobile-rail-clear {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  /* The rail at its desktop width. One token, two readings — the same rule the
+     rest of the shell's geometry follows, and the reason nothing that clears
+     the rail has to know which shell it is standing in. */
+  @media (min-width: 1024px) {
+    :root {
+      --nav-rail: 16rem;
+    }
+  }
+
+  /* ── Under 1024px: the phone rules ─────────────────────────────────────
+   *
+   * Scoped to the viewport the shell is actually narrow in, so nothing here
+   * can reach the desktop the rest of the design was measured against. */
+  @media (max-width: 1023px) {
+    /* The bottom-right lane on a phone starts above the tab bar and clear of the
+       tool rail. On the desk it starts above the taskbar; on a phone there is no
+       taskbar, and the launcher was laid across the last tab and the rail. */
+    :root {
+      --fab-right: calc(56px + var(--safe-right) + 0.75rem);
+      --fab-bottom: calc(var(--mobile-tabbar) + var(--safe-bottom) + 0.75rem);
+    }
+
+    .xi-mobile-rail-clear {
+      padding-left: calc(var(--nav-rail) + var(--safe-left));
+      padding-right: calc(56px + var(--safe-right));
+    }
+
+    /* Legibility floor.
+     *
+     * `max(14px, 1em)` is a FLOOR and not a flattening: a block already set
+     * larger keeps its size, one set smaller is lifted to the floor, and the
+     * hierarchy between them survives. Applied to the elements a person
+     * actually reads, so the shell's deliberate micro-typography — the mono
+     * status line, the 9px chips — is not silently promoted into a wall of
+     * body text. */
+    .xi-mobile-content p,
+    .xi-mobile-content li,
+    .xi-mobile-content label,
+    .xi-mobile-content td,
+    .xi-mobile-content th {
+      font-size: max(14px, 1em);
+    }
+
+    /* ── THE 16px FLOOR, AND WHY IT IS NOT 14 ─────────────────────────────
+     *
+     * iOS zooms the whole page when a text field under 16px takes focus. It is
+     * not a preference and there is no attribute that turns it off: the only
+     * answer is that the field be at least 16px, or the page is scaled under
+     * the reader's finger the moment they tap in — and left that way after they
+     * tap out, so every subsequent screen is cropped.
+     *
+     * 14px is the right floor for PROSE and the wrong one for a FIELD, which is
+     * why this is a second rule rather than one more line in the list above.
+     * The shell's deliberate micro-typography is untouched: this reaches form
+     * controls, and a control is something a finger is asked to ENTER, not
+     * something an eye is asked to read. */
+    .xi-mobile-content input,
+    .xi-mobile-content textarea,
+    .xi-mobile-content select,
+    .xi-mobile-content [contenteditable='true'] {
+      font-size: max(16px, 1em);
+    }
+
+    /* Tap floor. 44px is Apple's own minimum, and it is a minimum of the
+       TARGET rather than of the drawing: the visual can stay small while the
+       thing that receives the finger does not. */
+    .xi-tap {
+      min-height: 44px;
+      min-width: 44px;
+      /* A double-tap on a control must not be read as a zoom gesture — that is
+         the 300ms the shell spends waiting to find out whether the second tap is
+         coming, on every button on the screen. */
+      touch-action: manipulation;
+    }
+
+    /* A tab in the bottom bar. Declared here because the bar is the one piece of
+       navigation a hand actually uses, and the class it wears was referenced by
+       the component and defined NOWHERE — an undefined `xi-` class, which the
+       estate already carries as a standing finding. */
+    .xi-tab {
+      min-height: 44px;
+      touch-action: manipulation;
+    }
+
+    /* A row in a list is a target on a phone, whatever it looks like. */
+    .xi-list button,
+    .xi-list a,
+    .xi-list [role='button'],
+    .xi-list .xi-tap {
+      min-height: 44px;
+    }
+
+    /* A chip is a target too, and it grows in height only — a chip stretched
+       sideways stops reading as a chip. */
+    .xi-chip {
+      min-height: 44px;
+    }
+
+    /* ── TOUCH DISCLOSURE OWNS INTERACTIVE REVEALS ────────────────────────
+     *
+     * Do NOT globally force group-hover controls visible on touch. The mounted
+     * TouchGroupReveal opens the existing tray in place, and TouchReveal is the
+     * explicit primitive for new components. Invisible trays cannot steal the
+     * first tap. */
+    /* Android WebView material contraction. Backdrop blur is a desktop material
+       effect, not primitive identity. Removing it below lg prevents multiple
+       full-screen re-samples while preserving the same borders/backgrounds and
+       every desktop effect at 1024px and above. */
+    .xi-mobile-content [class*='backdrop-blur'],
+    .xi-mobile-content .xi-articles-glass,
+    .xi-mobile-content .xi-desktop-glass,
+    [data-mobile-left-rail] [class*='backdrop-blur'],
+    .xi-tabbar {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+
+    /* ── THE TOUCH FLOOR, ON THE WHOLE CONTENT COLUMN ─────────────────────
+     *
+     * The floor was declared for `.xi-tap` and for rows inside `.xi-list`, so
+     * it reached the controls that had been converted and the lists that had
+     * been marked — and missed everything else, which is most of them. A button
+     * in a page's own content is a target on a phone whatever it was written
+     * as, so the floor is declared for the COLUMN rather than for a class every
+     * surface has to remember to wear.
+     *
+     * HEIGHT only. A minimum width on every control would stretch a two-letter
+     * label to 44px of nothing and reflow every toolbar on the page; the
+     * controls that genuinely need 44 across are the icon-only ones, and those
+     * carry `.xi-tap`.
+     *
+     * `min-height` has no effect on a non-replaced INLINE element, so a link
+     * inside a paragraph is untouched — it stays the word it was set in. Only
+     * the things that behave as blocks grow, which is exactly the set that is
+     * being tapped. */
+    .xi-mobile-content button,
+    .xi-mobile-content [role='button'],
+    .xi-mobile-content a[href] {
+      min-height: 44px;
+    }
+
+    /* ── A SQUARE CONTROL IS A TARGET, NOT A LABEL ─────────────────────────
+     *
+     * The floor above covers every control and deliberately leaves WIDTH alone,
+     * because a minimum width on a text button stretches a two-letter label into
+     * 44px of nothing. An icon trigger is the other case: it has no label to
+     * stretch, and a 24px-wide one is a 24px-wide thing for a thumb to hit.
+     *
+     * That is the half that was missing, and it is why the owner was sizing
+     * these by hand, one control at a time. A control drawn square is floored on
+     * BOTH axes here.
+     *
+     * `~=` matches a class TOKEN exactly, so `w-6` cannot catch `w-60` or `w-64`.
+     * Scoped to interactive elements only, so a decorative `w-10` avatar is left
+     * exactly where it was drawn. */
+    .xi-mobile-content :is(button, a[href], [role='button']):is(
+      [class~='w-5'], [class~='w-6'], [class~='w-7'],
+      [class~='w-8'], [class~='w-9'], [class~='w-10']
+    ) {
+      min-width: 44px;
+      min-height: 44px;
+    }
+
+    /* ── ONE COLUMN, AT EVERY DEPTH ────────────────────────────────────────
+     *
+     * A page on a phone is a STACK. Content modules sit one under another at
+     * the full width of the screen, and nothing inside them opens a second
+     * column — because a column is a claim that two things belong side by side,
+     * and a 360px screen cannot honour that claim. What it produces instead is
+     * two narrow strips with their text wrapped to three lines each, which
+     * reads as a squeezed desktop rather than as a page built for the hand
+     * holding it.
+     *
+     * ── WHY THIS IS A SHELL RULE AND NOT A HUNDRED EDITS ──────────────────
+     *
+     * The shell's own primitives already stack: FluidGrid falls back to a
+     * column below the mobile layer, and QuadrantGrid has a stack mode it enters
+     * on the same condition. So the pages that read well on a phone are the ones
+     * that went through those primitives — and the ones that did not are the
+     * ones carrying a bare `grid-cols-2`, `grid-cols-3` or `grid-cols-4`
+     * written with no breakpoint at all, which means the author declared two
+     * columns for EVERY width and only ever looked at one of them.
+     *
+     * There are seventy-eight of those across the pages, and they will keep
+     * arriving: a new surface declares its cards in a grid, the grid is right on
+     * the desk it was written on, and the phone is a projection nobody in the
+     * room is standing at. Repairing them one at a time is a race against the
+     * next page, so the rule is declared ONCE, on the shell, where every surface
+     * inherits it — including the ones that do not exist yet.
+     *
+     * ── WHAT IT DELIBERATELY DOES NOT TOUCH ───────────────────────────────
+     *
+     * Rows. `grid-rows-*` is a VERTICAL division, so it is already a stack and
+     * forcing it would only break the panes that depend on their share of a
+     * fixed height. And flex rows are left alone on purpose: a row holding a
+     * label and its switch is a control, not a column, and stacking it would put
+     * every toggle on its own line beneath its own caption. This rule is aimed
+     * at COLUMNS, which is what was declared and what the phone cannot carry.
+     *
+     * `minmax(0, 1fr)` rather than `1fr`: a grid track will not shrink below its
+     * content's intrinsic width, so a long unbroken string — a URL, a monospace
+     * identifier, a wide table cell — holds the track open and pushes the page
+     * sideways. The `0` minimum is what allows the track to actually be the
+     * width of the screen. */
+    .xi-mobile-content [class*='grid-cols-'] {
+      grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    /* A fixed-width column is a desktop measurement that reached the phone.
+       `min-w-[350px]` on a 360px screen with 27px of padding is a page that
+       scrolls sideways to reveal nothing, so the minimum is released and the
+       element takes the width it is actually standing in. Only the ARBITRARY
+       minimums are released — `min-w-0` and the spacing scale are deliberate
+       and are left as they were declared. */
+    .xi-mobile-content [class*='min-w-['] {
+      min-width: 0 !important;
+    }
+
+    .xi-mobile-bottom-pad {
+      padding-bottom: calc(var(--mobile-tabbar) + var(--safe-bottom));
+    }
+  }
+}
+
+
+
+@layer base {
+  /* The root, measured in the reading rhythm. `calc(16px * 1)` is the browser
+     default to the pixel, so nothing moves until a person moves the slider —
+     and when they do, everything expressed in rem moves with it. */
+  html {
+    font-size: calc(16px * var(--rem-scale, 1));
+  }
+
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* While a window, widget, icon or drawer handle is being dragged the pointer
+     must never start selecting the page behind it. */
+  body[data-dragging='true'],
+  body[data-dragging='true'] * {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* The same signal, spent a second time.
+   *
+   * A backdrop-filter re-samples everything behind it on every frame, and a
+   * window is a very large thing to re-sample — it is the single most expensive
+   * property a moving element can carry, and it is what made dragging and
+   * resizing a window feel slow. The blur is worth having when the window is
+   * still, and worth nothing at all while it is being moved, so it is switched
+   * off for exactly that long. `data-dragging` is already published on the body
+   * by the drag guard for any press that lands on a grab or resize cursor, so
+   * this costs no state and no render. */
+  body[data-dragging='true'] .xi-window,
+  body[data-dragging='true'] .xi-articles-glass,
+  /* ── AND THE SAME, FOR A WINDOW THAT IS ARRIVING OR LEAVING ───────────────
+   *
+   * The drag rule above only covered a pointer drag. A window also re-samples
+   * its backdrop through its whole entrance and exit — which is the gesture
+   * performed most often on the desk and the one with the least budget, since
+   * it is competing with whatever the person is about to do next.
+   *
+   * A window marks ITSELF settling for the length of that animation (see
+   * WindowFrame), so this is per-element and needs no refcount: two windows
+   * opening at once each carry their own flag, and neither can clear the
+   * other's. The blur comes back the frame the animation ends. */
+  .xi-window[data-settling='true'],
+  .xi-window[data-settling='true'] .xi-articles-glass,
+  .xi-window[data-settling='true'] .xi-desktop-glass {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* The PNEUMA plane turns under the pointer. Its transform is eased so that a
+     double-click settles it back to face-on; that easing is switched off for
+     the duration of a drag, because an eased rotation under a moving pointer is
+     a plane that lags the hand. */
+  body[data-dragging='true'] .xi-plane {
+    transition: none !important;
+  }
+}
+
+/* ── The panel lattice ──────────────────────────────────────────────────────
+   Two gradients, one per axis, each drawn 1px wide and tiled at the cell size.
+   It is a background-image rather than an element or an inline SVG, so it costs
+   no node, no request and no raster of its own: the browser tiles it, and it
+   repaints with the surface it belongs to.
+
+   Being a background, it sits UNDER everything the panel renders. Nothing
+   inside a window has to know it is there, and no content is ever covered by
+   it — a panel's text, its rows and its controls all paint on top. */
+.xi-grid {
+  background-image:
+    linear-gradient(to right, hsl(var(--grid-line)) 1px, transparent 1px),
+    linear-gradient(to bottom, hsl(var(--grid-line)) 1px, transparent 1px);
+  background-size: var(--grid-cell) var(--grid-cell);
+}
+
+/* ── A PLANE THAT OWNS NO EFFECT DOES NOT OFFER ONE ─────────────────────────
+ *
+ * The forecast plane is a proposal. A live control inside it would be a promise
+ * the plane has no authority to keep: it would look exactly like a control on
+ * the work plane, and it would work, which is the ghost owning an effect by
+ * another route. So the refusal is enforced ON THE PLANE rather than left to
+ * whoever renders inside it — a rule that lived in the child would be a rule the
+ * next child does not have.
+ *
+ * This is a real refusal and not a decoration: the pointer never reaches the
+ * control, so nothing can be dispatched from a plane that has declared it owns
+ * no effect. Reading is untouched — the plane still scrolls, still selects, and
+ * its text is still its text. */
+[data-effect-authority='none'] button,
+[data-effect-authority='none'] a,
+[data-effect-authority='none'] input,
+[data-effect-authority='none'] select,
+[data-effect-authority='none'] textarea,
+[data-effect-authority='none'] [role='button'] {
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+/* ── WHITE LABEL ─────────────────────────────────────────────────────────────
+ *
+ * One class. Inside it every brand and category token resolves to the single
+ * neutral axis with its LIGHTNESS CARRIED THROUGH — the chroma is knocked out,
+ * the value is not. Two categories stay distinguishable by how light they are,
+ * so colour was never the only information channel, and what leaves the surface
+ * is the hue rather than the meaning. A knockout that also flattened the value
+ * would not be a white label, it would be a broken one.
+ *
+ * GENERATED FROM src/lib/whiteLabelMaster.mjs. Nothing here is typed by hand,
+ * and scripts/guard-white-label-knockout.mjs fails if the two drift apart — a
+ * hand-edited block is a second declaration that nothing would otherwise audit.
+ *
+ * Declared unlayered on purpose: the token sets above live in @layer base, and
+ * an unlayered rule wins over a layered one, so the knockout cannot be lost to
+ * a cascade tie on a node that happens to carry .dark as well. It also sits on
+ * the surface itself, so it wins by inheritance regardless of specificity. */
+.xi-white-label {
+  --color-brand: 210 4% 46%;
+  --color-intent: 210 4% 46%;
+  --color-execution: 210 4% 62%;
+  --fg-intent: 210 4% 46%;
+  --color-review: 210 4% 60%;
+  --color-warning: 210 4% 58%;
+  --color-orientation: 210 4% 58%;
+  --fg-orientation: 210 4% 62%;
+  --color-settled: 210 4% 46%;
+  --color-system: 210 4% 52%;
+  --color-status: 210 4% 49%;
+  --fg-state: 210 4% 78%;
+  --color-identity: 210 4% 58%;
+  --color-active: 210 4% 62%;
+  --color-pending: 210 4% 60%;
+  --color-error: 210 4% 58%;
+  --layer-orientation: 210 4% 58% / 0.10;
+  --layer-intent: 210 4% 46% / 0.10;
+  --layer-state: 210 4% 98% / 0.10;
+}
+
+/* ── THE ACCORDION, AND THE SNAP ─────────────────────────────────────────────
+ *
+ * The chat stack opens one chat at a time, and the opening is the experience the
+ * owner asked to be worth watching. So the panel's height is animated on
+ * `grid-template-rows`, 0fr → 1fr: the browser interpolates it natively, at
+ * whatever height the content turns out to be, with nothing measured in
+ * JavaScript and no layout read on every frame. It is the one way to ease an
+ * auto height, and it costs no dependency.
+
+ * The SNAP is a short overshoot that settles — the chat arrives slightly large,
+ * comes back through its own size and lands. That settle is the whole feeling of
+ * a window clicking into place; a chat that simply appeared would be a chat that
+ * was never attached to anything.
+ *
+ * Both use the estate's motion tokens, so the accordion and the snap land at the
+ * same tempo as the dock, the desktop and the palette. */
+.xi-accordion {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--motion-settle) var(--ease-out-expo);
+}
+.xi-accordion[data-open='true'] {
+  grid-template-rows: 1fr;
+}
+
+@keyframes xi-chat-snap {
+  0%   { transform: scale(1.045); opacity: 0; }
+  55%  { transform: scale(0.994); opacity: 1; }
+  100% { transform: scale(1);     opacity: 1; }
+}
+.xi-chat-snap {
+  animation: xi-chat-snap var(--motion-settle) var(--ease-out-expo) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xi-accordion { transition: none; }
+  .xi-chat-snap { animation: none; }
+}
+
+/* ── The taskbar's own motion ────────────────────────────────────────────────
+   The dock used to animate through framer-motion. That library threw from
+   inside its own bundled code, and a stack naming line 289 of a 234-line file
+   is a module that was never rebuilt — one stale module calling into a current
+   dependency. Chrome should not depend on a library whose version can drift
+   out from under it, so the dock now carries its own motion in CSS and imports
+   nothing to animate.
+
+   Durations come from the motion contract in this file, not from a library's
+   defaults, so the bar settles at the same tempo as everything else. */
+@keyframes xi-dock-rise {
+  from { transform: translateY(80px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.xi-dock-bar {
+  animation: xi-dock-rise var(--motion-base) var(--ease-out-expo) both;
+}
+
+.xi-dock-lift {
+  transition: transform var(--motion-quick) var(--ease-out-expo);
+}
+.xi-dock-lift:hover  { transform: translateY(-3px); }
+.xi-dock-lift:active { transform: translateY(-1px) scale(0.94); }
+
+.xi-dock-start {
+  transition: transform var(--motion-quick) var(--ease-out-expo);
+}
+.xi-dock-start:hover  { transform: scale(1.08); }
+.xi-dock-start:active { transform: scale(0.92); }
+
+@media (prefers-reduced-motion: reduce) {
+  .xi-dock-bar { animation: none; }
+  .xi-dock-lift,
+  .xi-dock-start { transition: none; }
+  .xi-dock-lift:hover,
+  .xi-dock-start:hover,
+  .xi-dock-lift:active,
+  .xi-dock-start:active { transform: none; }
+}
+
+/* GENERATED FROM src/lib/pureWhiteMaster.mjs — xiio.pure-white/v1.
+   Nothing here is typed by hand; scripts/guard-pure-white.mjs fails if it drifts. */
+.xi-pure-white {
+  --pure-edge: 0 0% 0%;
+  --background: 0 0% 100%;
+  --foreground: 0 0% 0%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 0%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 0%;
+  --primary: 0 0% 0%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 100%;
+  --secondary-foreground: 0 0% 0%;
+  --muted: 0 0% 100%;
+  --muted-foreground: 0 0% 30%;
+  --accent: 0 0% 100%;
+  --accent-foreground: 0 0% 0%;
+  --destructive: 0 0% 0%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 0 0% 0%;
+  --input: 0 0% 0%;
+  --ring: 0 0% 0%;
+  --void: 0 0% 100%;
+  --surface-frame: 0 0% 100%;
+  --surface-content: 0 0% 100%;
+  --surface-panel: 0 0% 100%;
+  --surface-raised: 0 0% 100%;
+  --surface-overlay: 0 0% 100%;
+  --color-brand: 0 0% 0%;
+  --color-orientation: 0 0% 0%;
+  --color-intent: 0 0% 0%;
+  --color-execution: 0 0% 0%;
+  --color-review: 0 0% 0%;
+  --color-settled: 0 0% 0%;
+  --color-warning: 0 0% 0%;
+  --color-system: 0 0% 0%;
+  --color-status: 0 0% 0%;
+  --color-identity: 0 0% 0%;
+  --color-active: 0 0% 0%;
+  --color-pending: 0 0% 0%;
+  --color-error: 0 0% 0%;
+  --fg-orientation: 0 0% 0%;
+  --fg-intent: 0 0% 0%;
+  --fg-state: 0 0% 0%;
+  --layer-orientation: 0 0% 0% / 0;
+  --layer-intent: 0 0% 0% / 0;
+  --layer-state: 0 0% 0% / 0;
+  --grid-line: 0 0% 0% / 0;
+  --chat-face: 0 0% 100%;
+  --chat-ink: 0 0% 0%;
+  --chat-shadow: 0 0% 100%;
+  --chat-shadow-ink: 0 0% 0%;
+  --projection-fill: transparent;
+  --projection-border: transparent;
+  --projection-blur: 0px;
+  --projection-bevel: none;
+  --projection-lift: none;
+  --projection-float: none;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+.xi-pure-white *,
+.xi-pure-white *::before,
+.xi-pure-white *::after {
+  box-shadow: none !important;
+  text-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.xi-pure-white *:not(svg):not(svg *) {
+  outline: 1px solid hsl(var(--pure-edge) / 0.22);
+  outline-offset: -1px;
+}
+
+/* ── THE LIGHT SHELL — contrast ──────────────────────────────────────────────
+ * The light values the base layer carries were the dark shell's state colours
+ * reused: a teal at 46% lightness is readable on near-black and roughly 3:1 on
+ * a pale field, which is not readable at label size. These are the same hues
+ * at the depth a light field needs (about 5.5:1 or better on the field below),
+ * declared only for the document that is NOT dark, so the dark shell keeps the
+ * values it was tuned on.
+ *
+ * `--void` is the field itself. It was a near-black in both blocks, so the
+ * light shell's floor was dark even with light chrome on it. */
+:root:not(.dark) {
+  --void: 25 16% 95.5%;
+  /* 27%, not 34%: secondary text measured 4.27 on a panel and 3.63 on a raised
+     surface in the light shell. */
+  --muted-foreground: 25 16% 27%;
+  --color-brand: 168 48% 28%;
+  --color-orientation: 210 16% 34%;
+  --color-intent: 168 52% 27%;
+  --color-execution: 168 50% 23%;
+  --color-review: 32 72% 31%;
+  --color-settled: 210 12% 36%;
+  --color-warning: 2 62% 42%;
+  --color-system: 210 12% 36%;
+  --color-status: 128 8% 34%;
+  --color-identity: 210 16% 34%;
+  --color-active: 168 50% 23%;
+  --color-pending: 32 72% 31%;
+  --color-error: 2 62% 42%;
+  --fg-orientation: 210 16% 32%;
+  /* 21%, not 27%: the light intent reading measured 3.83 on a panel. */
+  --fg-intent: 168 60% 21%;
+  --fg-state: 210 14% 22%;
+
+  /* ── The projection, lit from the other side ──────────────────────────────
+   * The three projection tokens are declared white-on-dark in the base layer,
+   * and a white tint over a light rung is not a tint — it is the same wash that
+   * made the glass invisible in the first place. So the light shell gets the
+   * same pane read the other way up: a LIFT rather than a darkening, because on
+   * a light field a pane reads as lit, not as shaded.
+   *
+   * Declared only for the document that is NOT dark, so the dark shell keeps the
+   * values it was tuned on. Nothing else in the estate reads these yet, so this
+   * cannot move a surface that was already drawing itself. */
+  --projection-fill: rgba(255, 255, 255, 0.45);
+  --projection-border: rgba(255, 255, 255, 0.9);
+
+  /* ── And the cube, lit from the other side ───────────────────────────────
+   * The base layer's shadows are drawn for a near-black field, where a shadow
+   * reads as an absence of light. On a pale field that same value reads as a
+   * smudge, so the light shell gets the identical lift drawn as INK: a tight,
+   * low-alpha shadow that separates two overlapping surfaces without greying
+   * the one in front. The bevel becomes a white inner highlight, because on a
+   * light page the lit edge is the top one.
+   *
+   * This is the block that was missing. The base layer had `none` in both
+   * modes, so light mode inherited the flatness and had nothing of its own to
+   * replace it with. */
+  --projection-bevel: inset 0 1px 0 0 rgba(255, 255, 255, 0.95);
+  --projection-lift: 0 1px 3px rgba(15, 23, 42, 0.10), 0 1px 2px rgba(15, 23, 42, 0.06);
+  --projection-float: 0 16px 40px -8px rgba(15, 23, 42, 0.22), 0 4px 12px rgba(15, 23, 42, 0.10);
+}
+
+/* ── THE COGWHEEL ROLL ───────────────────────────────────────────────────────
+ *
+ * The roll the whole motion contract is derived from. src/lib/motion.js opens by
+ * naming it as the reference every duration in the shell is a subdivision of —
+ * and until now the wheel it named did not exist in the tree, so the contract
+ * was deriving a tempo from something nobody could see.
+ *
+ * Declared here, with the other motion tokens, so there is one tempo in the
+ * system. `prefers-reduced-motion` is answered here rather than by a branch in
+ * the component: a wheel that ignored the setting would be the one piece of the
+ * shell still turning for somebody who asked it to stop.
+ *
+ * LINEAR, not eased. An eased rotation of a continuous wheel stutters once per
+ * turn, because the ease has to reset at 360°. The settle the contract
+ * describes belongs to the PARALLAX, which is a different motion; the roll is
+ * the constant that settle is measured against. */
+@keyframes xi-cog-roll {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.xi-cog {
+  animation-name: xi-cog-roll;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xi-cog { animation: none; }
+}
+
+/* ── THE WIREFRAME READING ───────────────────────────────────────────────────
+ *
+ * The first rung of the line ladder declared in src/lib/paneContract.mjs:
+ * WIREFRAME is "a border says 'these are different things'". At this rung the
+ * border is the whole of the drawing and everything else is noise laid over the
+ * line the reader is trying to read — so fill, depth, blur and gradient go, and
+ * the line is what is left.
+ *
+ * WHAT IT DELIBERATELY KEEPS. The field, the atmosphere and the brand colour.
+ * The ladder's own acceptance test says that a line removed at the cost of the
+ * brand atmosphere has not been removed, it has been moved somewhere the test
+ * does not look — so this strips the MATERIAL and leaves the room standing.
+ *
+ * Declared unlayered, like the knockout below it, so it wins over the layered
+ * token sets on a node that happens to carry .dark as well. */
+.xi-wireframe {
+  --projection-fill: transparent;
+  --projection-border: currentColor;
+  --projection-blur: 0px;
+  --projection-bevel: none;
+  --projection-lift: none;
+  --projection-float: none;
+  --layer-orientation: 0 0% 0% / 0;
+  --layer-intent: 0 0% 0% / 0;
+  --layer-state: 0 0% 0% / 0;
+  --glass-base: 0 0% 0%;
+}
+
+.xi-wireframe *,
+.xi-wireframe *::before,
+.xi-wireframe *::after {
+  box-shadow: none !important;
+  text-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* The line itself. One weight and one ink at every nesting depth — a wireframe
+   that drew its structure in three border colours would be a drawing of three
+   different things. The field's own canvas and every icon are excluded: they
+   are content, not structure. */
+.xi-wireframe *:not(svg):not(svg *):not(canvas) {
+  outline: 1px solid hsl(var(--color-intent) / 0.38);
+  outline-offset: -1px;
+}
+
+/* ── THE EDUCATIONAL READING ─────────────────────────────────────────────────
+ *
+ * The composition, stated in place.
+ *
+ * A surface that declares what it is for says so on itself, and a primitive
+ * that declares a name wears it — so the page explains how it was built rather
+ * than only what it is showing. Both attributes are DECLARED data: the purpose
+ * is the registry's own `plain` field and the name is the cube's label
+ * invariant. Nothing is generated here, which is what keeps this a reading
+ * rather than a tooltip that guessed.
+ *
+ * A surface declaring neither shows nothing, and that absence is the honest
+ * answer — a surface with no declaration has nothing to teach about itself. */
+.xi-educational [data-xi-purpose]:not([data-xi-purpose='']),
+.xi-educational [data-xi-name]:not([data-xi-name='']) {
+  position: relative;
+}
+
+.xi-educational [data-xi-purpose]:not([data-xi-purpose=''])::after,
+.xi-educational [data-xi-name]:not([data-xi-name=''])::after {
+  position: absolute;
+  z-index: var(--z-inspector);
+  left: 0;
+  top: 100%;
+  margin-top: 2px;
+  padding: 1px 4px;
+  max-width: 24ch;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  line-height: 1.35;
+  letter-spacing: 0.05em;
+  white-space: normal;
+  color: hsl(var(--fg-intent));
+  background-color: hsl(var(--background));
+  border: 1px solid hsl(var(--color-intent) / 0.4);
+  pointer-events: none;
+}
+
+.xi-educational [data-xi-purpose]:not([data-xi-purpose=''])::after {
+  content: attr(data-xi-purpose);
+}
+
+.xi-educational [data-xi-name]:not([data-xi-name=''])::after {
+  content: attr(data-xi-name);
+}
+
+/* ── THE CHROMA WRAPPER · xiio.chroma-material/v1 ────────────────────────────
+ *
+ * SHADOW, GLOSS AND REFLECTION ARE ONE THING SEEN THREE WAYS, and this is the
+ * one place a coloured surface is given all three at once.
+ *
+ * ── WHY IT EXISTS ───────────────────────────────────────────────────────────
+ *
+ * The estate could already prove its luminance ladder was DECLARED correctly —
+ * the shading canary measures the blend, the knockout and the collisions, in
+ * both readings. And it says of itself, in its own words, that it "cannot prove
+ * a given surface applied it". So a coloured window could carry a hue and be
+ * lit by NOTHING: a flat plate with a border, in both readings, with every
+ * declaration green.
+ *
+ * This is the other half.
+ *
+ * ── THE TWO READINGS ARE NOT TWO DESIGNS ────────────────────────────────────
+ *
+ * Both get all three. What changes is which one LEADS:
+ *
+ *   DARK    leads with REFLECTION — the glow shining through from the pointer.
+ *           A shadow on a near-black field is very nearly invisible, so the
+ *           light that is THERE is what separates two surfaces.
+ *   LIGHT   leads with SHADOW — the construction-paper lift. A white glow on a
+ *           white field is very nearly invisible, so the light that is MISSING
+ *           is what separates them.
+ *
+ * The gloss is the same light in both, because it is the same light falling
+ * from the same place. Only how much of it the surface gives back changes.
+ *
+ * The hue is NOT decided here. It arrives as `--chroma-hue`, read from
+ * panelShadow's THEME_HUE by src/lib/chromaMaterial.mjs — so a window's glow,
+ * its edge and this wrapper are one identity rather than three that agree by
+ * hand. The weights below are the STYLESHEET's, per reading, because a
+ * component that also chose them would be a second answer to a question the
+ * mode already answers. */
+/* ── POSITIONING IS A DEFAULT HERE, AND IT HAS TO LOSE ──────────────────────
+ *
+ * This was `position: relative` inside the `.xi-chroma` rule below, and that
+ * one declaration is the whole of the window-positioning fault.
+ *
+ * Every window, pin and widget in the desk is a framer-motion element dragged
+ * by an `x`/`y` TRANSFORM, and a transform is applied on top of wherever the
+ * element already sits. That only works if the element is taken OUT OF FLOW —
+ * which is what the `absolute` utility on each of them is for, and why the
+ * frame, the pin and the widget all carry it.
+ *
+ * But `.xi-chroma` is declared UNLAYERED and Tailwind's utilities are inside
+ * `@layer utilities`, so the unlayered rule wins on cascade ORDER at equal
+ * specificity — measured in the built sheet, not assumed: `.absolute` lands at
+ * line 1881 and `.xi-chroma` at 47977. So `position: relative` beat
+ * `position: absolute` on every single one of them, the frames dropped back
+ * into normal flow, and each one was then translated from wherever flow had
+ * happened to leave it instead of from its own saved coordinates.
+ *
+ * That is one fault with four faces, and they are the four that have been
+ * reported as separate bugs for hours: a window opens away from where it was
+ * put, dragging accumulates drift instead of following the hand, a release
+ * snaps to a neighbour computed against a position the element is not at, and
+ * two windows at different bands appear to collide because neither is on the
+ * plane its z-index claims.
+ *
+ * `:where()` gives this rule ZERO SPECIFICITY. It still applies when nothing
+ * else declares a position — so a chroma surface with no positioning class
+ * keeps the containing block its `::before` needs — and it loses to any
+ * utility the moment one is present. That is the correct relationship: the
+ * material supplies a fallback, and the surface decides where it stands. */
+:where(.xi-chroma) {
+  position: relative;
+}
+
+.xi-chroma {
+  --chroma-hue: 168;
+  isolation: isolate;
+  /* ── SHADOW ─────────────────────────────────────────────────────────────
+   * The cast shadow is the MODE's own projection token, so it is already
+   * correct in both readings — and it replaces the glass's own, which was
+   * `hsl(var(--glass-base) / 0.72)`. `--glass-base` is WHITE in the light
+   * reading, so that was a drop shadow painted white on the pale field it was
+   * supposed to fall on: a shadow that cannot be seen, in the one mode that
+   * needs one most. A light shell needs INK, and this is where it gets it.
+   *
+   * The middle layer is the surface's own colour, because a coloured object
+   * does not cast a grey shadow. The last is the bevel the glass already
+   * carried, kept so the frame still reads as above the field. */
+  /* ── THE CUBE, NOT A FIRE ────────────────────────────────────────────────
+   *
+   * This was a COLOURED halo: `hsl(var(--chroma-hue) 55% 18% / 0.5)` spread
+   * over 44px, plus a radial reflection of the surface's own hue. Read as
+   * light it is a glow; read as depth it is fog. Either way it is a soft
+   * translucent skirt lying across the field AROUND the surface, which is what
+   * made the content standing on that field hard to read — the halo and the
+   * ink were competing for the same pixels, and the halo was winning.
+   *
+   * ── AND THE COLOUR COMES BACK, CAST RATHER THAN LAID ON ─────────────────
+   *
+   * Throwing the hue away was the wrong trade. A raised object's colour
+   * belongs in the light it CASTS — and a box-shadow is painted behind the
+   * element and outside its bounds, so a cast glow lights the field around the
+   * frame and cannot touch the work standing on it. That is the whole
+   * difference between a glow and a wash, and it is why the halo went.
+   *
+   * The hue is the surface's OWN. `--chroma-hue` is read from the theme the
+   * product or service was declared with (see src/lib/chromaMaterial.mjs), so
+   * a Studio window is lit indigo, a Bins window amber, an Inbox window teal —
+   * and a surface that declares no colour keeps the brand's.
+   *
+   * The neutral drop beneath it stays, because depth and colour are two
+   * different jobs: the drop says how high the surface is, the hue says whose
+   * it is. */
+  box-shadow:
+    var(--projection-lift),
+    0 22px 44px -20px hsl(0 0% 0% / 0.6),
+    0 0 40px -14px hsl(var(--chroma-hue) 60% 40% / 0.42),
+    inset 0 1px 0 hsl(0 0% 100% / 0.05);
+}
+
+/* ── GLOSS AND REFLECTION, ON THE FRAME'S OWN GLASS ──────────────────────────
+ *
+ * ONE pseudo-element, and it is `::before` ON PURPOSE: a `::before` paints
+ * UNDER the element's children and an `::after` paints OVER them. The reading
+ * surface inside a window is the working artifact and it is PAPER — opaque,
+ * always — so a material drawn on `::after` would lie across the work and make
+ * it harder to read in order to say nothing. Drawn here, the frame, the rail,
+ * the title bar and the footer are lit, the artifact is untouched, and that is
+ * the estate's own rule for glass rather than a new one.
+ *
+ * The gloss is a LITERAL white, not `--glass-edge`. That token flips with the
+ * reading — white on the dark shell, black on the light one — so borrowing it
+ * would give the light shell a BLACK highlight along its top edge. A specular
+ * highlight is white light in every mode; only its weight changes. */
+.xi-chroma::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* ── UNDER EVERYTHING, AND `-1` IS WHAT ACTUALLY SAYS SO ────────────────
+   *
+   * This was `z-index: 0`, and the note above claimed that a `::before` paints
+   * under the element's children. That is only true of a child that is in flow
+   * or negative. A POSITIONED descendant at `z-index: 0` is painted in the same
+   * step as a positioned child at `auto` — so whether the material landed under
+   * the work or over it came down to tree order and to which of the window's
+   * bands happened to be positioned that week. It was under today and over the
+   * content the moment a band changed, which is the worst kind of rule: one that
+   * is right by accident and cannot be argued with.
+   *
+   * `-1` is unambiguous. The material paints above the surface's own background
+   * and below every child it has, so the frame, the rail and the title bar are
+   * lit — they are translucent glass and it reads through them — and the
+   * working surface, which is opaque paper, MASKS it. The gloss and the
+   * reflection stop at the edge of the work rather than lying across it. */
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  /* GLOSS, and only gloss. The sheen and the radial reflection that stood
+     beside it were a second light inside the surface, and because the frame is
+     translucent glass they read through every gap between the cards — which is
+     why a halo appeared to sit AROUND each card rather than inside the frame.
+     What is left is the lit top edge, which is the one part of a gloss that
+     says "this is above the sheet" without adding light to the work. */
+  background:
+    linear-gradient(180deg, hsl(0 0% 100% / 0.05), transparent 10%);
+}
+
+/* ── THE LIGHT READING, AND WHY EVERY ONE OF THE THREE MOVES ─────────────────
+ *
+ * The gloss brightens, because on paper the lit top edge is the thing that says
+ * a card is above the sheet — a 12% white sheen is invisible on white.
+ *
+ * The reflection quietens, because the same saturation that reads as "lit" on a
+ * near-black field reads as "stained" on a pale one.
+ *
+ * The cast shadow's chroma deepens, because the light reading leads with it. */
+/* The light reading needs no second set of glow weights. The glow is a CAST,
+   drawn outside the surface's own bounds, so it is never over the work and
+   never over the sheet — and the weights that separate two sheets by depth are
+   the mode's own projection tokens, already correct in each reading. The hue
+   is the surface's, in both. */
+
+/* ── THE CARD, AND WHAT IT DOES WHEN YOU COME NEAR IT ────────────────────────
+ *
+ * THE MICRO-INTERACTION. A card lifts two pixels and its shadow deepens, so
+ * coming near one is answered — and it is answered the SAME WAY IN BOTH
+ * READINGS, which is the point. On the dark shell the deepen is the light
+ * gathering; on paper it is the sheet lifting off the sheet behind it. Two
+ * different physics, one gesture, and the person using it does not have to
+ * learn which mode they are in to know the card noticed them.
+ *
+ * The deepen is the cube's own float token rather than a chroma weight. It used
+ * to raise `--chroma-shadow`, which only ever reached a coloured halo — and the
+ * halo that returns is a CAST outside the surface, never something lying across
+ * the work. So the answer is drawn with the same projection the rest of the shell
+ * uses: the card rises, and the shadow under it deepens to match the height it
+ * is now at.
+ *
+ * `prefers-reduced-motion` removes the travel. The lift is decoration; the
+ * answer is not. */
+.xi-card {
+  transition:
+    transform var(--motion-quick) var(--ease-out-expo),
+    box-shadow var(--motion-quick) var(--ease-out-expo);
+}
+.xi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--projection-float);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xi-card,
+  .xi-card:hover {
+    transform: none;
+  }
+}
+
+/* ── XI-IO ENVIRONMENT LIGHTING ────────────────────────────────────────────
+   The user's theme and the brand remain the material. This is the light falling
+   on that material. --xi-daylight-phase is 0 at night and 1 in daylight and is
+   driven by themeModeStore's declared clock window. Two translucent atmosphere
+   sheets cross-fade continuously so auto day/night is a morph, not a mirror
+   switch. */
+:root {
+  --xi-daylight-phase: 0;
+}
+
+/* The light itself is NOT drawn here any more. These were two fixed sheets at
+   the toast band, painted over every surface in the shell — so the day showed up
+   as a tint ON the bars, the windows and the type, which is the light falling on
+   the interface instead of on the room. It is drawn by EnvironmentLight, inside
+   the atmosphere stack and behind all chrome (see AtmosphereSurface), from the
+   same --xi-daylight-phase. One declaration of the light, in the one place that
+   can put it behind the UI. */

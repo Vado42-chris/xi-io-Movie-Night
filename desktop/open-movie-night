@@ -1,0 +1,200 @@
+#!/usr/bin/env python3
+"""Open the Movie Night wall once; never start or change media playback."""
+
+import fcntl
+import json
+import os
+from pathlib import Path
+import re
+import shutil
+import stat
+import subprocess
+import sys
+import tempfile
+import time
+
+RUNTIME = Path("/home/chrishallberg/Documents/Personal-Movies/movie-night-runtime")
+BINARY = RUNTIME / "bin/movie-night-desktop"
+PROC = Path("/proc")
+INSTANCE = RUNTIME / "desktop-instance.json"
+LOCK = RUNTIME / "desktop-launch.lock"
+
+
+class LaunchError(Exception):
+    """Only static, non-sensitive messages are used here."""
+
+
+def require_installation():
+    directory = RUNTIME.lstat()
+    executable = BINARY.lstat()
+    if (not stat.S_ISDIR(directory.st_mode) or directory.st_uid != os.getuid()
+            or directory.st_mode & 0o077):
+        raise LaunchError("Movie Night needs its private runtime directory.")
+    if (not stat.S_ISREG(executable.st_mode) or executable.st_uid != os.getuid()
+            or executable.st_mode & 0o022 or not os.access(BINARY, os.X_OK)):
+        raise LaunchError("The Movie Night application is not ready to open.")
+
+
+def process_identity(pid):
+    if isinstance(pid, bool) or not isinstance(pid, int) or pid <= 1:
+        return None
+    try:
+        process = PROC / str(pid)
+        if process.stat().st_uid != os.getuid():
+            return None
+        if os.readlink(process / "exe") != str(BINARY.resolve()):
+            return None
+        # The command name in parentheses can itself contain spaces or ')'.
+        fields = (process / "stat").read_text().rsplit(")", 1)[1].split()
+        if fields[0] in {"Z", "X", "x"}:
+            return None
+        return {"pid": pid, "start_ticks": int(fields[19])}
+    except (OSError, ValueError, IndexError):
+        return None
+
+
+def private_file(fd, limit=None):
+    info = os.fstat(fd)
+    if (not stat.S_ISREG(info.st_mode) or info.st_uid != os.getuid()
+            or info.st_mode & 0o077 or (limit is not None and info.st_size > limit)):
+        raise LaunchError("Movie Night's launch record is not private.")
+
+
+def read_instance():
+    try:
+        fd = os.open(INSTANCE, os.O_RDONLY | os.O_NOFOLLOW)
+    except FileNotFoundError:
+        return None
+    try:
+        private_file(fd, 4096)
+        with os.fdopen(fd, "r", encoding="utf-8") as record_file:
+            fd = -1
+            record = json.load(record_file)
+        if not isinstance(record, dict) or record.get("schema") != "movie-night.desktop-instance/v1":
+            return None
+        identity = process_identity(record.get("pid"))
+        if identity and type(record.get("start_ticks")) is int and identity["start_ticks"] == record["start_ticks"]:
+            return identity
+        return None
+    except (ValueError, UnicodeError):
+        return None
+    finally:
+        if fd >= 0:
+            os.close(fd)
+
+
+def find_instance():
+    identity = read_instance()
+    if identity:
+        return identity
+    # Also recognize the exact application if opened directly, without this
+    # launcher. Do not inspect command lines, account files, or environments.
+    for process in PROC.iterdir():
+        if process.name.isdecimal():
+            identity = process_identity(int(process.name))
+            if identity:
+                return identity
+    return None
+
+
+def save_instance(identity):
+    fd, name = tempfile.mkstemp(prefix="desktop-instance.", dir=RUNTIME)
+    temporary = Path(name)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as record_file:
+            json.dump({"schema": "movie-night.desktop-instance/v1", **identity}, record_file)
+            record_file.write("\n")
+            record_file.flush()
+            os.fsync(record_file.fileno())
+        os.replace(temporary, INSTANCE)
+        directory_fd = os.open(RUNTIME, os.O_RDONLY | os.O_DIRECTORY)
+        try:
+            os.fsync(directory_fd)
+        finally:
+            os.close(directory_fd)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def activate(identity):
+    xdotool = shutil.which("xdotool")
+    if not xdotool or not os.environ.get("DISPLAY"):
+        return False
+    try:
+        if process_identity(identity["pid"]) != identity:
+            return False
+        result = subprocess.run(
+            [xdotool, "search", "--all", "--pid", str(identity["pid"]),
+             "--name", "^Movie Night$"],
+            stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL, text=True, timeout=2, check=False,
+        )
+        for window in result.stdout.splitlines()[:16]:
+            if not re.fullmatch(r"[0-9]{1,12}", window):
+                continue
+            if process_identity(identity["pid"]) != identity:
+                return False
+            focused = subprocess.run(
+                [xdotool, "windowactivate", "--sync", window],
+                stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL, timeout=2, check=False,
+            )
+            if focused.returncode == 0:
+                return True
+    except (OSError, subprocess.TimeoutExpired):
+        pass
+    return False
+
+
+def main():
+    if len(sys.argv) != 1:
+        raise LaunchError("Open Movie Night without additional arguments.")
+    require_installation()
+    fd = os.open(LOCK, os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW, 0o600)
+    try:
+        private_file(fd)
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            print("Movie Night is already opening.")
+            return 0
+        identity = find_instance()
+        if identity:
+            save_instance(identity)
+            if activate(identity):
+                print("Movie Night is open.")
+            else:
+                print("Movie Night is already running; use its existing window.")
+            return 0
+        if not os.environ.get("DISPLAY"):
+            raise LaunchError("Open Movie Night from your graphical desktop session.")
+        child = subprocess.Popen(
+            [str(BINARY)], cwd=RUNTIME,
+            stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL, start_new_session=True, close_fds=True,
+        )
+        deadline = time.monotonic() + 3
+        while time.monotonic() < deadline:
+            if child.poll() is not None:
+                raise LaunchError("Movie Night could not open its window.")
+            identity = process_identity(child.pid)
+            if identity:
+                save_instance(identity)
+                print("Movie Night is opening.")
+                return 0
+            time.sleep(0.05)
+        print("Movie Night is starting; allow its window to open.")
+        return 0
+    finally:
+        os.close(fd)
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except LaunchError as error:
+        print(str(error), file=sys.stderr)
+        sys.exit(1)
+    except (OSError, ValueError):
+        print("Movie Night could not verify or open its application.", file=sys.stderr)
+        sys.exit(1)

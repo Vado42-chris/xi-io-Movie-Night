@@ -1,0 +1,316 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "xiio://schemas/project-manifest.schema.json",
+  "title": "xi-io Project Manifest",
+  "description": "Canonical manifest schema for AFG-first xi-io managed projects and external managed project registration.",
+  "type": "object",
+  "required": [
+    "xiio_version",
+    "manifest_version",
+    "project_id",
+    "project_name",
+    "project_type",
+    "management_mode",
+    "implementation_focus",
+    "repository",
+    "paths",
+    "status",
+    "ownership",
+    "privacy_posture",
+    "runtime",
+    "documentation",
+    "engines"
+  ],
+  "properties": {
+    "xiio_version": {
+      "type": "string",
+      "description": "xi-io contract/version this manifest targets."
+    },
+    "manifest_version": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9_-]*$"
+    },
+    "project_name": {
+      "type": "string"
+    },
+    "project_type": {
+      "type": "string",
+      "enum": [
+        "web_app",
+        "local_app",
+        "document_processor",
+        "game",
+        "book",
+        "ttrpg",
+        "video",
+        "animation",
+        "research_system",
+        "news_social_system",
+        "mixed_media",
+        "control_plane",
+        "other"
+      ]
+    },
+    "management_mode": {
+      "type": "string",
+      "enum": [
+        "canonical_managed_project",
+        "internal_managed_project",
+        "external_managed_project",
+        "reference_only",
+        "archived"
+      ]
+    },
+    "implementation_focus": {
+      "type": "string",
+      "enum": [
+        "afg_first_primary",
+        "internal_secondary",
+        "external_separate_workstream",
+        "future_candidate",
+        "not_in_scope"
+      ]
+    },
+    "description": {
+      "type": "string"
+    },
+    "repository": {
+      "type": "object",
+      "required": ["provider", "full_name", "default_branch"],
+      "properties": {
+        "provider": {
+          "type": "string",
+          "enum": ["github", "local_only", "google_drive", "other"]
+        },
+        "full_name": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "default_branch": {
+          "type": "string"
+        },
+        "local_path": {
+          "type": "string"
+        },
+        "repo_safe": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "paths": {
+      "type": "object",
+      "required": ["xiio_contract_root", "docs_root", "engines_root", "schemas_root", "reports_root"],
+      "properties": {
+        "xiio_contract_root": { "type": "string" },
+        "docs_root": { "type": "string" },
+        "engines_root": { "type": "string" },
+        "schemas_root": { "type": "string" },
+        "reports_root": { "type": "string" },
+        "local_runtime_root": { "type": "string" },
+        "vault_root": { "type": "string" },
+        "preview_root": { "type": "string" },
+        "live_root": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "object",
+      "required": ["lifecycle_state", "freshness_state", "validation_state", "repo_sync_state"],
+      "properties": {
+        "lifecycle_state": {
+          "type": "string",
+          "enum": ["planning", "in_build", "previewable", "staging", "live", "paused", "archived", "blocked"]
+        },
+        "freshness_state": {
+          "type": "string",
+          "enum": ["missing", "fresh", "needs_review", "stale", "blocked"]
+        },
+        "validation_state": {
+          "type": "string",
+          "enum": ["not_checked", "valid", "warning", "blocked"]
+        },
+        "repo_sync_state": {
+          "type": "string",
+          "enum": ["not_synced", "synced", "pending", "failed", "not_applicable"]
+        },
+        "known_blockers": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "next_action": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ownership": {
+      "type": "object",
+      "required": ["owner", "implementation_owner", "management_owner"],
+      "properties": {
+        "owner": { "type": "string" },
+        "implementation_owner": { "type": "string" },
+        "management_owner": { "type": "string" },
+        "external_workstream": { "type": "string" },
+        "notes": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "privacy_posture": {
+      "type": "object",
+      "required": ["default_visibility", "local_first", "vault_required", "repo_safe_by_default"],
+      "properties": {
+        "default_visibility": {
+          "type": "string",
+          "enum": ["public", "tenant", "project", "private", "local_only", "vault_only"]
+        },
+        "local_first": { "type": "boolean" },
+        "vault_required": { "type": "boolean" },
+        "repo_safe_by_default": { "type": "boolean" },
+        "sensitive_data_classes": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "excluded_patterns": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "runtime": {
+      "type": "object",
+      "required": ["local_preview", "build", "smoke_test", "deploy", "rollback"],
+      "properties": {
+        "local_preview": { "$ref": "#/$defs/runtime_command" },
+        "build": { "$ref": "#/$defs/runtime_command" },
+        "smoke_test": { "$ref": "#/$defs/runtime_command" },
+        "deploy": { "$ref": "#/$defs/runtime_command" },
+        "rollback": { "$ref": "#/$defs/runtime_command" }
+      },
+      "additionalProperties": false
+    },
+    "documentation": {
+      "type": "object",
+      "required": ["required_artifacts", "hydration_report_path"],
+      "properties": {
+        "required_artifacts": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/artifact_ref" }
+        },
+        "optional_artifacts": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/artifact_ref" }
+        },
+        "hydration_report_path": { "type": "string" },
+        "handoff_pack_path": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "engines": {
+      "type": "object",
+      "required": ["ingress", "binning", "analysis", "lexicon", "egress", "observer", "validation"],
+      "properties": {
+        "ingress": { "$ref": "#/$defs/engine_ref" },
+        "binning": { "$ref": "#/$defs/engine_ref" },
+        "analysis": { "$ref": "#/$defs/engine_ref" },
+        "lexicon": { "$ref": "#/$defs/engine_ref" },
+        "egress": { "$ref": "#/$defs/engine_ref" },
+        "observer": { "$ref": "#/$defs/engine_ref" },
+        "validation": { "$ref": "#/$defs/engine_ref" },
+        "providers": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/provider_ref" }
+        },
+        "adapters": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/adapter_ref" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "managed_project_notes": {
+      "type": "string"
+    }
+  },
+  "$defs": {
+    "runtime_command": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["implemented", "placeholder", "blocked", "not_applicable"]
+        },
+        "command": { "type": "string" },
+        "working_directory": { "type": "string" },
+        "description": { "type": "string" },
+        "requires_confirmation": { "type": "boolean" },
+        "requires_bridge": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "artifact_ref": {
+      "type": "object",
+      "required": ["artifact_type", "path", "status"],
+      "properties": {
+        "artifact_type": { "type": "string" },
+        "template_id": { "type": "string" },
+        "path": { "type": "string" },
+        "status": {
+          "type": "string",
+          "enum": ["missing_template", "template_exists", "source_evidence_available", "generated_draft", "validated", "approved", "stale", "blocked"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "engine_ref": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["missing", "stub", "configured", "implemented", "external", "blocked"]
+        },
+        "config_path": { "type": "string" },
+        "schema_path": { "type": "string" },
+        "notes": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "provider_ref": {
+      "type": "object",
+      "required": ["provider_id", "status"],
+      "properties": {
+        "provider_id": { "type": "string" },
+        "status": {
+          "type": "string",
+          "enum": ["missing", "stub", "configured", "connected", "blocked", "not_applicable"]
+        },
+        "spec_path": { "type": "string" },
+        "health_check": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "adapter_ref": {
+      "type": "object",
+      "required": ["adapter_id", "status"],
+      "properties": {
+        "adapter_id": { "type": "string" },
+        "status": {
+          "type": "string",
+          "enum": ["missing", "stub", "configured", "implemented", "blocked"]
+        },
+        "contract_path": { "type": "string" },
+        "notes": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
