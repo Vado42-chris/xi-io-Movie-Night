@@ -1153,7 +1153,8 @@
       button.append(poster(candidate), node("strong", "", candidate.title), node("span", "", String(candidate.year || "")));
       button.addEventListener("click", () => showFilm(candidate)); row.append(button);
     }
-    byId("detail-related").hidden = !related.length;
+    byId("detail-related").hidden = movie.type === "series";
+    byId("related-empty").hidden = related.length > 0;
     byId("choose-sources").hidden = movie.type === "series";
   }
 
@@ -1264,6 +1265,7 @@
       resetSources(); selectedMovie = null;
       document.querySelector(".detail-hero").hidden = true;
       byId("detail-backdrop").replaceChildren();
+      byId("detail-related").hidden = true;
       renderCarousel(); publishContext(); return;
     }
     const retained = selectedMovie && visibleMovies.find(item => movieKey(item) === movieKey(selectedMovie));

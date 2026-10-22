@@ -36,3 +36,6 @@ The cube increment consumes accepted settings and provider-filter main 6bbb760. 
 
 ## Installed filter-cube home
 541e572 is on GitHub main and Aries. The wall service and owned native app were reopened idle. Actual served assets match that source, and the native home/carousel/filter editor/right-side concierge are visually observed. The user's saved cube and active edits were preserved, with no seeded replacement and no media start. Full native saved-cube restart testing is deferred while the owner is editing; isolated fresh-process storage and browser reopen tests pass. See docs/ops/FILTER-CUBES-20261022.md. Next app work should start from this installed baseline, not rebuild the three-card canary.
+
+## Title-detail review slice, 2026-10-22
+Consumer width caps and movie-recommendation disclosure are repaired in source. verification/specimens/title-detail-specimen.html is the bounded state board for TV seasons/episodes and film recommendations, reusing CenteredCarousel and existing tokens. Review before extending the existing episode path. Browser source checks pass at 1920/1280/768/390. No new backend service, settings registry, chat engine or fake playback callback. Series playback remains OPEN: metadata omits episodes, UI guards series, adapter is movie-only. No native restart or episode playback proof. See docs/ops/TITLE-SPECIMEN-20261022.md.

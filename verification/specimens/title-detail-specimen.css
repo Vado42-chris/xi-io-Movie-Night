@@ -1,0 +1,26 @@
+/* Specimen-only composition. Uses the existing app tokens; no family hue assignment. */
+.title-specimen { padding:0; }
+.specimen-header { display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;padding:24px 38px;border-bottom:1px solid var(--line);background:var(--surface); }
+.specimen-header h1 { font-size:clamp(26px,3vw,38px);letter-spacing:-.5px; }
+.specimen-header p:not(.eyebrow),.specimen-context { color:var(--muted);font-size:13px;line-height:1.7;max-width:85ch; }
+.specimen-tools { display:flex;align-items:end;gap:12px;flex-wrap:wrap; }
+.specimen-tools label,.episode-season { display:grid;gap:8px;font-size:12px;color:var(--muted); }
+.specimen-tools select,.episode-season select { min-height:44px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--text);padding:10px 14px; }
+.title-specimen .detail-content { padding-bottom:40px; }
+.detail-episodes { margin-top:30px;border-top:1px solid var(--line);padding-top:24px; }
+.episode-heading { display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap; }
+.episode-rows { display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px;margin:20px 0; }
+.episode-row { display:flex;align-items:center;text-align:left;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;min-height:95px; }
+.episode-row[aria-pressed=true] { border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent); }
+.episode-number { display:grid;place-items:center;min-width:48px;min-height:48px;background:var(--surface-raised);border-radius:8px;color:var(--muted);font-size:12px; }
+.episode-copy { display:grid;gap:7px;min-width:0; }
+.episode-copy strong { font-size:14px; }
+.episode-copy span { color:var(--muted);font-size:12px;line-height:1.5; }
+.episode-selection { display:flex;align-items:center;justify-content:space-between;gap:22px;flex-wrap:wrap;padding:18px;border:1px solid var(--line);border-radius:10px; }
+.episode-selection p { max-width:75ch;font-size:12px;line-height:1.7;color:var(--muted);margin:8px 0 0; }
+.episode-selection button { width:auto;min-height:44px; }
+.specimen-provenance { margin-top:32px;border-top:1px solid var(--line);padding-top:22px;font-size:12px;line-height:1.8;color:var(--muted); }
+.specimen-provenance summary { cursor:pointer;min-height:44px; }
+.specimen-provenance code { overflow-wrap:anywhere; }
+.title-specimen .poster-placeholder { background:var(--surface-raised); }
+@media(max-width:620px){.specimen-header{padding:18px;}.specimen-tools{width:100%;}.specimen-tools label{flex:1;min-width:130px;}.episode-season{width:100%;}.episode-row{min-height:88px;}.episode-selection{align-items:stretch;}.episode-selection button{width:100%;}}

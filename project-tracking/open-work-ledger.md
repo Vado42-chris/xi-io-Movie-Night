@@ -23,3 +23,7 @@ Append evidence-linked changes, do not silently erase failures.
 - Same suite rebaseline and coordination ownership retained. No assignment, AI Mail delivery, receiver ACK or APPLY_RETURN has been fabricated.
 
 2026-10-22, MN-002 consumer increment: live filter-cube home and shared centred carousel source/browser checks pass after consuming settings/provider-filter main 6bbb760. Exact installed readback is pending. Shared services, TV playback, palette and suite rebaseline are not closed by this slice. See docs/ops/FILTER-CUBES-20261022.md.
+
+## 2026-10-22 title-detail specimen and width repair
+- MN-002: obsolete 600px carousel / 1040px detail caps removed; existing related-film recommendations exposed outside collapsed credits. Exact padded width, centred selection, keyboard and no-overflow source checks pass at 1920/1280/768/390. Native current-window refresh not performed.
+- MN-010 TV sub-slice: source-reproduced failure, not a credentials diagnosis. UI blocks series; metadata omits episodes; source resolver and player payload accept movies only. Season/episode/specials and loading/empty/error states are available for review in the reusable title specimen. Actual episode playback remains OPEN. No second backend or tracking programme.
