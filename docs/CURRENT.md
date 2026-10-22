@@ -2,6 +2,18 @@
 
 Date: 2026-10-22. State: active prototype; settings and provider-filter source on main; provider UI visually read back in the reopened native app. Broader native and suite qualification remains open.
 
+## Cube builder and Shift-wheel consumer, 2026-10-22
+
+Continue Work `settings-sdk-publisher-audit-2026-09-26`, Movie Night #4/#5, existing PR #8 and shared intake #1347. The interrupted cube-controls implementation was recovered in place, not replaced. Reuse PR #7 / 28aca927's exact CenteredCarousel production class and base CSS, including the browser-rotated Shift+deltaX path. Regular vertical scrolling remains page-owned. Original donor evidence and earlier failures remain intact.
+
+Manual creation now uses Source / Filters / Review, with Create cube above and Add another cube below the rows. Editing consumes the same query declaration, evaluator, cube ID, revision store and independent GET readback. This is a manual UI adoption, not a new store or BINS service. The source still uses metadata-source facets; availability, account entitlement and local playback capability are separate unimplemented provider boundaries. @ibal snapshot-collection save remains distinct from live-cube CRUD.
+
+Additional hostile findings during reconciliation: the existing synthetic test clicked a recovery button behind an inert modal with JavaScript. The one recovery control now moves into the active dialog; a real pointer/keyboard test passes. A denied GET after a successful POST remains UNKNOWN, not a refused save. Unresolved writes disable repeat mutations and reconcile by reading only. Earlier post-save disabled-field failure is retained and corrected. The episode runner also accidentally inherited the real user's cube presentation; its fixture now supplies its own cube document without modifying user state or weakening episode assertions.
+
+Current exact-source qualification: 65 top-level plus 16 player Python tests; donor input runner 15 checks; cube builder at 390/768/1440; full 461-ID synthetic episode-family plus five card widths. Existing real HTTP cube writer/cold-process readback passes in a disposable store. No private store or account write. Delivery remains an Aries TEST slice pending exact served-byte/browser readback, not main/Loki or physical-device acceptance.
+
+Framework #1314 was independently read back closed unmerged; it is no longer a publication target. Preserve its donor tests under existing Ibal #80 and framework #476 obligations, without treating that PR closure as worker completion. #351/#426/#1237 and auth #344/#276 remain their owners' open gates.
+
 ## Episode-card details, 2026-10-22
 
 Continue the same app writer, Work `settings-sdk-publisher-audit-2026-09-26`, #1/#3 and draft PR #8. No replacement player, metadata provider, BINS library or window component.

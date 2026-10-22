@@ -69,7 +69,7 @@ async function verifyAllSeries(browser, output) {
   await page.locator('[data-collection="browse-series"]').click();await page.locator('#film-grid .movie-card').first().waitFor();await page.locator('#film-grid .movie-card').first().click();await opened(ids[0]);
   await page.locator('#carousel-next').click();await opened(ids[1]);await close();
   report.checks.push('favorites, recent, catalogue and detail-carousel paths use the same automatic series linkage');
-  await library();await page.locator('#cube-add').click();await page.locator('#cube-name').fill('Synthetic series row');await page.locator('#cube-confirm').click();await page.locator('#cube-naming').waitFor({state:'hidden'});
+  await library();await page.locator('#cube-add').click();await page.locator('#cube-builder-next').click();await page.locator('#cube-builder-next').click();await page.locator('#cube-name').fill('Synthetic series row');await page.locator('#cube-confirm').click();await page.locator('#cube-naming').waitFor({state:'hidden'});
   await page.locator('#cube-home .cube-cover[aria-current=true]').first().click();await opened(ids[0]);await close();
   assert.equal(await page.locator('#cube-home').isVisible(),true);await page.locator('#cube-view-wall').click();
   report.checks.push('saved cube carousel opens the same hierarchy and Back returns to the cube; cube writes are intercepted in memory');
@@ -210,6 +210,7 @@ async function verifyEpisodeCards(browser, output, width) {
     return reply({error:'forbidden_in_test'},403);
    }
    if(req.method()!=='GET'){report.unexpectedWrites.push(u.pathname);return reply({error:'Test blocks writes'},403);}
+   if(u.pathname==='/api/filter-cubes')return reply({schema:'movie-night.filter-cubes/v1',revision:0,view:'wall',selected_id:null,rows:[]});
    if(u.pathname==='/api/personal-library')return reply({favorites:[series],recent:[],watched:[],collections:[],imported_at:null});
    if(u.pathname==='/api/browse/meta')return reply({movie:{...series,episodes},source:'fixture'});
    const rel=u.pathname==='/'?'index.html':u.pathname.slice(1);const file=path.resolve(root,'web',rel);
