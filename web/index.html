@@ -7,6 +7,7 @@
     <meta name="description" content="A personal movie collection. Browse the posters, find a favorite, and make a night of it.">
     <title>Movie Night</title>
     <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/filter-cubes.css">
     <link rel="stylesheet" href="/native-appearance.css">
     <script src="/app.js" defer></script>
   </head>
@@ -158,12 +159,8 @@
         <div id="detail-filter-controls" class="detail-filter-controls" aria-label="Filter this selection"></div>
         <section id="title-carousel" class="title-carousel" role="region" aria-roledescription="carousel" aria-label="Filtered title selection" tabindex="0">
           <div class="carousel-heading"><div><p class="eyebrow">Find your next watch</p><p id="carousel-counter" role="status" aria-live="polite"></p></div><div class="carousel-buttons"><button id="carousel-previous" type="button" class="small-button" aria-label="Previous title">←</button><button id="carousel-next" type="button" class="small-button" aria-label="Next title">→</button></div></div>
-          <div id="carousel-cards" class="carousel-cards">
-            <button id="carousel-previous-card" class="carousel-card carousel-neighbor" type="button" aria-label="Previous title"><span id="carousel-previous-poster"></span><span class="carousel-direction">Previous</span><strong id="carousel-previous-title"></strong></button>
-            <button id="dialog-poster" class="carousel-card carousel-current detail-poster" type="button" aria-label="Show title details"></button>
-            <button id="carousel-next-card" class="carousel-card carousel-neighbor" type="button" aria-label="Next title"><span id="carousel-next-poster"></span><span class="carousel-direction">Next</span><strong id="carousel-next-title"></strong></button>
-          </div>
-          <p id="carousel-hint" class="carousel-hint">Swipe or scroll sideways to browse. Select the centre card for more details.</p>
+          <div id="carousel-cards" class="carousel-cards"></div>
+          <p id="carousel-hint" class="carousel-hint">Swipe, use ← →, or scroll sideways. The centred title stays selected; click it for details.</p>
           <div id="carousel-empty" class="empty-state" hidden><h2>No titles match these filters.</h2><p>Adjust the filters above, or return to the wall. Nothing will play automatically.</p><button id="carousel-reset" type="button" class="small-button">Clear filters</button></div>
           <button id="carousel-load-more" type="button" class="small-button" hidden>Load more titles</button>
         </section>

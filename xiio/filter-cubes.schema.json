@@ -1,0 +1,232 @@
+{
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "movie-night.filter-cubes/v1"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740990
+    },
+    "view": {
+      "enum": [
+        "wall",
+        "carousel"
+      ]
+    },
+    "selected_id": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "maxLength": 100
+        }
+      ]
+    },
+    "rows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,100}$"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1
+          },
+          "collectionId": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 1
+          },
+          "browse": {
+            "anyOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "catalog": {
+                    "enum": [
+                      "top",
+                      "imdbRating",
+                      "year"
+                    ]
+                  },
+                  "genre": {
+                    "type": "string",
+                    "maxLength": 60
+                  },
+                  "year": {
+                    "type": "string",
+                    "maxLength": 4
+                  },
+                  "search": {
+                    "type": "string",
+                    "maxLength": 160
+                  }
+                },
+                "required": [
+                  "catalog",
+                  "genre",
+                  "year",
+                  "search"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          },
+          "filters": {
+            "type": "object",
+            "properties": {
+              "yearFrom": {
+                "type": "string",
+                "pattern": "^(?:|(?:18|19|2[0-9])[0-9]{2})$"
+              },
+              "yearTo": {
+                "type": "string",
+                "pattern": "^(?:|(?:18|19|2[0-9])[0-9]{2})$"
+              },
+              "include": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 60
+                },
+                "uniqueItems": true,
+                "maxItems": 50
+              },
+              "exclude": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 60
+                },
+                "uniqueItems": true,
+                "maxItems": 50
+              },
+              "genreMode": {
+                "enum": [
+                  "any",
+                  "all"
+                ]
+              },
+              "rating": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 10
+              },
+              "runtime": {
+                "type": "string",
+                "pattern": "^(?:|[1-9][0-9]{0,3})$"
+              },
+              "type": {
+                "enum": [
+                  "",
+                  "movie",
+                  "series"
+                ]
+              },
+              "watch": {
+                "enum": [
+                  "",
+                  "favorites",
+                  "watching",
+                  "watched",
+                  "unwatched"
+                ]
+              },
+              "provider": {
+                "enum": [
+                  "",
+                  "nuvio",
+                  "cinemeta"
+                ],
+                "description": "Independent metadata-provider filter. Optional for prior cube documents; absence means any provider."
+              }
+            },
+            "required": [
+              "yearFrom",
+              "yearTo",
+              "include",
+              "exclude",
+              "genreMode",
+              "rating",
+              "runtime",
+              "type",
+              "watch"
+            ],
+            "additionalProperties": false
+          },
+          "search": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "genre": {
+            "type": "string",
+            "maxLength": 60
+          },
+          "sort": {
+            "enum": [
+              "rank",
+              "title",
+              "year-desc",
+              "year-asc",
+              "rating",
+              "runtime"
+            ]
+          },
+          "anchor": {
+            "anyOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string",
+                "maxLength": 180
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "collectionId",
+          "browse",
+          "filters",
+          "search",
+          "genre",
+          "sort",
+          "anchor"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schema",
+    "revision",
+    "view",
+    "selected_id",
+    "rows"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:xiio:movie-night:filter-cubes:1",
+  "title": "Movie Night live filter cubes",
+  "description": "App-owned saved queries, not playlists or BINS custody records. Row order is the home layout. Result membership is evaluated, never stored.",
+  "default": {
+    "schema": "movie-night.filter-cubes/v1",
+    "revision": 0,
+    "view": "wall",
+    "selected_id": null,
+    "rows": []
+  }
+}

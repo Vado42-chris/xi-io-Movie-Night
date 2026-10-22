@@ -34,6 +34,14 @@ The native host is constructed hidden and undecorated, then shown after its GTK 
 
 The original frame source location is `base44-donor/xi-io-node/src/components/desktop/WindowFrame.jsx`; the chat control comes from `base44-donor/xi-io-node/src/components/chat/ChatSnapControl.jsx`. The private consumer and local patch are in [studio-shell](studio-shell/). Missing dependency files were supplied from the qualified donor checkout; this does not make every vendored dependency part of the pinned commit. Movie Night does not modify the managed Studio source or bind its optional managed-account services. Reusing this frame is not a claim of framework admission or publication to a Studio marketplace.
 
+## Live filter cubes
+
+Use **Carousels** to build a home from saved filter queries. Choose a source and filters, then **+ Filter cube**. Each row remains live as that source changes. Swipe, scroll horizontally or use arrow keys; the selected cover stays centred. Click it for details, never automatic playback.
+
+**Edit home** unlocks vertical dragging and Move up/down controls. Add, rename, remove or reorder rows, then **Save layout**, or **Cancel** to restore the saved arrangement. Row **Filters** uses the existing filter editor; **Save cube filters** commits that query. **Wall** shows the same selected query as a grid. New cubes do not have the older 20-view limit, and existing browser-local saved views remain intact.
+
+Install the declared Python dependency with `python3 -m pip install -r requirements.txt` in the app environment. The revisioned private query document is separate from Nuvio, viewing history and preferences. See [implementation and checks](docs/ops/FILTER-CUBES-20261022.md). Online advanced filters still operate on loaded metadata, with additional pages fetched incrementally.
+
 ## Browse, filter, and keep your collections
 
 The wall offers separate curated collections, **Nuvio library**, **Favorites**, **Recent**, **All movies**, and **TV series** views. Movie and series discovery uses the fixed local `/api/browse` gateway to Cinemeta metadata; no TMDB key or list-service account is required. Catalogue search sends a title query to that gateway. Load more follows the server's `next_skip` and `has_more`, because a sanitized page may contain fewer records than the provider's pagination stride. See [catalogue_browse.py](catalogue_browse.py).

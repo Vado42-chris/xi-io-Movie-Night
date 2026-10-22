@@ -13,6 +13,8 @@
     dialogTitle: byId("dialog-title"), dialogMeta: byId("dialog-meta"), dialogGenres: byId("dialog-genres"),
     dialogDescription: byId("dialog-description"),
   };
+  const { CenteredCarousel, mountFilterCubes } = await import("/filter-cubes.mjs");
+  let cubeHome = null, detailCarousel = null, activeCubeLabel = "";
   let collections = [];
   let curatedCollections = [];
   let collection = null;
@@ -114,7 +116,7 @@
     if (parent === window) return;
     const ids = visibleMovies.map(movie => `${movie.type}:${movie.imdbId}`).filter(id => /^(movie|series):tt\d{5,12}$/.test(id));
     const context = { type: "movie-night:context", view: nativePlayerMode ? "playback" : "browsing", collectionId: collection?.id || null, mediaType: collection?.type || null, catalog: collection?.kind === "browse" ? collection.catalog : null,
-      selection: { ids: ids.slice(0, 1000), name: collection?.name || "This selection", count: ids.length, limited: ids.length > 1000,
+      selection: { ids: ids.slice(0, 1000), name: activeCubeLabel || collection?.name || "This selection", count: ids.length, limited: ids.length > 1000,
         selected: selectedMovie ? `${selectedMovie.type}:${selectedMovie.imdbId}` : null, title: selectedMovie?.title || null } };
     const serialized = JSON.stringify(context);
     if (serialized !== lastPublishedContext) {
@@ -812,20 +814,20 @@
     renderFilms();
   }
 
-  function matchesFilters(movie, terms, genre) {
-    if (filters.provider && !providerMembership.get(movieKey(movie))?.has(filters.provider)) return false;
+  function matchesFilters(movie, terms, genre, rules = filters, sourceProvider = null) {
+    if (rules.provider && sourceProvider !== rules.provider && !providerMembership.get(movieKey(movie))?.has(rules.provider)) return false;
     if (genre && !movie.genres.includes(genre)) return false;
     if (!terms.every((term) => movie.searchText.includes(term))) return false;
-    if (filters.yearFrom !== "" && (!movie.year || movie.year < Number(filters.yearFrom))) return false;
-    if (filters.yearTo !== "" && (!movie.year || movie.year > Number(filters.yearTo))) return false;
+    if (rules.yearFrom !== "" && (!movie.year || movie.year < Number(rules.yearFrom))) return false;
+    if (rules.yearTo !== "" && (!movie.year || movie.year > Number(rules.yearTo))) return false;
     const genres = movie.genres.map(normalize);
-    if (filters.include.length && !(filters.genreMode === "all" ? filters.include.every((value) => genres.includes(normalize(value))) : filters.include.some((value) => genres.includes(normalize(value))))) return false;
-    if (filters.exclude.some((value) => genres.includes(normalize(value)))) return false;
-    if (filters.rating > 0 && (movie.rating === null || movie.rating < filters.rating)) return false;
-    if (filters.runtime !== "" && (!movie.runtimeMinutes || movie.runtimeMinutes > Number(filters.runtime))) return false;
-    if (filters.type && movie.type !== filters.type) return false;
-    if (filters.watch === "favorites" && !isFavorite(movie)) return false;
-    if (["watching", "watched", "unwatched"].includes(filters.watch) && watchState(movie) !== filters.watch) return false;
+    if (rules.include.length && !(rules.genreMode === "all" ? rules.include.every((value) => genres.includes(normalize(value))) : rules.include.some((value) => genres.includes(normalize(value))))) return false;
+    if (rules.exclude.some((value) => genres.includes(normalize(value)))) return false;
+    if (rules.rating > 0 && (movie.rating === null || movie.rating < rules.rating)) return false;
+    if (rules.runtime !== "" && (!movie.runtimeMinutes || movie.runtimeMinutes > Number(rules.runtime))) return false;
+    if (rules.type && movie.type !== rules.type) return false;
+    if (rules.watch === "favorites" && !isFavorite(movie)) return false;
+    if (["watching", "watched", "unwatched"].includes(rules.watch) && watchState(movie) !== rules.watch) return false;
     return true;
   }
 
@@ -1034,14 +1036,18 @@
     providerMembership = next;
   }
 
-  function renderFilms() {
-    if (!collection) return;
+  function currentFilterView() {
+    return { filters: sanitizedFilters(filters), search: elements.search.value.trim(), genre: elements.genre.value,
+      sort: elements.sort.value, collectionId: collection?.id || "", browse: savedBrowseSettings(collection) };
+  }
+
+  function filterMovieQuery(movies, query) {
     refreshProviderMembership();
-    byId("provider-filter").value = filters.provider;
-    const terms = normalize(elements.search.value.trim()).split(/\s+/).filter(Boolean);
-    const genre = elements.genre.value;
-    const sort = elements.sort.value;
-    const visible = collection.movies.filter((movie) => matchesFilters(movie, terms, genre));
+    const sourceProvider = ["browse-movie", "browse-series"].includes(query.collectionId) ? "cinemeta" : null;
+    const terms = normalize(query.search.trim()).split(/\s+/).filter(Boolean);
+    const genre = query.genre;
+    const sort = query.sort;
+    const visible = movies.filter((movie) => matchesFilters(movie, terms, genre, query.filters, sourceProvider));
     visible.sort((left, right) => {
       if (sort === "title") return collator.compare(left.title, right.title) || left.rank - right.rank;
       if (sort === "year-desc") return (right.year || 0) - (left.year || 0) || left.rank - right.rank;
@@ -1050,9 +1056,17 @@
       if (sort === "runtime") return (left.runtimeMinutes || Infinity) - (right.runtimeMinutes || Infinity) || left.rank - right.rank;
       return left.rank - right.rank || left.index - right.index;
     });
+    return visible;
+  }
+
+  function renderFilms() {
+    if (!collection) return;
+    byId("provider-filter").value = filters.provider;
+    const visible = filterMovieQuery(collection.movies, currentFilterView());
+    const sort = elements.sort.value;
     visibleMovies = visible;
     const fragment = document.createDocumentFragment();
-    visible.forEach((movie, index) => fragment.append(movieCard(movie, index)));
+    if (!cubeHome?.isCarousel()) visible.forEach((movie, index) => fragment.append(movieCard(movie, index)));
     if (collection.kind === "browse" && collection.loading && !collection.movies.length) {
       for (let index = 0; index < 6; index += 1) { const skeleton = node("div", "skeleton-card"); skeleton.setAttribute("aria-hidden", "true"); fragment.append(skeleton); }
     }
@@ -1090,11 +1104,12 @@
       byId("catalog-search-button").disabled = !catalogueEnabled;
     }
     if (!elements.dialog.hidden) syncCarouselSelection();
+    cubeHome?.refresh();
     publishContext();
   }
 
   function renderFilmDetails(movie) {
-    elements.dialogPoster.replaceChildren(poster(movie, true));
+    // The shared centred carousel owns the poster nodes.
     elements.dialogRank.textContent = movie.type === "series" ? "TV series · Your next story" : collection?.kind === "curated" ? `No. ${String(movie.rank).padStart(2, "0")} in the collection` : "Movie Night · Film";
     elements.dialogTitle.textContent = movie.title;
     elements.dialogMeta.textContent = [movie.year, movie.runtime, wallSettings.browsing.show_ratings && movie.rating !== null ? `★ ${movie.rating.toFixed(1)} / 10` : "", movie.type === "series" && movie.season && movie.episode ? `Last watched: S${movie.season} · E${movie.episode}` : ""].filter(Boolean).join(" · ");
@@ -1234,17 +1249,8 @@
     byId("detail-expanded").hidden = !count || !detailsExpanded;
     byId("expand-details").setAttribute("aria-expanded", String(detailsExpanded));
     byId("expand-details").textContent = detailsExpanded ? "Less detail" : "More details";
-    for (const [side, offset] of [["previous", -1], ["next", 1]]) {
-      const candidate = visibleMovies[index + offset];
-      const enabled = count > 0 && index >= 0 && Boolean(candidate) && !launchPending;
-      const button = byId(`carousel-${side}-card`);
-      button.disabled = !enabled;
-      byId(`carousel-${side}`).disabled = !enabled;
-      byId(`carousel-${side}-poster`).replaceChildren(...(candidate ? [poster(candidate)] : []));
-      byId(`carousel-${side}-title`).textContent = candidate?.title || (side === "previous" ? "Start of selection" : "End of selection");
-      button.setAttribute("aria-label", candidate ? `${side === "previous" ? "Previous" : "Next"} title: ${candidate.title}` : (side === "previous" ? "Start of selection" : "End of selection"));
-    }
-    byId("dialog-poster").setAttribute("aria-label", `More details about ${selectedMovie?.title || "this title"}`);
+    detailCarousel?.setItems(visibleMovies, selectedMovie ? movieKey(selectedMovie) : null);
+    byId("carousel-previous").disabled = byId("carousel-next").disabled = count < 2 || launchPending;
     const more = byId("carousel-load-more");
     more.hidden = collection?.kind !== "browse" || !collection.hasMore || !wallSettings.plugins.cinemeta_enabled;
     more.disabled = Boolean(collection?.loading);
@@ -1272,12 +1278,10 @@
   function stepCarousel(delta) {
     if (launchPending || elements.dialog.hidden || !selectedMovie || !byId("source-picker").hidden) return false;
     const index = visibleMovies.findIndex(item => movieKey(item) === movieKey(selectedMovie));
-    const next = visibleMovies[index + delta];
+    const next = visibleMovies.length ? visibleMovies[(index + delta + visibleMovies.length) % visibleMovies.length] : null;
     if (index < 0 || !next) return false;
     showFilm(next, { focus: false, resetScroll: false });
-    if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      byId("carousel-cards").animate([{ opacity: .5, transform: `translateX(${delta * 24}px)` }, { opacity: 1, transform: "translateX(0)" }], { duration: 190, easing: "ease-out" });
-    }
+    if (collection?.kind === "browse" && collection.hasMore && index >= visibleMovies.length - 4) void loadBrowse(collection.type, true);
     return true;
   }
 
@@ -1416,7 +1420,7 @@
     const state = playerStatus.state;
     const active = ["loading", "playing", "paused"].includes(state);
     const busy = commandPending || launchPending || nativeActionPending;
-    player.dock.hidden = dockDismissed;
+    player.dock.hidden = dockDismissed || (cubeHome?.isCarousel() && playerStatus.state === "idle");
     player.controls.hidden = !active;
     player.secondary.hidden = !active && !nativePlayerMode;
     player.volumeGroup.hidden = !active;
@@ -1620,8 +1624,9 @@
     renderFilms();
   });
   elements.sort.addEventListener("change", renderFilms);
-  elements.picker.addEventListener("change", () => selectCollection(elements.picker.value));
+  elements.picker.addEventListener("change", () => { activeCubeLabel = ""; selectCollection(elements.picker.value); });
   document.querySelectorAll("[data-collection]").forEach((button) => button.addEventListener("click", () => {
+    activeCubeLabel = "";
     const id = button.dataset.collection === "curated" ? curatedCollections[0]?.id : button.dataset.collection;
     selectCollection(id);
   }));
@@ -1685,9 +1690,6 @@
   byId("retry-load").addEventListener("click", loadLibrary);
   byId("carousel-previous").addEventListener("click", () => stepCarousel(-1));
   byId("carousel-next").addEventListener("click", () => stepCarousel(1));
-  byId("carousel-previous-card").addEventListener("click", () => stepCarousel(-1));
-  byId("carousel-next-card").addEventListener("click", () => stepCarousel(1));
-  byId("dialog-poster").addEventListener("click", () => expandTitleDetails(true));
   byId("expand-details").addEventListener("click", () => expandTitleDetails());
   byId("carousel-reset").addEventListener("click", resetFilters);
   byId("carousel-load-more").addEventListener("click", () => { if (collection?.kind === "browse") void loadBrowse(collection.type, true); });
@@ -1698,30 +1700,15 @@
       if (stepCarousel(event.key === "ArrowLeft" ? -1 : 1)) { event.preventDefault(); carousel.focus({ preventScroll: true }); }
     }
   });
-  let swipe = null, suppressCarouselClick = false, wheelLast = 0, wheelSum = 0;
-  carousel.addEventListener("pointerdown", event => {
-    if (!event.isPrimary || event.button !== 0) return;
-    swipe = { id: event.pointerId, x: event.clientX, y: event.clientY };
-    suppressCarouselClick = false;
+  detailCarousel = new CenteredCarousel(byId("carousel-cards"), {
+    poster, legacyIds: true,
+    onSelect(movie, index) {
+      if (launchPending || !byId("source-picker").hidden) return;
+      showFilm(movie, { focus: false, resetScroll: false });
+      if (collection?.kind === "browse" && collection.hasMore && !collection.error && index >= visibleMovies.length - 4) void loadBrowse(collection.type, true);
+    },
+    onOpen() { expandTitleDetails(true); },
   });
-  carousel.addEventListener("pointerup", event => {
-    if (!swipe || swipe.id !== event.pointerId) return;
-    const dx = event.clientX - swipe.x, dy = event.clientY - swipe.y;
-    swipe = null;
-    if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.4) suppressCarouselClick = stepCarousel(dx < 0 ? 1 : -1);
-  });
-  carousel.addEventListener("pointercancel", () => { swipe = null; });
-  carousel.addEventListener("click", event => { if (suppressCarouselClick) { suppressCarouselClick = false; event.preventDefault(); event.stopImmediatePropagation(); } }, true);
-  carousel.addEventListener("wheel", event => {
-    // Never hijack ordinary vertical page scrolling or pinch-to-zoom.
-    if (event.ctrlKey || (!event.shiftKey && Math.abs(event.deltaX) <= Math.abs(event.deltaY))) return;
-    const delta = event.shiftKey ? event.deltaY : event.deltaX;
-    if (Date.now() - wheelLast < 350) { event.preventDefault(); return; }
-    wheelSum += delta;
-    if (Math.abs(wheelSum) < 45) return;
-    const moved = stepCarousel(wheelSum > 0 ? 1 : -1); wheelSum = 0;
-    if (moved) { wheelLast = Date.now(); event.preventDefault(); }
-  }, { passive: false });
   byId("close-dialog").addEventListener("click", closeFilm);
   byId("choose-sources").addEventListener("click", openSources);
   byId("refresh-sources").addEventListener("click", openSources);
@@ -1796,6 +1783,51 @@
   readSavedViews();
   syncFilterControls();
   applyWallSettings(wallSettings);
-  loadLibrary();
+  await loadLibrary();
+  cubeHome = await mountFilterCubes({
+    poster, current: currentFilterView, collections: () => collections,
+    presentation(mode, count) {
+      if (mode === "carousel") {
+        elements.title.textContent = "Your filter cubes";
+        elements.description.textContent = "A home built from your interests. Each row is a live query, never a fixed playlist.";
+      } else if (collection) { elements.title.textContent=collection.name; elements.description.textContent=collection.description; }
+      player.dock.hidden = dockDismissed || (mode === "carousel" && playerStatus.state === "idle");
+      measureDock();
+    },
+    evaluate: filterMovieQuery, catalogueEnabled: () => wallSettings.plugins.cinemeta_enabled,
+    sourceDefaults(id) { const item = collections.find(c => c.id === id); return savedBrowseSettings(item); },
+    summary(query) {
+      const f = query.filters;
+      return [collections.find(c => c.id === query.collectionId)?.name || "Source unavailable",
+        query.search ? `Matching “${query.search}”` : "", f.provider ? `Provider: ${f.provider}` : "", query.genre, f.include.join(" + "),
+        f.exclude.length ? `Without ${f.exclude.join(", ")}` : "", f.yearFrom || f.yearTo ? `${f.yearFrom || "Any year"}–${f.yearTo || "present"}` : "",
+        f.type === "series" ? "TV" : f.type === "movie" ? "Films" : "", f.rating ? `Rating ${f.rating}+` : "",
+        f.runtime ? `Under ${f.runtime} min` : "", f.watch].filter(Boolean).join(" · ");
+    },
+    async fetchPage(row, skip) {
+      const type = row.collectionId === "browse-series" ? "series" : "movie";
+      const view = row.browse || { catalog: "top", genre: "", year: String(currentYear), search: "" };
+      const params = new URLSearchParams({ type, catalog: view.catalog, skip: String(skip) });
+      if (view.catalog === "year") params.set("genre", view.year); else if (view.genre) params.set("genre", view.genre);
+      if (view.search) params.set("search", view.search);
+      const result = await requestJSON(`/api/browse?${params}`);
+      return {...result, movies: Array.isArray(result.movies) ? result.movies.map((m,i) => normalizeMovie({...m,type:m.type||type},skip+i)).filter(Boolean) : null};
+    },
+    activate(row, source, movie) {
+      activeCubeLabel = row.name;
+      const target = collections.find(c => c.id === row.collectionId); if (!target) return;
+      filters = sanitizedFilters(row.filters); elements.search.value = row.search; elements.sort.value = row.sort;
+      if (target.kind === "browse") {
+        Object.assign(target, browseSettings(row.browse, target.type));
+        target.movies = [...source.movies]; target.loaded = true; target.hasMore = source.hasMore;
+        target.nextSkip = source.next || 0; target.loading = false; target.pages = source.pages || 0;
+      }
+      if (row.genre && ![...elements.genre.options].some(o=>o.value===row.genre)) {const option=node("option","",row.genre);option.value=row.genre;elements.genre.append(option);}
+      elements.genre.value = row.genre; selectCollection(target.id); syncFilterControls();
+      if (movie) selectedMovie = movie; publishContext();
+    },
+    open(movie) { showFilm(movie); },
+    openFilters() { byId("open-filters").click(); },
+  });
   void pollPlayer();
 })();

@@ -30,3 +30,6 @@ Nuvio is now a Provider facet, not a content/category tab. Library is a provider
 
 ## Installed provider UI readback, 2026-10-22
 The owned idle Movie Night service was restarted, and /api/settings/declaration returned 200 with the expected declaration identity. The native window ignored Ctrl+R; closing and reopening that app loaded the current assets. An app-only screenshot visibly confirms Your library, the separate Provider selector, and the retained right-side local Ollama/@ibal panel. The unsent draft was restored without sending it. Playback remained idle and original Nuvio configuration was not changed. This proves this displayed increment, not every settings effect after restart, new subscription integrations, shared Studio binding, or a completed cube home. Private runtime receipt: provider-filter-20261022/verification.json.
+
+## Live filter-cube home increment
+The cube increment consumes accepted settings and provider-filter main 6bbb760. It adds saved live queries, home carousel rows, one wall/carousel filter path, centred cached navigation and reversible layout editing. Source/browser checks and the clean shell build pass; exact installed acceptance is pending deployment readback. See docs/ops/FILTER-CUBES-20261022.md. Existing shared-services/OS/TV obligations remain open.

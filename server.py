@@ -19,6 +19,7 @@ import concierge
 import catalogue_browse
 import personal_library
 import app_settings
+import filter_cubes
 
 ROOT = Path(__file__).resolve().parent
 DATA = ROOT / "data"
@@ -28,6 +29,8 @@ SAFE_ID = re.compile(r"^[a-zA-Z0-9_-]+$")
 IMDB_ID = re.compile(r"^tt[0-9]+$")
 ASSETS = {
     "/settings-contract.mjs": ("settings-contract.mjs", "text/javascript; charset=utf-8"),
+    "/filter-cubes.mjs": ("filter-cubes.mjs", "text/javascript; charset=utf-8"),
+    "/filter-cubes.css": ("filter-cubes.css", "text/css; charset=utf-8"),
     "/": ("index.html", "text/html; charset=utf-8"),
     "/index.html": ("index.html", "text/html; charset=utf-8"),
     "/style.css": ("style.css", "text/css; charset=utf-8"),
@@ -137,7 +140,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_body(status, json.dumps(payload, ensure_ascii=False).encode("utf-8"), "application/json; charset=utf-8")
 
     def do_OPTIONS(self):
-        if app_settings.handle(self) or app_settings.gate_catalogue(self):
+        if filter_cubes.handle(self) or app_settings.handle(self) or app_settings.gate_catalogue(self):
             return
         if personal_library.handle(self) or catalogue_browse.handle(self):
             return
@@ -149,7 +152,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_body(204, b"", "text/plain")
 
     def do_POST(self):
-        if app_settings.handle(self) or app_settings.gate_catalogue(self):
+        if filter_cubes.handle(self) or app_settings.handle(self) or app_settings.gate_catalogue(self):
             return
         if personal_library.handle(self) or catalogue_browse.handle(self):
             return
@@ -164,7 +167,7 @@ class Handler(BaseHTTPRequestHandler):
         self.do_GET()
 
     def do_GET(self):
-        if app_settings.handle(self) or app_settings.gate_catalogue(self):
+        if filter_cubes.handle(self) or app_settings.handle(self) or app_settings.gate_catalogue(self):
             return
         if personal_library.handle(self) or catalogue_browse.handle(self, personal_library.register_catalogue):
             return
