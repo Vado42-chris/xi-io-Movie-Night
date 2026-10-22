@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Send, Sparkles, X, Check, BookmarkPlus, Settings } from 'lucide-react';
+import { Send, Sparkles, X, Check, BookmarkPlus } from 'lucide-react';
 import ChatSnapControl from '@/components/chat/ChatSnapControl';
 
 const HISTORY = 'movie-night.concierge.history/v1';
@@ -73,7 +73,6 @@ export default function Concierge({ onClose, onCollectionSaved, onOpenSettings, 
     <header className="concierge-heading">
       <div className="concierge-mark"><Sparkles size={20} /></div>
       <div><h2>@ibal</h2><p>{status?.available ? 'Your movie concierge · Ollama' : 'Your movie concierge'}</p></div>
-      <button className="shell-icon-button concierge-settings" aria-label="Concierge model settings" onClick={onOpenSettings}><Settings size={18} /></button>
       <button className="shell-icon-button" aria-label="Close concierge" onClick={onClose}><X size={20} /></button>
     </header>
     <div className="concierge-runtime" role="status"><span className={status?.available ? 'model-online' : 'model-unavailable'}>{status?.available ? 'Local model ready' : status ? 'Local model unavailable' : 'Checking local model…'}</span><span>{status?.model || ''}</span></div>

@@ -64,8 +64,19 @@ async function check(name,fn){try{await fn();report.checks.push({name,pass:true}
    assert.deepEqual(await rail.locator('[data-window-utility]').evaluateAll(nodes=>nodes.map(n=>n.dataset.windowUtility)),['bins','chat','settings']);
    assert.equal(await rail.locator('.window-lifecycle-controls [data-window-utility]').count(),0);
    assert.equal(await page.locator('[data-window-utility="settings"]').count(),1);
+   assert.equal(await page.locator('button svg.lucide-settings').count(),1,'one Settings cog, owned by the left rail');
+   assert.equal(await page.getByRole('button',{name:'Movie wall',exact:true}).count(),0,'root app glyph is not repeated as a single tab');
+   assert.equal(await page.locator('.native-title-action.native-settings-button,.concierge-settings').count(),0,'no title-bar or chat-header copies');
   });
   await restore.click();await page.locator('#concierge-prompt').waitFor({state:'visible'});
+  await check('restored chat does not introduce another settings cog',async()=>{assert.equal(await page.locator('button svg.lucide-settings').count(),1);});
+  await check('left-rail Settings opens the existing dialog without saving',async()=>{
+   await rail.locator('[data-window-utility="settings"]').click();
+   await page.locator('#movie-settings[open]').waitFor();
+   assert.equal(await page.locator('#movie-settings').isVisible(),true);
+   await page.locator('#movie-settings').press('Escape');
+   await page.waitForFunction(()=>!document.querySelector('#movie-settings[open]'));
+  });
   await page.locator('#concierge-prompt').fill('Keep this draft while the window changes.');
   await page.locator('#concierge-prompt').evaluate(el=>{window.__originalPrompt=el;window.__originalConcierge=el.closest('.concierge');el.focus();el.setSelectionRange(5,9);});
   await check('wide content and right chat do not overlap',async()=>{

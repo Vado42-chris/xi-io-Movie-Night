@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
-import { Film, Sparkles, Maximize2, Settings } from 'lucide-react';
+import { Film, Sparkles, Maximize2 } from 'lucide-react';
 import { Toaster } from 'sonner';
 import WindowFrame from '@/components/desktop/WindowFrame';
 import { PersistentChatPortal } from '@/components/chat/ChatDockSlot';
@@ -155,7 +155,7 @@ function StudioMovieNight() {
       // iframe keyboard handler cannot receive that outer-document Escape.
       if (native && event.key === 'Escape' && bridgeState.current.fullscreen && !event.defaultPrevented && !document.querySelector('#movie-settings[open]')) {
         event.preventDefault();
-        nativeWindowAction('exit-fullscreen');
+        bridgeInvoke('toggle_movie_fullscreen').catch(() => setHostError('Full screen could not be changed.'));
       }
     };
     addEventListener('keydown', leaveFullscreen);
@@ -223,11 +223,11 @@ function StudioMovieNight() {
   const titleActions = native ? <><button className="native-title-action native-title-icon" title={fullscreen ? "Exit full screen" : "Full screen"} aria-label={fullscreen ? "Exit full screen" : "Full screen"} onClick={() => bridgeInvoke('toggle_movie_fullscreen').catch(() => setHostError('Full screen is unavailable.'))}><Maximize2 size={17} />{fullscreen && <span>Exit full screen</span>}</button></> : null;
 
   return <main className={`studio-app ${native ? 'studio-native' : ''} ${fullscreen ? 'studio-fullscreen' : ''}`} data-native-host={native} data-native-player-active={nativeActive}>
-    {!native && <header className="studio-heading"><div className="studio-brand"><Film size={22} /><span>Movie Night</span><small>PERSONAL STUDIO</small></div><div className="studio-heading-actions"><span className="aries-status"><i />Aries</span><button className="shell-icon-button" aria-label="Open Movie Night settings" onClick={openSettings}><Settings size={19} /></button><button className="shell-button" onClick={openConcierge}><Sparkles size={18} />Ask @ibal</button></div></header>}
+    {!native && <header className="studio-heading"><div className="studio-brand"><Film size={22} /><span>Movie Night</span><small>PERSONAL STUDIO</small></div><div className="studio-heading-actions"><span className="aries-status"><i />Aries</span></div></header>}
     <div className="studio-stage" ref={stage}>
       {!paneVisible && <div className="studio-empty"><Film size={42} /><h1>Your next movie night</h1><p>The wall is ready whenever you are.</p><button className="shell-primary" onClick={() => setPaneVisible(true)}>Open Movie Night</button></div>}
       <div className="movie-pane-wrap" style={{ display: paneVisible ? 'contents' : 'none' }}>
-        <WindowFrame title="Movie Night" category="Entertainment" icon={Film} theme="amber" appId="personal-movie-night" windowId="personal-movie-night-window" surfaceId="personal:movie-night" chatTarget={TARGET} lane={20} isActive={!native || nativeWindowState.focused !== false} onFocus={() => {}} onClose={closePane} onMinimize={minimizePane} onOpenSettings={openSettings} onOpenChat={openConcierge} chatOpen={dock.open} chatButtonRef={chatButton} chatPanelId="movie-night-concierge" footerStatus="Aries · Local playback" nativeWindow={nativeFrame} titleBarActions={titleActions} constraintsRef={stage} initialPosition={initial.current.position} initialSize={initial.current.size} onGeometryChange={saveGeometry} tabs={[{ id: 'wall', label: 'Movie wall', icon: Film }]} activeTab="wall">
+        <WindowFrame title="Movie Night" category="Entertainment" icon={Film} theme="amber" appId="personal-movie-night" windowId="personal-movie-night-window" surfaceId="personal:movie-night" chatTarget={TARGET} lane={20} isActive={!native || nativeWindowState.focused !== false} onFocus={() => {}} onClose={closePane} onMinimize={minimizePane} onOpenSettings={openSettings} onOpenChat={openConcierge} chatOpen={dock.open} chatButtonRef={chatButton} chatPanelId="movie-night-concierge" footerStatus="Aries · Local playback" nativeWindow={nativeFrame} titleBarActions={titleActions} constraintsRef={stage} initialPosition={initial.current.position} initialSize={initial.current.size} onGeometryChange={saveGeometry} tabs={[]} activeTab="wall">
           <div className={`movie-native-content ${native && dock.open && !chatMount ? 'with-concierge' : ''}`}>
             <iframe ref={wall} id="movie-wall" title="Movie Night wall and player controls" src="/?studio=1" allow="fullscreen" onLoad={connectWall} className="movie-wall-frame" />
             {native && <aside ref={chatFallback} hidden={!dock.open || Boolean(chatMount)} className="movie-native-concierge" aria-label="Movie concierge panel" />}
