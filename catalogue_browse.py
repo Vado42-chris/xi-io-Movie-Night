@@ -427,6 +427,20 @@ def meta(params):
         record = normalize_record(document.get("meta"), media_type)
         if record is None or record["imdb_id"] != imdb_id:
             raise CatalogueError(404, "This title is unavailable in the catalogue.")
+        raw = document["meta"]
+        # Enrich detail responses only, using an explicit public-field allowlist.
+        # Never forward upstream behavior hints, stream objects or arbitrary links.
+        for key in ("background", "logo"):
+            record[key] = _poster(raw.get(key))
+        for key in ("cast", "director", "writer"):
+            values = raw.get(key, [])
+            if isinstance(values, str):
+                values = [values]
+            record[key] = list(dict.fromkeys(_text(value, 120) for value in values[:40]
+                                             if isinstance(value, str) and _text(value, 120))) if isinstance(values, list) else []
+        for key in ("country", "awards", "language"):
+            record[key] = _text(raw.get(key), 800)
+        record["metadata_source"] = "Cinemeta"
         return {"movie": record, "source": "Cinemeta", "type": media_type}
 
     return _cached(path, make_result)

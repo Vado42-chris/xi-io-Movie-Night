@@ -54,6 +54,7 @@ ERRORS = {
     "source_timeout": "The source provider did not respond in time.",
     "no_cached_sources": "No confirmed cached Real-Debrid sources were returned.",
     "source_expired": "That source expired or does not match this movie. Search again.",
+    "source_required": "Choose a source before starting a movie.",
     "busy": "Another playback request is in progress. Try again shortly.",
     "player_unavailable": "The independent player is unavailable.",
     "player_failed": "The independent player could not start playback.",
@@ -260,8 +261,39 @@ class Source:
     url: str = field(repr=False)
     headers: list = field(repr=False)
 
+    technical: dict = field(default_factory=dict)
+
     def public(self):
-        return {"id": self.id, "label": self.label, "quality": self.quality}
+        return {"id": self.id, "label": self.label, "quality": self.quality, **self.technical}
+
+
+def technical_metadata(stream, description):
+    """Extract fixed-vocabulary hints, never provider text, URLs or headers.
+
+    These labels describe provider claims, not measured decoder capabilities.
+    Unknown fields stay empty; the UI must not invent HDR, audio or language.
+    """
+    data = str(description)[:4000]
+    size = source_size(stream, data)
+    codec = ("AV1" if re.search(r"\bAV1\b", data, re.I) else
+             "HEVC / H.265" if re.search(r"\b(?:HEVC|[xh][ ._-]?265)\b", data, re.I) else
+             "AVC / H.264" if re.search(r"\b(?:AVC|[xh][ ._-]?264)\b", data, re.I) else "")
+    dynamic_range = ("Dolby Vision" if re.search(r"\b(?:Dolby[ ._-]?Vision|DoVi|DV)\b", data, re.I) else
+                     "HDR10+" if re.search(r"\bHDR10\+", data, re.I) else
+                     "HDR10" if re.search(r"\bHDR10\b", data, re.I) else
+                     "HDR" if re.search(r"\bHDR\b", data, re.I) else "")
+    audio = []
+    for label, pattern in [("Dolby Atmos", r"\bAtmos\b"), ("TrueHD", r"\bTrueHD\b"),
+                           ("DTS-HD", r"\bDTS[ ._-]?HD\b"), ("DTS", r"\bDTS\b"),
+                           ("DD+", r"\b(?:EAC3|E[ ._-]?AC[ ._-]?3|DDP)\b"),
+                           ("AC3", r"\bAC[ ._-]?3\b"), ("AAC", r"\bAAC\b"),
+                           ("7.1", r"(?<!\d)7\.1(?!\d)"), ("5.1", r"(?<!\d)5\.1(?!\d)")]:
+        if re.search(pattern, data, re.I) and not (label == "DTS" and "DTS-HD" in audio):
+            audio.append(label)
+    return {"provider": "Torrentio", "availability": "RD cached", "video_codec": codec,
+            "dynamic_range": dynamic_range, "audio": audio,
+            "size_bytes": int(size) if math.isfinite(size) else None,
+            "metadata_basis": "provider-reported"}
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -369,7 +401,7 @@ class Resolver:
             rank = qualities.index(quality)
             heavy = bool(re.search(r"\b(?:remux|dolby.?vision|hdr|dv)\b", text, re.I))
             ordering = (rank, heavy, source_size(stream, text)) if profile["small"] else (rank,)
-            candidates.append((ordering, quality, url, headers))
+            candidates.append((ordering, quality, url, headers, technical_metadata(stream, text)))
             seen.add(url)
         candidates.sort(key=lambda item: item[0])
         # A preferences/provider change during a source request invalidates that
@@ -377,10 +409,10 @@ class Resolver:
         if self.selection()[2] != digest:
             raise SafeError("source_expired", 409)
         sources = []
-        for index, (_, quality, url, headers) in enumerate(candidates[:24], 1):
+        for index, (_, quality, url, headers, technical) in enumerate(candidates[:100], 1):
             sources.append(Source(secrets.token_urlsafe(24), imdb_id, title, quality,
                                   quality + " · RD cached · Source " + str(index),
-                                  time.monotonic() + SOURCE_TTL, digest, url, headers))
+                                  time.monotonic() + SOURCE_TTL, digest, url, headers, technical))
         with self.lock:
             # Bound private in-memory cache; never persist provider payloads.
             while len(self.cache) + len(sources) > 256 and self.cache:
@@ -871,13 +903,11 @@ class Adapter:
                 if set(payload) - {"imdb_id", "title", "source_id"}:
                     raise SafeError("bad_request")
                 imdb_id, title = movie_input(payload)
-                if "source_id" in payload:
-                    source = self.resolver.get(payload["source_id"], imdb_id)
-                else:
-                    sources = self.resolver.sources(imdb_id, title)
-                    if not sources:
-                        raise SafeError("no_cached_sources", 409)
-                    source = sources[0]
+                # New playback always binds the user's explicit choice. Resume
+                # uses /command and does not resolve or replace the source.
+                if "source_id" not in payload:
+                    raise SafeError("source_required", 409)
+                source = self.resolver.get(payload["source_id"], imdb_id)
                 return 202, self.player.play(source)
             if set(payload) - {"command", "value"} or not isinstance(payload.get("command"), str):
                 raise SafeError("bad_request")

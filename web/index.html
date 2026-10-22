@@ -41,7 +41,7 @@
         </section>
 
         <section class="browse-section" aria-label="Browse films">
-          <p class="browse-intro">Choose a poster, then press <strong>Play on Aries</strong>.</p>
+          <p class="browse-intro">Open a title, choose your stream, then press <strong>Play</strong>.</p>
           <div class="library-navigation" aria-label="Choose what to browse">
             <div class="library-tabs">
               <button type="button" data-collection="curated" class="library-tab is-active">My collections</button>
@@ -132,29 +132,39 @@
       </form>
     </dialog>
 
-    <dialog id="film-dialog" class="film-dialog" aria-labelledby="dialog-title">
-      <button id="close-dialog" class="dialog-close" type="button" aria-label="Close film details"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="m6 6 12 12M18 6 6 18" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></button>
-      <div class="dialog-layout">
-        <div id="dialog-poster" class="dialog-poster"></div>
-        <div class="dialog-copy">
-          <p id="dialog-rank" class="eyebrow"></p>
-          <h2 id="dialog-title"></h2>
-          <p id="dialog-meta" class="dialog-meta"></p>
-          <div id="dialog-genres" class="genre-tags"></div>
-          <p id="dialog-description" class="dialog-description"></p>
-          <p id="dialog-metadata-status" class="dialog-metadata-status" role="status" aria-live="polite" hidden></p>
-          <section class="dialog-playback" aria-label="Play this film on Aries">
-            <div class="playback-actions">
-              <button id="play-on-aries" class="primary-button" type="button"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m8 5 11 7-11 7V5Z"/></svg><span id="play-on-aries-label">Play on Aries</span></button>
+    <section id="film-dialog" class="film-detail" aria-labelledby="dialog-title" hidden>
+      <div id="detail-backdrop" class="detail-backdrop" aria-hidden="true"></div>
+      <div class="detail-content">
+        <nav class="detail-navigation" aria-label="Movie detail navigation"><button id="close-dialog" class="small-button detail-back" type="button"><span aria-hidden="true">←</span> Back to wall</button><span class="detail-provider">Movie Night · Your collection</span></nav>
+        <div class="detail-hero">
+          <div id="dialog-poster" class="detail-poster"></div>
+          <div class="detail-copy">
+            <p id="dialog-rank" class="eyebrow"></p>
+            <h1 id="dialog-title" tabindex="-1"></h1>
+            <p id="dialog-meta" class="dialog-meta"></p>
+            <div id="dialog-genres" class="genre-tags"></div>
+            <p id="dialog-description" class="detail-synopsis"></p>
+            <p id="dialog-metadata-status" class="dialog-metadata-status" role="status" aria-live="polite" hidden></p>
+            <div class="detail-actions">
+              <button id="play-on-aries" class="primary-button" type="button"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="m8 5 11 7-11 7V5Z"/></svg><span id="play-on-aries-label">Choose a stream</span></button>
+              <button id="choose-sources" class="small-button" type="button">Choose source</button>
               <button id="favorite-detail" class="detail-favorite small-button" type="button" aria-pressed="false">Add to favorites</button>
             </div>
-            <p id="playback-explanation" class="playback-explanation">Picture and sound play on Aries. Control your film from the playback bar at the bottom of this page.</p>
+            <p id="playback-explanation" class="playback-explanation"></p>
             <p id="playback-feedback" class="playback-feedback" role="status" aria-live="polite" aria-atomic="true"></p>
-          </section>
-          <p class="dialog-note">Your choice, your movie night.</p>
+          </div>
         </div>
+        <section id="source-picker" class="source-picker" aria-labelledby="source-heading" hidden>
+          <header class="source-heading"><div><p class="eyebrow">Your connection · Aries</p><h2 id="source-heading" tabindex="-1">Choose your stream</h2><p>Nothing plays until you choose a source and press Play.</p></div><button id="cancel-sources" class="small-button" type="button">Close sources</button></header>
+          <div class="source-toolbar"><label>Quality<select id="source-quality"><option value="">All qualities</option><option value="2160p">4K · 2160p</option><option value="1080p">1080p</option><option value="720p">720p</option><option value="480p">480p</option><option value="unknown">Unspecified</option></select></label><label>Dynamic range<select id="source-range"><option value="">Any range</option><option value="hdr">HDR / Dolby Vision</option><option value="unspecified">Not specified</option></select></label><button id="refresh-sources" class="small-button" type="button">Search again</button></div>
+          <p id="source-status" class="source-status" role="status" aria-live="polite"></p>
+          <form id="source-form"><fieldset id="source-list" class="source-list"><legend class="visually-hidden">Available sources</legend></fieldset><footer class="source-footer"><p id="source-selection-note">Select a source to continue.</p><button id="play-source" class="primary-button" type="submit" disabled><span aria-hidden="true">▶</span> Play selected source</button></footer></form>
+          <p class="detail-footnote">Quality, file size and audio labels are supplied by the provider, not measured by Movie Night. Account credentials and stream addresses stay in the private player.</p>
+        </section>
+        <section id="detail-credits" class="detail-credits" aria-labelledby="credits-heading" hidden><h2 id="credits-heading">Behind the film</h2><dl id="detail-facts"></dl></section>
+        <section id="detail-related" class="detail-related" aria-labelledby="related-heading" hidden><div class="detail-section-heading"><h2 id="related-heading">Keep exploring</h2><p>Related picks from titles already loaded on your wall.</p></div><div id="related-titles" class="related-titles"></div></section>
       </div>
-    </dialog>
+    </section>
 
     <section id="player-dock" class="player-dock" aria-label="Movie Night player on Aries" tabindex="-1">
       <div class="player-main">
