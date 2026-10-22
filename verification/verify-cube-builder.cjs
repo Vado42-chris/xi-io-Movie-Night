@@ -60,6 +60,7 @@ try{
   report.checks.push('both Shift-wheel axes and line units move cards; normal vertical scroll is not consumed; arrows own focused carousel');
   await page.locator('#cube-add-below').click();assert.equal(await page.locator('#cube-builder-progress').innerText(),'Step 1 of 3 · Source');
   await page.locator('#cube-source').selectOption('library');await next();
+  const labelGap=await page.locator('#cube-rule-type').evaluate(control=>{const label=control.closest('label'),range=document.createRange();range.selectNode(label.firstChild);return control.getBoundingClientRect().top-range.getBoundingClientRect().bottom;});assert.ok(labelGap>=7,'Focus outline overlaps its visible label');
   await page.locator('#cube-rule-type').selectOption('movie');await page.locator('#cube-rule-genre').selectOption('Western');
   await page.locator('#cube-rule-yearFrom').fill('1985');await page.locator('#cube-rule-yearTo').fill('1980');await next();
   assert.ok((await page.locator('#cube-builder-feedback').innerText()).includes('end year'));assert.equal(writes,0);
