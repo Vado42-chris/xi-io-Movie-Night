@@ -93,3 +93,12 @@ html[data-window-material="glass"] .studio-native .concierge-composer { backgrou
 .shell-failure a { display:inline-block; margin-top:20px; padding:14px 22px; background:#d2b07d; color:#211b13; border-radius:8px; }
 @media(max-width:850px) { .studio-brand small { display:none; } .studio-heading { padding:0 16px; } .studio-taskbar { padding:9px 16px; } .studio-taskbar p { display:none; } .studio-stage .xi-window { border-radius:8px; } }
 @media(max-width:1023px) { .studio-native .movie-native-concierge { position:absolute; inset:0; width:100%; border:0; z-index:20; } .studio-native .movie-native-content.with-concierge > .movie-wall-frame { visibility:hidden; } .native-title-action { padding:5px 8px; } }
+
+.concierge-heading > .concierge-settings { margin-left: auto; flex: 0 0 34px; width: 34px; min-height: 34px; padding: 7px; }
+.concierge-heading > .concierge-settings + button { margin-left: 0; flex: 0 0 34px; width: 34px; min-height: 34px; padding: 7px; }
+.concierge-runtime { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px; padding: 9px 15px; font-size: 10px; color: #a7b59c; border-bottom: 1px solid #333e31; }
+.model-online { color: #c0d6ab; }
+.model-unavailable { color: #e2bc89; }
+.concierge-context { display: grid; gap: 5px; padding: 12px 15px; background: #26301f; font-size: 11px; color: #bbc5b1; }
+.concierge-context strong { color: #e0e8d7; font-size: 12px; }
+.concierge-context small { font-size: 10px; color: #98a68c; line-height: 1.5; }

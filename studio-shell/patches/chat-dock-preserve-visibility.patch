@@ -1,0 +1,29 @@
+diff --git a/studio-shell/vendor/src/lib/chatDockStore.js b/studio-shell/vendor/src/lib/chatDockStore.js
+index 30d2e97..401dab3 100644
+--- a/studio-shell/vendor/src/lib/chatDockStore.js
++++ b/studio-shell/vendor/src/lib/chatDockStore.js
+@@ -135,7 +135,10 @@ function restoreAttachments() {
+   if (!want.length) return;
+   const open = id => snapshot.targets.some(t => t.id === id);
+   const lead = want.find(r => r.role === 'LEAD');
+-  if (!snapshot.binding && lead && open(lead.target_ref)) snapChat(lead.target_ref);
++  if (!snapshot.binding && lead && open(lead.target_ref)) {
++    // Restoring attachment is not a user request to reopen a dismissed chat.
++    snapChat(lead.target_ref, { reveal: snapshot.open, view: snapshot.view });
++  }
+   if (!snapshot.binding) return;
+   const crew = snapshot.protocol?.crew || [];
+   want
+@@ -184,10 +187,10 @@ export function registerChatTarget(target) {
+     notify();
+   };
+ }
+-export function snapChat(id) {
++export function snapChat(id, { reveal = true, view = 'foreground' } = {}) {
+   const target = snapshot.targets.find(t => t.id === id);
+   if (!target) throw new Error('TARGET_NOT_OPEN');
+-  snapshot = { ...transitionChat(snapshot, { type: 'SNAP', target }), open: true, view: 'foreground' };
++  snapshot = { ...transitionChat(snapshot, { type: 'SNAP', target }), open: reveal === true, view: view === 'background' ? 'background' : 'foreground' };
+   recordAttach({ target_ref: id, label: target.label, role: 'LEAD' });
+   notify();
+ }

@@ -7,7 +7,7 @@ import { Toaster } from 'sonner';
 import WindowFrame from '@/components/desktop/WindowFrame';
 import { GridProvider } from '@/components/desktop/DesktopGridSystem';
 import { SnapGuideProvider } from '@/lib/snapGuide';
-import { useChatDock, setChatOpen, snapChat } from '@/lib/chatDockStore';
+import { useChatDock, setChatOpen, snapChat, setChatSide, setChatView } from '@/lib/chatDockStore';
 import Concierge from './Concierge';
 import MovieSettings, { useMovieSettings } from './Settings';
 import '../vendor/src/index.css';
@@ -51,6 +51,7 @@ function StudioMovieNight() {
   const [fullscreen, setFullscreen] = useState(false);
   const [nativeActive, setNativeActive] = useState(false);
   const [chatMount, setChatMount] = useState(null);
+  const [selection, setSelection] = useState(null);
   const [width, setWidth] = useState(innerWidth);
   const [hostError, setHostError] = useState('');
   const [nativeWindowState, setNativeWindowState] = useState(() => window.__MOVIE_NIGHT_WINDOW_STATE__ || { maximized: false, fullscreen: false, focused: true });
@@ -92,6 +93,8 @@ function StudioMovieNight() {
     const receive = event => {
       if (event.origin !== location.origin || event.source !== wall.current?.contentWindow || event.data?.type !== 'movie-night:context') return;
       if (['browsing', 'playback'].includes(event.data.view)) wallContext.current = event.data.view;
+      const value = event.data.selection;
+      if (value && Array.isArray(value.ids) && value.ids.length <= 1000 && value.ids.every(id => typeof id === 'string' && /^(movie|series):tt\d{5,12}$/.test(id))) setSelection(value);
     };
     addEventListener('message', receive);
     return () => removeEventListener('message', receive);
@@ -188,8 +191,10 @@ function StudioMovieNight() {
 
   function openConcierge() {
     setPaneVisible(true);
-    setChatOpen(true);
-    if (!dock.binding && dock.targets.some(target => target.id === TARGET.id)) snapChat(TARGET.id);
+    // An explicit Ask action reveals the existing conversation at this app's
+    // right edge. It never creates a new thread or a second docking system.
+    if (dock.targets.some(target => target.id === TARGET.id)) snapChat(TARGET.id);
+    setChatSide('right'); setChatView('foreground'); setChatOpen(true);
   }
   function openSettings() {
     setSettingsContext(nativeActive ? 'playback' : dock.open ? 'concierge' : wallContext.current);
@@ -204,7 +209,7 @@ function StudioMovieNight() {
     // Saving a collection only refreshes the catalogue. It never starts a film.
     wall.current?.contentWindow?.postMessage({ type: 'movie-night:library-updated', collectionId }, location.origin);
   }
-  const chat = <Concierge onClose={() => setChatOpen(false)} onCollectionSaved={reloadWall} />;
+  const chat = <Concierge selection={selection} onOpenSettings={() => { setSettingsContext('concierge'); setSettingsOpen(true); }} onClose={() => setChatOpen(false)} onCollectionSaved={reloadWall} />;
   const nativeFrame = native ? {
     maximized: nativeWindowState.maximized, fullscreen,
     startDragging: () => nativeWindowAction('drag'),

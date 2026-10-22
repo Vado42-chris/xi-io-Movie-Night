@@ -265,6 +265,12 @@ def _view(state):
                           "collections": state["imported"]["collections"] + state["collections"]})
 
 
+def known_titles():
+    """Copy known metadata for local concierge use; never change the storage format."""
+    with _lock:
+        return copy.deepcopy(list(_registry(_read()).values()))
+
+
 def read_personal_library():
     with _lock:
         return _view(_read())

@@ -13,3 +13,11 @@
 - MN-010: TV episode playback, real watch parties, remote playback, broader concierge, Arcade and RealityPools integrations. FUTURE; no inert success buttons.
 
 Append evidence-linked changes, do not silently erase failures.
+
+## 2026-10-22 selection and concierge increment
+- MN-001: source preservation and first feature increment independently read back from GitHub main, 679a157. No force push or PR backlog.
+- MN-002/MN-003: full detail and explicit source-selection browser regressions pass on desktop, tablet and phone. Real media playback was not attempted in these tests.
+- MN-002: selection carousel now reuses the wall filter nodes and ordering, with previous/next, keyboard, swipe and horizontal-wheel handlers; zero-result and return-state browser checks passed. Physical touch remains unverified.
+- MN-010 concierge sub-slice: existing dock restored; current filtered identifiers resolve against server-known metadata. Real local llama3.1:8b returned a two-title proposal from a 20-title filtered selection. No cloud fallback or automatic save/play. Desktop/tablet dock tests and page-restart persistence passed with simulated native commands. Native deployment verification remains required.
+- MN-010 TV episode sub-slice remains OPEN; a series card is not playback proof.
+- Same suite rebaseline and coordination ownership retained. No assignment, AI Mail delivery, receiver ACK or APPLY_RETURN has been fabricated.

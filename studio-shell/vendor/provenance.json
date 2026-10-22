@@ -71,11 +71,17 @@
     },
     {
       "file": "src/lib/chatDockStore.js",
-      "sha256": "8303f4eb798a0246de4a19db8ea1694834069cce25d2151b1ea8fd84f2576434",
+      "sha256": "7995b79368d9f1cb68ca1b060b87f1ca5948b3b1637c1ccd57c13fe0724d182d",
       "source": {
         "kind": "git",
         "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
         "path": "base44-donor/xi-io-node/src/lib/chatDockStore.js"
+      },
+      "local_patch": {
+        "file": "../patches/chat-dock-preserve-visibility.patch",
+        "sha256": "ae8f5e7cdf7c358dbe9b90da945248079e327b0b2f390550abb1b4291516a90a",
+        "upstream_sha256": "8303f4eb798a0246de4a19db8ea1694834069cce25d2151b1ea8fd84f2576434",
+        "description": "Preserve explicit closed state during attachment restoration; attachment is not visibility intent. Shared-owner upstream handoff required."
       }
     },
     {

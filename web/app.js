@@ -50,6 +50,9 @@
   }]));
   let loadController;
   let selectedMovie = null;
+  let visibleMovies = [];
+  let carouselIndex = 0;
+  let detailsExpanded = false;
   let detailController = null;
   let detailGeneration = 0;
   let wallReturn = { scroll: 0, focus: null };
@@ -100,7 +103,10 @@
 
   function publishContext() {
     if (parent === window) return;
-    const context = { type: "movie-night:context", view: nativePlayerMode ? "playback" : "browsing", collectionId: collection?.id || null, mediaType: collection?.type || null, catalog: collection?.kind === "browse" ? collection.catalog : null };
+    const ids = visibleMovies.map(movie => `${movie.type}:${movie.imdbId}`).filter(id => /^(movie|series):tt\d{5,12}$/.test(id));
+    const context = { type: "movie-night:context", view: nativePlayerMode ? "playback" : "browsing", collectionId: collection?.id || null, mediaType: collection?.type || null, catalog: collection?.kind === "browse" ? collection.catalog : null,
+      selection: { ids: ids.slice(0, 1000), name: collection?.name || "This selection", count: ids.length, limited: ids.length > 1000,
+        selected: selectedMovie ? `${selectedMovie.type}:${selectedMovie.imdbId}` : null, title: selectedMovie?.title || null } };
     const serialized = JSON.stringify(context);
     if (serialized !== lastPublishedContext) {
       lastPublishedContext = serialized;
@@ -1018,6 +1024,7 @@
       if (sort === "runtime") return (left.runtimeMinutes || Infinity) - (right.runtimeMinutes || Infinity) || left.rank - right.rank;
       return left.rank - right.rank || left.index - right.index;
     });
+    visibleMovies = visible;
     const fragment = document.createDocumentFragment();
     visible.forEach((movie, index) => fragment.append(movieCard(movie, index)));
     if (collection.kind === "browse" && collection.loading && !collection.movies.length) {
@@ -1056,6 +1063,8 @@
       }
       byId("catalog-search-button").disabled = !catalogueEnabled;
     }
+    if (!elements.dialog.hidden) syncCarouselSelection();
+    publishContext();
   }
 
   function renderFilmDetails(movie) {
@@ -1092,7 +1101,7 @@
     }
     byId("detail-credits").hidden = !facts.children.length;
     const seen = new Set([movieKey(movie)]);
-    const related = collections.flatMap(item => item.movies).filter(candidate => {
+    const related = visibleMovies.filter(candidate => {
       const key = movieKey(candidate);
       if (seen.has(key) || candidate.type !== movie.type) return false;
       seen.add(key); return candidate.genres.some(genre => movie.genres.includes(genre));
@@ -1153,6 +1162,7 @@
     detailController?.abort(); detailController = null; detailGeneration += 1;
     resetSources();
     elements.dialog.hidden = true;
+    placeBrowseControls(false);
     document.querySelector(".page-shell").hidden = false;
     document.body.classList.remove("detail-open");
     window.scrollTo(0, wallReturn.scroll);
@@ -1160,19 +1170,96 @@
     publishContext();
   }
 
-  function showFilm(movie) {
+  function showFilm(movie, { focus = true, resetScroll = true } = {}) {
     if (launchPending) return;
     if (elements.dialog.hidden) wallReturn = { scroll: window.scrollY, focus: document.activeElement };
     detailController?.abort(); detailController = null; detailGeneration += 1;
     resetSources(); selectedMovie = movie;
     const status = byId("dialog-metadata-status"); status.textContent = ""; status.hidden = true;
     renderFilmDetails(movie);
+    placeBrowseControls(true);
+    document.querySelector(".detail-hero").hidden = false;
     document.querySelector(".page-shell").hidden = true;
     elements.dialog.hidden = false;
     document.body.classList.add("detail-open");
-    elements.dialog.scrollTop = 0;
-    elements.dialogTitle.focus({ preventScroll: true });
+    if (resetScroll) elements.dialog.scrollTop = 0;
+    if (focus) elements.dialogTitle.focus({ preventScroll: true });
+    carouselIndex = Math.max(0, visibleMovies.findIndex(item => movieKey(item) === movieKey(movie)));
+    renderCarousel();
+    publishContext();
     if (wallSettings.plugins.cinemeta_enabled && !movie.detailsLoaded && /^tt\d{5,12}$/.test(movie.imdbId)) void loadFilmDetails(movie, detailGeneration);
+  }
+
+  function placeBrowseControls(inDetail) {
+    // The wall and carousel use the actual SAME controls, values and handlers.
+    // Moving their nodes avoids a second filter state, rule set or fallback list.
+    const destination = byId(inDetail ? "detail-filter-controls" : "browse-controls-home");
+    destination.append(document.querySelector(".browse-toolbar"), byId("active-filters"));
+  }
+
+  function renderCarousel() {
+    const index = selectedMovie ? visibleMovies.findIndex(item => movieKey(item) === movieKey(selectedMovie)) : -1;
+    const count = visibleMovies.length;
+    byId("detail-collection-label").textContent = collection?.name || "Movie Night";
+    byId("carousel-counter").textContent = count ? `${index + 1} of ${count} matching titles${collection?.kind === "browse" ? " loaded" : ""}` : "0 matching titles";
+    byId("carousel-cards").hidden = !count;
+    byId("carousel-hint").hidden = !count;
+    byId("carousel-empty").hidden = Boolean(count);
+    byId("detail-expanded").hidden = !count || !detailsExpanded;
+    byId("expand-details").setAttribute("aria-expanded", String(detailsExpanded));
+    byId("expand-details").textContent = detailsExpanded ? "Less detail" : "More details";
+    for (const [side, offset] of [["previous", -1], ["next", 1]]) {
+      const candidate = visibleMovies[index + offset];
+      const enabled = count > 0 && index >= 0 && Boolean(candidate) && !launchPending;
+      const button = byId(`carousel-${side}-card`);
+      button.disabled = !enabled;
+      byId(`carousel-${side}`).disabled = !enabled;
+      byId(`carousel-${side}-poster`).replaceChildren(...(candidate ? [poster(candidate)] : []));
+      byId(`carousel-${side}-title`).textContent = candidate?.title || (side === "previous" ? "Start of selection" : "End of selection");
+      button.setAttribute("aria-label", candidate ? `${side === "previous" ? "Previous" : "Next"} title: ${candidate.title}` : (side === "previous" ? "Start of selection" : "End of selection"));
+    }
+    byId("dialog-poster").setAttribute("aria-label", `More details about ${selectedMovie?.title || "this title"}`);
+    const more = byId("carousel-load-more");
+    more.hidden = collection?.kind !== "browse" || !collection.hasMore || !wallSettings.plugins.cinemeta_enabled;
+    more.disabled = Boolean(collection?.loading);
+    more.textContent = collection?.loading ? "Loading titles…" : "Load more titles";
+  }
+
+  function syncCarouselSelection() {
+    if (launchPending) return;
+    if (!visibleMovies.length) {
+      detailController?.abort(); detailController = null; detailGeneration += 1;
+      resetSources(); selectedMovie = null;
+      document.querySelector(".detail-hero").hidden = true;
+      byId("detail-backdrop").replaceChildren();
+      renderCarousel(); publishContext(); return;
+    }
+    const retained = selectedMovie && visibleMovies.find(item => movieKey(item) === movieKey(selectedMovie));
+    if (!retained) {
+      showFilm(visibleMovies[Math.min(carouselIndex, visibleMovies.length - 1)], { focus: false, resetScroll: false });
+    } else {
+      carouselIndex = visibleMovies.indexOf(retained);
+      renderCarousel(); publishContext();
+    }
+  }
+
+  function stepCarousel(delta) {
+    if (launchPending || elements.dialog.hidden || !selectedMovie || !byId("source-picker").hidden) return false;
+    const index = visibleMovies.findIndex(item => movieKey(item) === movieKey(selectedMovie));
+    const next = visibleMovies[index + delta];
+    if (index < 0 || !next) return false;
+    showFilm(next, { focus: false, resetScroll: false });
+    if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      byId("carousel-cards").animate([{ opacity: .5, transform: `translateX(${delta * 24}px)` }, { opacity: 1, transform: "translateX(0)" }], { duration: 190, easing: "ease-out" });
+    }
+    return true;
+  }
+
+  function expandTitleDetails(force) {
+    if (!selectedMovie) return;
+    detailsExpanded = typeof force === "boolean" ? force : !detailsExpanded;
+    renderCarousel();
+    if (detailsExpanded) byId("detail-expanded").scrollIntoView({ block: "nearest", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
   }
 
   function sourceSize(value) {
@@ -1566,6 +1653,45 @@
   elements.reset.addEventListener("click", resetFilters);
   byId("empty-reset").addEventListener("click", resetFilters);
   byId("retry-load").addEventListener("click", loadLibrary);
+  byId("carousel-previous").addEventListener("click", () => stepCarousel(-1));
+  byId("carousel-next").addEventListener("click", () => stepCarousel(1));
+  byId("carousel-previous-card").addEventListener("click", () => stepCarousel(-1));
+  byId("carousel-next-card").addEventListener("click", () => stepCarousel(1));
+  byId("dialog-poster").addEventListener("click", () => expandTitleDetails(true));
+  byId("expand-details").addEventListener("click", () => expandTitleDetails());
+  byId("carousel-reset").addEventListener("click", resetFilters);
+  byId("carousel-load-more").addEventListener("click", () => { if (collection?.kind === "browse") void loadBrowse(collection.type, true); });
+  const carousel = byId("title-carousel");
+  carousel.addEventListener("keydown", event => {
+    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || event.defaultPrevented || event.repeat) return;
+    if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+      if (stepCarousel(event.key === "ArrowLeft" ? -1 : 1)) { event.preventDefault(); carousel.focus({ preventScroll: true }); }
+    }
+  });
+  let swipe = null, suppressCarouselClick = false, wheelLast = 0, wheelSum = 0;
+  carousel.addEventListener("pointerdown", event => {
+    if (!event.isPrimary || event.button !== 0) return;
+    swipe = { id: event.pointerId, x: event.clientX, y: event.clientY };
+    suppressCarouselClick = false;
+  });
+  carousel.addEventListener("pointerup", event => {
+    if (!swipe || swipe.id !== event.pointerId) return;
+    const dx = event.clientX - swipe.x, dy = event.clientY - swipe.y;
+    swipe = null;
+    if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.4) suppressCarouselClick = stepCarousel(dx < 0 ? 1 : -1);
+  });
+  carousel.addEventListener("pointercancel", () => { swipe = null; });
+  carousel.addEventListener("click", event => { if (suppressCarouselClick) { suppressCarouselClick = false; event.preventDefault(); event.stopImmediatePropagation(); } }, true);
+  carousel.addEventListener("wheel", event => {
+    // Never hijack ordinary vertical page scrolling or pinch-to-zoom.
+    if (event.ctrlKey || (!event.shiftKey && Math.abs(event.deltaX) <= Math.abs(event.deltaY))) return;
+    const delta = event.shiftKey ? event.deltaY : event.deltaX;
+    if (Date.now() - wheelLast < 350) { event.preventDefault(); return; }
+    wheelSum += delta;
+    if (Math.abs(wheelSum) < 45) return;
+    const moved = stepCarousel(wheelSum > 0 ? 1 : -1); wheelSum = 0;
+    if (moved) { wheelLast = Date.now(); event.preventDefault(); }
+  }, { passive: false });
   byId("close-dialog").addEventListener("click", closeFilm);
   byId("choose-sources").addEventListener("click", openSources);
   byId("refresh-sources").addEventListener("click", openSources);

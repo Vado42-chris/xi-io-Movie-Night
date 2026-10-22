@@ -65,6 +65,7 @@ const pause = ms => new Promise(r => setTimeout(r, ms));
         await page.locator('#film-dialog').waitFor({ state: 'visible' });
         assert.equal(await page.locator('.page-shell').isVisible(), false);
         assert.equal(await page.locator('#film-dialog').evaluate(e => e.tagName), 'SECTION');
+        await page.locator('#expand-details').click();
         await page.locator('#detail-facts').getByText('Robert Zemeckis', { exact: true }).waitFor({ timeout: 35000 });
         assert.ok((await page.locator('#detail-facts').innerText()).includes('Michael J. Fox'));
         assert.equal(result.requests.filter(x => !x.endpoint.endsWith('/status')).length, 0);

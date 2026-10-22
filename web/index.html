@@ -69,6 +69,7 @@
             </div>
             <p id="catalog-scope" class="catalog-scope">These choices browse the catalogue. The filters below refine the titles you have loaded.</p>
           </section>
+          <div id="browse-controls-home">
           <div class="browse-toolbar">
             <div class="search-field">
               <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.6"/><path d="m16 16 4.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
@@ -93,6 +94,7 @@
             <button id="open-filters" class="filter-trigger" type="button" aria-haspopup="dialog" aria-controls="filter-dialog"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3" fill="currentColor"/><circle cx="15" cy="17" r="3" fill="currentColor"/></svg>Filters <span id="filter-count" hidden>0</span></button>
           </div>
           <div id="active-filters" class="active-filters" aria-label="Active filters" hidden></div>
+          </div>
           <div class="results-bar">
             <p id="results-count" role="status" aria-live="polite">Getting the collection ready…</p>
             <button id="clear-filters" class="text-button" type="button" hidden>Reset filters</button>
@@ -135,9 +137,20 @@
     <section id="film-dialog" class="film-detail" aria-labelledby="dialog-title" hidden>
       <div id="detail-backdrop" class="detail-backdrop" aria-hidden="true"></div>
       <div class="detail-content">
-        <nav class="detail-navigation" aria-label="Movie detail navigation"><button id="close-dialog" class="small-button detail-back" type="button"><span aria-hidden="true">←</span> Back to wall</button><span class="detail-provider">Movie Night · Your collection</span></nav>
+        <nav class="detail-navigation" aria-label="Movie detail navigation"><button id="close-dialog" class="small-button detail-back" type="button"><span aria-hidden="true">←</span> Back to wall</button><span id="detail-collection-label" class="detail-provider">Movie Night · Your collection</span></nav>
+        <div id="detail-filter-controls" class="detail-filter-controls" aria-label="Filter this selection"></div>
+        <section id="title-carousel" class="title-carousel" role="region" aria-roledescription="carousel" aria-label="Filtered title selection" tabindex="0">
+          <div class="carousel-heading"><div><p class="eyebrow">Find your next watch</p><p id="carousel-counter" role="status" aria-live="polite"></p></div><div class="carousel-buttons"><button id="carousel-previous" type="button" class="small-button" aria-label="Previous title">←</button><button id="carousel-next" type="button" class="small-button" aria-label="Next title">→</button></div></div>
+          <div id="carousel-cards" class="carousel-cards">
+            <button id="carousel-previous-card" class="carousel-card carousel-neighbor" type="button" aria-label="Previous title"><span id="carousel-previous-poster"></span><span class="carousel-direction">Previous</span><strong id="carousel-previous-title"></strong></button>
+            <button id="dialog-poster" class="carousel-card carousel-current detail-poster" type="button" aria-label="Show title details"></button>
+            <button id="carousel-next-card" class="carousel-card carousel-neighbor" type="button" aria-label="Next title"><span id="carousel-next-poster"></span><span class="carousel-direction">Next</span><strong id="carousel-next-title"></strong></button>
+          </div>
+          <p id="carousel-hint" class="carousel-hint">Swipe or scroll sideways to browse. Select the centre card for more details.</p>
+          <div id="carousel-empty" class="empty-state" hidden><h2>No titles match these filters.</h2><p>Adjust the filters above, or return to the wall. Nothing will play automatically.</p><button id="carousel-reset" type="button" class="small-button">Clear filters</button></div>
+          <button id="carousel-load-more" type="button" class="small-button" hidden>Load more titles</button>
+        </section>
         <div class="detail-hero">
-          <div id="dialog-poster" class="detail-poster"></div>
           <div class="detail-copy">
             <p id="dialog-rank" class="eyebrow"></p>
             <h1 id="dialog-title" tabindex="-1"></h1>
@@ -148,6 +161,7 @@
             <div class="detail-actions">
               <button id="play-on-aries" class="primary-button" type="button"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="m8 5 11 7-11 7V5Z"/></svg><span id="play-on-aries-label">Choose a stream</span></button>
               <button id="choose-sources" class="small-button" type="button">Choose source</button>
+              <button id="expand-details" class="small-button" type="button" aria-expanded="false" aria-controls="detail-expanded">More details</button>
               <button id="favorite-detail" class="detail-favorite small-button" type="button" aria-pressed="false">Add to favorites</button>
             </div>
             <p id="playback-explanation" class="playback-explanation"></p>
@@ -161,8 +175,10 @@
           <form id="source-form"><fieldset id="source-list" class="source-list"><legend class="visually-hidden">Available sources</legend></fieldset><footer class="source-footer"><p id="source-selection-note">Select a source to continue.</p><button id="play-source" class="primary-button" type="submit" disabled><span aria-hidden="true">▶</span> Play selected source</button></footer></form>
           <p class="detail-footnote">Quality, file size and audio labels are supplied by the provider, not measured by Movie Night. Account credentials and stream addresses stay in the private player.</p>
         </section>
+        <div id="detail-expanded" hidden>
         <section id="detail-credits" class="detail-credits" aria-labelledby="credits-heading" hidden><h2 id="credits-heading">Behind the film</h2><dl id="detail-facts"></dl></section>
         <section id="detail-related" class="detail-related" aria-labelledby="related-heading" hidden><div class="detail-section-heading"><h2 id="related-heading">Keep exploring</h2><p>Related picks from titles already loaded on your wall.</p></div><div id="related-titles" class="related-titles"></div></section>
+        </div>
       </div>
     </section>
 

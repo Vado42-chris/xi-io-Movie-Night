@@ -265,7 +265,9 @@ class Handler(BaseHTTPRequestHandler):
             payload = json.loads(raw)
             if not isinstance(payload, dict) or set(payload) - {"name", "description", "imdb_ids"}:
                 raise ValueError()
-            canonical = [movie for collection in read_library()["collections"] for movie in collection["movies"]]
+            public_rows = [movie for collection in read_library()["collections"] for movie in collection["movies"]]
+            personal_library.register_catalogue(public_rows)
+            canonical = personal_library.known_titles()
             collection = personal_library.save_collection(payload.get("name"), payload.get("description", ""), payload.get("imdb_ids"), canonical)
             self.json_response(200, {"collection": collection})
         except personal_library.LibraryError as error:

@@ -1,9 +1,9 @@
 # Current handoff
 
-Date: 2026-10-22. State: active prototype, source adoption in progress.
+Date: 2026-10-22. State: active prototype; source preserved on main; selection and concierge increment tested, installation verification pending.
 
 ## Goal and next action
-Preserve the existing Movie Night application in the owner-created public repository, then connect full-size movie detail and explicit source selection to the existing catalogue and player. Complete targeted tests and read back main. No random film launch.
+Source preservation and the full-title/explicit-source slice are on main at 679a157. The next tested increment adds a filtered selection carousel and the existing right-docked concierge, with real local Ollama responses. Publish this increment, install its shell assets, reopen only the idle owned app, and verify its native display. TV episode selection/playback remains unimplemented at this checkpoint. No random film launch.
 
 ## Current source and runtime
 Source is adopted in place on Aries at ~/Documents/Personal-Movies/movie-night.
@@ -18,3 +18,6 @@ Earlier settings UI run had desktop/tablet completion timeouts, while load-error
 
 ## Stop boundaries
 Do not touch Nuvio settings/credentials; do not start films during tests; do not create another shell, settings registry, or suite registration. Do not reset the dirty framework checkout. Keep user library/history outside git.
+
+## Current bounded evidence
+See docs/ops/SELECTION-CONCIERGE-20261022.md. Browser tests use isolated storage and intercepted media routes. Local Ollama inference was real; native host commands in those browser tests were simulated. Settings-declaration consolidation, suite Work/CRM identity and AI Mail return qualification remain separate open obligations, not implied by these passes. No new suite audit or tracker has been created.

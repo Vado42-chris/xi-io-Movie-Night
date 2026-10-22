@@ -11,6 +11,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_opener
 import app_settings
+import personal_library
 
 OLLAMA_URL = "http://127.0.0.1:11434"
 MODEL = "llama3.1:8b"
@@ -121,6 +122,44 @@ def _catalogue():
         return movies
     except (OSError, ValueError, KeyError, TypeError):
         raise ConciergeError(503, "The movie catalogue is unavailable just now.") from None
+
+
+def _selection_catalogue(context, catalogue):
+    """Resolve untrusted client identifiers against existing server-owned metadata."""
+    if context is None:
+        return catalogue
+    if (not isinstance(context, dict) or set(context) - {"ids", "selected"}
+            or not isinstance(context.get("ids"), list) or len(context["ids"]) > 1000
+            or any(not isinstance(key, str) or not re.fullmatch(r"(?:movie|series):tt[0-9]{5,12}", key) for key in context["ids"])):
+        raise ConciergeError(400, "The current selection is invalid. Reopen the wall and try again.")
+    requested = list(dict.fromkeys(context["ids"]))
+    selected = context.get("selected")
+    if selected is not None and selected not in requested:
+        raise ConciergeError(400, "The selected title is outside the current selection.")
+    known = {"movie:" + key: dict(value, type="movie") for key, value in catalogue.items()}
+    try:
+        for raw in personal_library.known_titles():
+            imdb_id = raw.get("imdbId")
+            if not isinstance(imdb_id, str) or not re.fullmatch(r"tt[0-9]{5,12}", imdb_id):
+                continue
+            kind = raw.get("type", "movie")
+            if kind not in ("movie", "series"):
+                continue
+            key = kind + ":" + imdb_id
+            existing = known.get(key, {})
+            year_match = re.match(r"^(\d{4})(?:\D|$)", str(raw.get("year") or raw.get("releaseInfo") or ""))
+            known[key] = {**existing, "imdb_id": imdb_id, "type": kind,
+                "title": raw.get("title") or existing.get("title", "Untitled"),
+                "year": int(year_match[1]) if year_match else existing.get("year"),
+                "genres": raw.get("genres") or existing.get("genres", []),
+                "runtime": raw.get("runtime") or existing.get("runtime", ""),
+                "poster": raw.get("poster") or existing.get("poster", ""),
+                "description": raw.get("description") or existing.get("description") or existing.get("synopsis", "")}
+    except personal_library.LibraryError:
+        raise ConciergeError(503, "The local library is unavailable. Your files have not been changed.") from None
+    if any(key not in known for key in requested):
+        raise ConciergeError(409, "The selection has changed. Refresh the wall before asking again.")
+    return {known[key]["imdb_id"]: known[key] for key in requested}
 
 
 def _messages(payload):
@@ -320,7 +359,7 @@ def _prompt(references, applied_filters):
                 re.sub(r"\s+", " ", str(movie.get("synopsis") or movie.get("description") or ""))[:80]]
                for ref, movie in references.items()]
     return (
-        "You are @ibal, a concise personal movie concierge. Choose ONLY from the eligible films below. "
+        "You are @ibal, a concise personal movie concierge. Choose ONLY from the eligible titles below. "
         "Earlier chat is context; the user's latest correction takes priority. Honour preferences such as mood "
         "and requested list length. Never relax the applied filters. If too few films fit, give fewer and say so. "
         "You can propose a collection, never save, play, download, or control anything. "
@@ -383,12 +422,12 @@ def chat(payload):
         raise ConciergeError(503, "Enable Ollama in Settings to use the movie concierge.")
     model = settings["concierge"]["model"]
     messages = _messages(payload)
-    movies = _catalogue()
+    movies = _selection_catalogue(payload.get("context"), _catalogue())
     constraints = _constraints(messages[-1]["content"])
     applied_filters = _filter_labels(constraints)
     references = {f"f{index}": movie for index, movie in enumerate(movies.values(), 1) if _eligible(movie, constraints)}
     if not references:
-        raise ConciergeError(422, "No films on this wall match those filters. Try widening a genre, year, or runtime limit.")
+        raise ConciergeError(422, "No titles in this selection match those filters. Try widening a genre, year, or runtime limit.")
     if not _inference.acquire(blocking=False):
         raise ConciergeError(429, "The concierge is finishing another answer. Please try again shortly.")
     try:
