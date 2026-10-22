@@ -1,9 +1,9 @@
 # Current handoff
 
-Date: 2026-10-22. State: active prototype; source preserved on main; selection and concierge increment tested, installation verification pending.
+Date: 2026-10-22. State: active prototype; settings and provider-filter source on main; provider UI visually read back in the reopened native app. Broader native and suite qualification remains open.
 
 ## Goal and next action
-Source preservation and the full-title/explicit-source slice are on main at 679a157. The next tested increment adds a filtered selection carousel and the existing right-docked concierge, with real local Ollama responses. Publish this increment, install its shell assets, reopen only the idle owned app, and verify its native display. TV episode selection/playback remains unimplemented at this checkpoint. No random film launch.
+Accepted source: settings declaration/scoped reset at 7e26a30; provider-neutral Library and independent provider filtering at 6bbb760. Both were pushed to main and read back from GitHub. The next app increment is user-editable saved filter cubes rendered as stacked carousel rows, reusing the existing filter engine and saved-view data, with Wall/Carousel switching and persisted row order. Do not create playlists or a second shell. TV episode playback remains unimplemented. No random film launch.
 
 ## Current source and runtime
 Source is adopted in place on Aries at ~/Documents/Personal-Movies/movie-night.
@@ -27,3 +27,6 @@ Python, React and the wall now consume xiio/settings.schema.json through the man
 
 ## Provider/filter increment, 2026-10-22
 Nuvio is now a Provider facet, not a content/category tab. Library is a provider-neutral projection of existing records; imported source data and legacy saved-view/startup IDs are preserved. Provider, genre, title type and watch status intersect in the same wall/detail selection engine. YouTube/Prime/Netflix/Disney remain visibly not connected; source membership is not playback entitlement. Provider tests and existing selection-navigation tests pass at 1440/768/430 widths with no playback writes; 48 Python regressions pass. Shared Studio services, TV playback, full-catalogue service availability and persistent multi-row cube home remain distinct open work.
+
+## Installed provider UI readback, 2026-10-22
+The owned idle Movie Night service was restarted, and /api/settings/declaration returned 200 with the expected declaration identity. The native window ignored Ctrl+R; closing and reopening that app loaded the current assets. An app-only screenshot visibly confirms Your library, the separate Provider selector, and the retained right-side local Ollama/@ibal panel. The unsent draft was restored without sending it. Playback remained idle and original Nuvio configuration was not changed. This proves this displayed increment, not every settings effect after restart, new subscription integrations, shared Studio binding, or a completed cube home. Private runtime receipt: provider-filter-20261022/verification.json.
