@@ -767,7 +767,8 @@ class Player:
             target = self.embed_target()
             if target:
                 command += ["--wid=" + str(target), "--vo=gpu", "--gpu-context=x11egl",
-                            "--osc=no", "--osd-bar=no", "--keep-open=no"]
+                            "--osc=no", "--osd-bar=no", "--keep-open=no",
+                            "--input-conf=" + str(Path(__file__).with_name("native-input.conf"))]
             self.process = subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
                                             stderr=subprocess.DEVNULL, start_new_session=True, close_fds=True)
         except Exception:
@@ -789,6 +790,28 @@ class Player:
     def number(value):
         return round(float(value), 3) if isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value) else None
 
+    def tracks(self):
+        """Expose only bounded labels/IDs from this player's real track list."""
+        raw = self.ipc(["get_property", "track-list"], optional=True)
+        if not isinstance(raw, list):
+            return []
+        rows = []
+        for track in raw[:128]:
+            if not isinstance(track, dict) or track.get("type") not in ("audio", "sub"):
+                continue
+            track_id = track.get("id")
+            if type(track_id) is not int or not 0 <= track_id <= 100000:
+                continue
+            def label(key, limit):
+                value = track.get(key)
+                if not isinstance(value, str) or "://" in value:
+                    return ""
+                return "".join(c for c in value if ord(c) >= 32)[:limit]
+            rows.append({"id": track_id, "type": track["type"], "language": label("lang", 32),
+                         "title": label("title", 160), "codec": label("codec", 40),
+                         "selected": track.get("selected") is True})
+        return rows
+
     def status(self):
         with self.lock:
             result = self.snapshot()
@@ -804,6 +827,7 @@ class Player:
                     return result
                 idle = self.ipc(["get_property", "idle-active"])
                 paused = self.ipc(["get_property", "pause"], optional=True)
+                result["tracks"] = [] if idle else self.tracks()
                 for target, prop in (("position", "time-pos"), ("duration", "duration"), ("volume", "volume")):
                     result[target] = self.number(self.ipc(["get_property", prop], optional=True))
                 for target, prop in (("muted", "mute"), ("fullscreen", "fullscreen")):
@@ -888,7 +912,15 @@ class Player:
             commands = {"pause": ["set_property", "pause", True], "resume": ["set_property", "pause", False],
                         "toggle": ["cycle", "pause"], "stop": ["stop"],
                         "mute": ["cycle", "mute"], "fullscreen": ["cycle", "fullscreen"]}
-            if name in ("seek", "volume", "skip"):
+            if name in ("audio-track", "subtitle-track"):
+                kind = "audio" if name == "audio-track" else "sub"
+                if kind == "sub" and value == "off":
+                    command = ["set_property", "sid", "no"]
+                elif type(value) is int and any(row["id"] == value and row["type"] == kind for row in self.tracks()):
+                    command = ["set_property", "aid" if kind == "audio" else "sid", value]
+                else:
+                    raise SafeError("bad_request")
+            elif name in ("seek", "volume", "skip"):
                 if not isinstance(value, (int, float)) or isinstance(value, bool) or not math.isfinite(value):
                     raise SafeError("bad_request")
                 if name == "seek" and 0 <= value <= 86400:
@@ -960,6 +992,8 @@ class Adapter:
                     raise SafeError("bad_request")
                 return 202, self.player.play(source, start) if start else self.player.play(source)
             if set(payload) - {"command", "value", "imdb_id", "type", "season", "episode"} or not isinstance(payload.get("command"), str):
+                raise SafeError("bad_request")
+            if payload.get("command") in ("audio-track", "subtitle-track") and "imdb_id" not in payload:
                 raise SafeError("bad_request")
             if any(key in payload for key in ("imdb_id", "type", "season", "episode")):
                 imdb_id, _, kind, season, episode = media_input(payload)

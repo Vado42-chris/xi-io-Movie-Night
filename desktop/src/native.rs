@@ -11,6 +11,7 @@ use std::os::unix::net::UnixStream;
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+static VIDEO_INPUT_CONNECTED: AtomicBool = AtomicBool::new(false);
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use tauri::webview::{NewWindowResponse, PageLoadEvent};
 use tauri::{WebviewUrl, WebviewWindow, WebviewWindowBuilder, WindowEvent};
@@ -166,6 +167,7 @@ async fn native_movie_window(
                         .map_err(|_| "Window resizing unavailable")?;
                 }
             },
+            "exit-fullscreen" => { set_host_fullscreen(window, false)?; },
             "minimize" => window.minimize().map_err(|_| "Window minimize unavailable")?,
             "maximize" => {
                 if window.is_fullscreen().map_err(|_| "Native state unavailable")? {
@@ -304,6 +306,17 @@ fn initialize_host(window: &WebviewWindow) -> Result<(), String> {
             xid: None,
             created_at_unix_ms: timestamp_ms(),
         });
+    });
+    // Native Escape still works when focus is outside the WebView. Embedded
+    // mpv input is received separately through its verified private IPC peer.
+    let escape_window = window.clone();
+    native_window.connect_key_press_event(move |_, event| {
+        if event.keyval() == gdk::keys::constants::Escape
+            && escape_window.is_fullscreen().unwrap_or(false) {
+            let _ = set_host_fullscreen(&escape_window, false);
+            return glib::Propagation::Stop;
+        }
+        glib::Propagation::Proceed
     });
     content.show();
     overlay.show();
@@ -478,6 +491,7 @@ async fn show_movie_player(window: WebviewWindow) -> Result<bool, String> {
     }
     on_main(window, |window| {
         set_mode(window, true)?;
+        observe_video_input(window);
         window.show().map_err(|_| "Movie window unavailable")?;
         window.set_focus().map_err(|_| "Movie window could not receive focus")?;
         Ok(true)
@@ -492,16 +506,60 @@ async fn show_movie_wall(window: WebviewWindow) -> Result<bool, String> {
     }).await
 }
 
+fn set_host_fullscreen(window: &WebviewWindow, fullscreen: bool) -> Result<bool, String> {
+    window.set_fullscreen(fullscreen).map_err(|_| "Fullscreen unavailable")?;
+    let _ = window.eval(&format!(
+        "if(typeof window.movieNightNativeFullscreen==='function')window.movieNightNativeFullscreen({fullscreen});"
+    ));
+    sync_window_state(window);
+    Ok(fullscreen)
+}
+
 #[tauri::command]
 async fn toggle_movie_fullscreen(window: WebviewWindow) -> Result<bool, String> {
     on_main(window, |window| {
-        let fullscreen = !window.is_fullscreen().map_err(|_| "Window state unavailable")?;
-        window.set_fullscreen(fullscreen).map_err(|_| "Fullscreen unavailable")?;
-        let _ = window.eval(&format!(
-            "if(typeof window.movieNightNativeFullscreen==='function')window.movieNightNativeFullscreen({fullscreen});"
-        ));
-        Ok(fullscreen)
+        set_host_fullscreen(window, !window.is_fullscreen().map_err(|_| "Window state unavailable")?)
     }).await
+}
+
+// Existing player, existing private IPC socket, exact owned wid. No new service,
+// dynamic script evaluation, arbitrary native command or media-load operation.
+fn observe_video_input(window: &WebviewWindow) {
+    if VIDEO_INPUT_CONNECTED.swap(true, Ordering::SeqCst) { return; }
+    let xid = HOST.with(|state| state.borrow().as_ref().and_then(|host| host.xid));
+    let window = window.clone();
+    std::thread::spawn(move || {
+        let connection = embedded_connection(xid);
+        if let Ok(Some((stream, mut reader))) = connection {
+            let _ = stream.set_read_timeout(None);
+            let mut last_pointer = Instant::now() - Duration::from_secs(1);
+            while let Ok(Some(value)) = read_ipc_line(&mut reader) {
+                if value.get("event").and_then(Value::as_str) != Some("client-message") { continue; }
+                let Some(args) = value.get("args").and_then(Value::as_array) else { continue; };
+                if args.len() != 2 || args[0].as_str() != Some("movie-night-window") { continue; }
+                let Some(action) = args[1].as_str() else { continue; };
+                if !matches!(action, "toggle-fullscreen" | "exit-fullscreen" | "pointer" | "controls") { continue; }
+                if action == "pointer" {
+                    if last_pointer.elapsed() < Duration::from_millis(80) { continue; }
+                    last_pointer = Instant::now();
+                }
+                let action = action.to_owned();
+                let target = window.clone();
+                let _ = window.run_on_main_thread(move || {
+                    let owned = HOST.with(|state| state.borrow().as_ref()
+                        .is_some_and(|host| host.xid == xid && host.active));
+                    if !owned { return; }
+                    match action.as_str() {
+                        "toggle-fullscreen" => { let _ = set_host_fullscreen(&target, !target.is_fullscreen().unwrap_or(false)); },
+                        "exit-fullscreen" => { let _ = set_host_fullscreen(&target, false); },
+                        _ => {}
+                    }
+                    let _ = target.eval("if(typeof window.movieNightVideoInteraction==='function')window.movieNightVideoInteraction();");
+                });
+            }
+        }
+        VIDEO_INPUT_CONNECTED.store(false, Ordering::SeqCst);
+    });
 }
 
 #[tauri::command]

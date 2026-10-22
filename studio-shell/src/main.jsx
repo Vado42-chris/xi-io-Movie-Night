@@ -146,6 +146,7 @@ function StudioMovieNight() {
 
   useEffect(() => {
     window.movieNightNativeMode = forwardMode;
+    window.movieNightVideoInteraction = () => wall.current?.contentWindow?.movieNightVideoInteraction?.();
     window.movieNightNativeFullscreen = forwardFullscreen;
     window.movieNightNativeWindowState = receiveWindowState;
     document.documentElement.classList.toggle('movie-night-native-shell', native);
@@ -156,7 +157,7 @@ function StudioMovieNight() {
       // iframe keyboard handler cannot receive that outer-document Escape.
       if (native && event.key === 'Escape' && bridgeState.current.fullscreen && !event.defaultPrevented && !document.querySelector('#movie-settings[open]')) {
         event.preventDefault();
-        bridgeInvoke('toggle_movie_fullscreen').catch(() => setHostError('Full screen could not be changed.'));
+        nativeWindowAction('exit-fullscreen');
       }
     };
     addEventListener('keydown', leaveFullscreen);
@@ -216,7 +217,7 @@ function StudioMovieNight() {
     startResize: direction => nativeWindowAction('resize', direction),
     toggleMaximize: () => nativeWindowAction('maximize'),
   } : undefined;
-  const titleActions = native ? <><button className="native-title-action native-settings-button" title="Movie Night settings" aria-label="Open Movie Night settings" onClick={openSettings}><Settings size={17} /></button><button className="native-title-action" title="Ask @ibal" aria-label="Ask @ibal" onClick={openConcierge}><Sparkles size={16} /><span>Ask @ibal</span></button><button className="native-title-action native-title-icon" title="Full screen" aria-label="Full screen" onClick={() => bridgeInvoke('toggle_movie_fullscreen').catch(() => setHostError('Full screen is unavailable.'))}><Maximize2 size={17} /></button></> : null;
+  const titleActions = native ? <><button className="native-title-action native-settings-button" title="Movie Night settings" aria-label="Open Movie Night settings" onClick={openSettings}><Settings size={17} /></button><button className="native-title-action" title="Ask @ibal" aria-label="Ask @ibal" onClick={openConcierge}><Sparkles size={16} /><span>Ask @ibal</span></button><button className="native-title-action native-title-icon" title={fullscreen ? "Exit full screen" : "Full screen"} aria-label={fullscreen ? "Exit full screen" : "Full screen"} onClick={() => bridgeInvoke('toggle_movie_fullscreen').catch(() => setHostError('Full screen is unavailable.'))}><Maximize2 size={17} />{fullscreen && <span>Exit full screen</span>}</button></> : null;
 
   return <main className={`studio-app ${native ? 'studio-native' : ''} ${fullscreen ? 'studio-fullscreen' : ''}`} data-native-host={native} data-native-player-active={nativeActive}>
     {!native && <header className="studio-heading"><div className="studio-brand"><Film size={22} /><span>Movie Night</span><small>PERSONAL STUDIO</small></div><div className="studio-heading-actions"><span className="aries-status"><i />Aries</span><button className="shell-icon-button" aria-label="Open Movie Night settings" onClick={openSettings}><Settings size={19} /></button><button className="shell-button" onClick={openConcierge}><Sparkles size={18} />Ask @ibal</button></div></header>}

@@ -174,6 +174,8 @@
             <p id="dialog-metadata-status" class="dialog-metadata-status" role="status" aria-live="polite" hidden></p>
             <div class="detail-actions">
               <button id="play-on-aries" class="primary-button" type="button"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="m8 5 11 7-11 7V5Z"/></svg><span id="play-on-aries-label">Choose a stream</span></button>
+              <button id="quick-play" class="primary-button" type="button" aria-describedby="quick-play-help">Quick Play</button>
+              <span id="quick-play-help" class="visually-hidden">Choose a cached source using your saved quality and smaller-encode preferences. Connection speed has not been measured.</span>
               <button id="choose-sources" class="small-button" type="button">Choose source</button>
               <button id="expand-details" class="small-button" type="button" aria-expanded="false" aria-controls="detail-expanded">More details</button>
               <button id="favorite-detail" class="detail-favorite small-button" type="button" aria-pressed="false">Add to favorites</button>
@@ -196,6 +198,7 @@
       </div>
     </section>
 
+    <button id="player-reveal" class="player-control player-reveal" type="button" hidden>Show playback controls</button>
     <section id="player-dock" class="player-dock" aria-label="Movie Night player on Aries" tabindex="-1">
       <div class="player-main">
         <div id="player-artwork" class="player-artwork" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
@@ -223,7 +226,10 @@
           <button id="player-wall" class="player-control" type="button" hidden><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 5-7 7 7 7M5 12h15"/></svg><span>Back to wall</span></button>
           <button id="player-watch" class="player-control player-watch" type="button" hidden><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m8 5 11 7-11 7V5Z"/></svg><span>Watch</span></button>
         </div>
-        <div id="player-volume-group" class="player-volume-group">
+        <button id="player-mini" class="player-control" type="button" hidden>Mini player</button>
+        <button id="player-details-open" class="player-control" type="button" hidden>Title details</button>
+        <button id="player-options-toggle" class="player-control" type="button" aria-expanded="false" aria-controls="player-options" hidden>Audio &amp; subtitles</button>
+                <div id="player-volume-group" class="player-volume-group">
           <button id="player-mute" class="player-control player-icon-button" type="button" aria-label="Mute Aries" aria-pressed="false" title="Mute Aries" disabled><span id="player-volume-icon" class="control-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m11 5-6 4H2v6h3l6 4V5ZM15 8a6 6 0 0 1 0 8M18 5a10 10 0 0 1 0 14"/></svg></span></button>
           <label for="player-volume">Volume</label>
           <input id="player-volume" class="player-volume" type="range" min="0" max="100" step="1" value="100" disabled>
@@ -231,7 +237,12 @@
         </div>
         <button id="player-fullscreen" class="player-control player-fullscreen" type="button" aria-label="Enter full screen on Aries" aria-pressed="false" title="Full screen on Aries" disabled><span id="player-fullscreen-icon" class="control-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/></svg></span><span id="player-fullscreen-label">Full screen</span></button>
       </div>
-      <div id="player-message-wrap" class="player-message-wrap" hidden>
+      <div id="player-options" class="player-options" hidden>
+        <label>Audio language<select id="player-audio-track" aria-label="Audio language" disabled><option>No audio tracks available</option></select></label>
+        <label>Subtitles<select id="player-subtitle-track" aria-label="Subtitles" disabled><option>No subtitle tracks available</option></select></label>
+        <p id="player-track-note">Options come from the playing file, not the catalogue.</p>
+      </div>
+            <div id="player-message-wrap" class="player-message-wrap" hidden>
         <p id="player-message" class="player-message" role="status" aria-live="polite" aria-atomic="true"></p>
         <button id="player-reconnect" class="text-button" type="button" hidden>Reconnect</button>
       </div>

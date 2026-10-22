@@ -1,0 +1,6 @@
+{
+  "method": "mocked-command-boundary-no-player",
+  "unbound_seek_accepted": true,
+  "dispatch_count": 1,
+  "wrong_identity_refused": true
+}

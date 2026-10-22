@@ -1,0 +1,105 @@
+{
+  "method": "actual-installed-mpv-idle-input-bindings",
+  "mpv_sha256": "15a400b7066211e605b988f48cf252d691afed4d89ef57e0fc18a0388c7a1ec8",
+  "input_conf_sha256": "c63b568ed23dd8e76d3813d53e5d2e248c85f8fa1ffe4d923ee8aaef585cdba0",
+  "media_started": 0,
+  "app_default_seek_seconds": 10,
+  "bindings": [
+    {
+      "key": "MBTN_LEFT_DBL",
+      "cmd": "cycle fullscreen",
+      "priority": 0,
+      "is_weak": true,
+      "section": "default",
+      "owner": null
+    },
+    {
+      "key": "RIGHT",
+      "cmd": "seek  5",
+      "priority": 0,
+      "is_weak": true,
+      "section": "default",
+      "owner": null
+    },
+    {
+      "key": "LEFT",
+      "cmd": "seek -5",
+      "priority": 0,
+      "is_weak": true,
+      "section": "default",
+      "owner": null
+    },
+    {
+      "key": "q",
+      "cmd": "quit",
+      "priority": 0,
+      "is_weak": true,
+      "section": "default",
+      "owner": null
+    },
+    {
+      "key": "ESC",
+      "cmd": "set fullscreen no",
+      "priority": 0,
+      "is_weak": true,
+      "section": "default",
+      "owner": null
+    },
+    {
+      "key": "SPACE",
+      "cmd": "cycle pause",
+      "priority": 0,
+      "is_weak": true,
+      "section": "default",
+      "owner": null
+    },
+    {
+      "key": "MBTN_LEFT_DBL",
+      "cmd": "script-message movie-night-window toggle-fullscreen",
+      "priority": 7,
+      "is_weak": false,
+      "section": "default",
+      "owner": null
+    },
+    {
+      "key": "F11",
+      "cmd": "script-message movie-night-window toggle-fullscreen",
+      "priority": 7,
+      "is_weak": false,
+      "section": "default",
+      "owner": null
+    },
+    {
+      "key": "ESC",
+      "cmd": "script-message movie-night-window exit-fullscreen",
+      "priority": 7,
+      "is_weak": false,
+      "section": "default",
+      "owner": null
+    },
+    {
+      "key": "q",
+      "cmd": "quit 4",
+      "priority": -1,
+      "is_weak": true,
+      "section": "encode",
+      "owner": null
+    },
+    {
+      "key": "ESC",
+      "cmd": "quit 4",
+      "priority": -1,
+      "is_weak": true,
+      "section": "encode",
+      "owner": null
+    },
+    {
+      "key": "MBTN_LEFT_DBL",
+      "cmd": "ignore",
+      "priority": -1,
+      "is_weak": false,
+      "section": "input",
+      "owner": "osc"
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+{"method":"exact-source-loop-in-vm-injected-failure-not-native","frames":8,"ipcAttempts":1,"recoveryAfterFirstFailure":false,"errors":["The native video layout is unavailable. The wall and playback controls are still available."],"mediaStarted":0}
