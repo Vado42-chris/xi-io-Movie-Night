@@ -317,5 +317,66 @@
     "studio-shell/vendor/src/components/desktop/embedded.css": "3f91f8e4e4100fd9617dffb804da8f9011ef073150869960d1eb22d157db7d32",
     "verification/verify-window-template.cjs": "1d615a0699eff8641fc6fa084911e078e3d03ed3b0cc2ac170c4471f57542443"
   },
-  "native_action_guard": "All native calls except layout publication and state reads are test failures; all attempted playback writes are intercepted, rejected and counted."
+  "native_action_guard": "All native calls except layout publication and state reads are test failures; all attempted playback writes are intercepted, rejected and counted.",
+  "consumer_reuse_guards": {
+    "observed_at": "2026-10-22T20:03:54.236913+00:00",
+    "basis_commit": "bff9a0d855c869de901e12a20b0caf4a6db84d5c",
+    "runner_sha256": "5e7ff98e84022a43358bc580e2ddc52b5a38bbd9e71fdb234592a245c1cdb862",
+    "operations": "read-only served-asset/source checks; isolated browser contexts; one mocked chat reply",
+    "runs": {
+      "browser": {
+        "report_sha256": "7785e0e2a20e57a4dbf32770d739f96d0ccd3fa07f3619310ca7eb9d81c51c2e",
+        "checks": 20,
+        "test_pass": true,
+        "failed_checks": [],
+        "browser_started": true,
+        "evidence_class": "BROWSER_COMPONENT_REGRESSION",
+        "consumer_acceptance": {
+          "bins": "BLOCKED_SERVICE_UNBOUND",
+          "fullSettingsCatalogue": "NOT_EXERCISED",
+          "nativeWindow": "NOT_EXERCISED",
+          "lokiHosting": "NOT_EXERCISED",
+          "parentReturn": "NOT_EXERCISED"
+        }
+      },
+      "without_container_queries": {
+        "report_sha256": "70aabefbb4e816c1d9a793af156aa54a55dc2f1abf2c795693444e66b23362d7",
+        "checks": 21,
+        "test_pass": true,
+        "failed_checks": [],
+        "browser_started": true,
+        "evidence_class": "BROWSER_COMPONENT_REGRESSION",
+        "consumer_acceptance": {
+          "bins": "BLOCKED_SERVICE_UNBOUND",
+          "fullSettingsCatalogue": "NOT_EXERCISED",
+          "nativeWindow": "NOT_EXERCISED",
+          "lokiHosting": "NOT_EXERCISED",
+          "parentReturn": "NOT_EXERCISED"
+        }
+      },
+      "stale_build_negative": {
+        "report_sha256": "f243bca01afd4aaf59ea058481655f1bd7e779a67fa80147ec1380ab74bfb976",
+        "checks": 3,
+        "test_pass": false,
+        "failed_checks": [
+          "actual Aries-served shell assets match selected build bytes"
+        ],
+        "browser_started": false,
+        "evidence_class": "BROWSER_COMPONENT_REGRESSION",
+        "consumer_acceptance": {
+          "bins": "NOT_EXERCISED",
+          "fullSettingsCatalogue": "NOT_EXERCISED",
+          "nativeWindow": "NOT_EXERCISED",
+          "lokiHosting": "NOT_EXERCISED",
+          "parentReturn": "NOT_EXERCISED"
+        }
+      }
+    },
+    "negative_control_expected_to_fail": true,
+    "original_failures_preserved": true,
+    "runtime_source_changed": false,
+    "bins_binding_changed": false,
+    "independent_reviewer": null,
+    "accepted_main": null
+  }
 }

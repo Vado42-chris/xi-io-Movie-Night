@@ -2,14 +2,80 @@
 // Actual shell components in Chromium. Network and native calls are intercepted.
 // This does not certify Tauri, BINS, settings effects, inference or other products.
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
-const {chromium}=require(process.env.MOVIE_NIGHT_PLAYWRIGHT||'/media/chrishallberg/Storage 22/999_Work/003_Projects/017_xi-io_inbox/node_modules/playwright');
-const build=path.resolve(process.argv[2]),out=path.resolve(process.argv[3]);
+const {createHash}=require('node:crypto'),{execFileSync}=require('node:child_process'),{pathToFileURL}=require('node:url');
+if(!process.argv[2]||!process.argv[3])throw new Error('Usage: node verification/verify-window-template.cjs BUILD OUTPUT [--without-container-rules] [--check-served-assets]');
+const build=fs.realpathSync(path.resolve(process.argv[2])),out=path.resolve(process.argv[3]);
+const root=path.resolve(__dirname,'..');
+if(out===build||out.startsWith(build+path.sep))throw new Error('Evidence output must not modify the build under test');
 const fallback=process.argv.includes('--without-container-rules');
+const checkServed=process.argv.includes('--check-served-assets');
+// Test evidence only. These probes never discover a BINS endpoint or grant authority.
+const origin='http://127.0.0.1:8789';
+const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
+function localBuildAsset(relative){
+ const file=fs.realpathSync(path.resolve(build,relative));
+ if(!file.startsWith(build+path.sep)||!fs.statSync(file).isFile())throw new Error('Build asset escapes the selected build');
+ return file;
+}
+function sourceEvidence(){
+ const vendor=path.join(root,'studio-shell/vendor');
+ const manifest=JSON.parse(fs.readFileSync(path.join(vendor,'provenance.json'),'utf8'));
+ const selected=['src/components/desktop/WindowFrame.jsx','src/components/chat/ChatDockSlot.jsx','src/lib/chatDockStore.js','src/components/desktop/embedded.css'];
+ const files=selected.map(file=>{
+  const rows=manifest.files.filter(row=>row.file===file);
+  assert.equal(rows.length,1,'exactly one existing provenance row: '+file);
+  const actual=sha256(fs.readFileSync(path.join(vendor,file)));
+  return {file,expected:rows[0].sha256,observed:actual,match:actual===rows[0].sha256};
+ });
+ return {gitHead:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),
+  trackedChanges:execFileSync('git',['diff','--name-only','HEAD'],{cwd:root,encoding:'utf8'}).trim().split('\n').filter(Boolean),
+  runnerSha256:sha256(fs.readFileSync(__filename)),donorPin:manifest.pin,files};
+}
+async function servedAssetEvidence(){
+ const index=fs.readFileSync(localBuildAsset('index.html'));
+ const relativeAssets=[...new Set([...index.toString().matchAll(/(?:src|href)=["'](\/studio\/[^"']+)["']/g)].map(m=>m[1]))];
+ assert.ok(relativeAssets.some(x=>x.endsWith('.js'))&&relativeAssets.some(x=>x.endsWith('.css')),'index must name actual JS and CSS assets');
+ const rows=[];
+ for(const urlPath of ['/studio/',...relativeAssets]){
+  const url=new URL(urlPath,origin);
+  assert.equal(url.origin,origin);assert.equal(url.search,'');assert.equal(url.hash,'');
+  const relative=urlPath==='/studio/'?'index.html':decodeURIComponent(url.pathname.slice('/studio/'.length));
+  const expected=fs.readFileSync(localBuildAsset(relative));
+  const response=await fetch(url,{redirect:'error',cache:'no-store',signal:AbortSignal.timeout(8000)});
+  assert.equal(response.status,200,'served asset unavailable: '+url.pathname);
+  const bytes=Buffer.from(await response.arrayBuffer());
+  rows.push({asset:relative,expectedSha256:sha256(expected),servedSha256:sha256(bytes),match:sha256(expected)===sha256(bytes)});
+ }
+ return rows;
+}
 fs.mkdirSync(out,{recursive:true});
 const report={source:'actual shared WindowFrame, ChatDockSlot and Movie Night consumer',native:'SIMULATED_ONLY',network:'chat response fixture; player blocked; read-only catalogue/settings',fallback,allocationMethod:'actual frame CSS allocation, verified by bounding box; not OS resize',checks:[],errors:[],writes:[],failures:[]};
+report.evidenceClass='BROWSER_COMPONENT_REGRESSION';
+report.consumerAcceptance={bins:'NOT_EXERCISED',fullSettingsCatalogue:'NOT_EXERCISED',nativeWindow:'NOT_EXERCISED',lokiHosting:'NOT_EXERCISED',parentReturn:'NOT_EXERCISED'};
+report.limitations=['pass means the listed browser/source checks only, not product or release acceptance','a disabled BINS control proves unavailable-state behavior, not file-read authorization','provider replies and native calls are fixtures; no worker admission, content read or parent return is established'];
+
 async function check(name,fn){try{await fn();report.checks.push({name,pass:true});}catch(e){report.checks.push({name,pass:false,error:e.message});report.failures.push(name);}}
 (async()=>{
- const browser=await chromium.launch({executablePath:'/usr/bin/google-chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
+ await check('shared component bytes match existing provenance pins',async()=>{
+  report.sourceGeneration=sourceEvidence();
+  assert.ok(report.sourceGeneration.files.every(row=>row.match),'vendored component differs from its declared generation');
+ });
+ if(checkServed)await check('actual Aries-served shell assets match selected build bytes',async()=>{
+  report.servedAssets=await servedAssetEvidence();
+  assert.ok(report.servedAssets.every(row=>row.match),'served generation differs from tested build');
+ });
+ await check('unbound host adapter refuses account, capability and entity calls',async()=>{
+  const {base44}=await import(pathToFileURL(path.join(root,'studio-shell/host/studio-services.js')).href);
+  for(const action of [()=>base44.auth.me(),()=>base44.functions.invoke('capabilityRoute',{action:'read'}),()=>base44.entities.FileRecord.get('synthetic:unbound-probe')]){
+   await assert.rejects(action,error=>error?.code==='STUDIO_SERVICE_UNBOUND');
+  }
+ });
+ if(report.failures.length){
+  report.pass=false;report.browserNotStarted=true;
+  fs.writeFileSync(path.join(out,'report.json'),JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));process.exitCode=1;return;
+ }
+ const {chromium}=require(process.env.MOVIE_NIGHT_PLAYWRIGHT||'playwright');
+ const browser=await chromium.launch({...(process.env.MOVIE_NIGHT_CHROME?{executablePath:process.env.MOVIE_NIGHT_CHROME}:{}),headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
  report.browser=browser.version();
  const context=await browser.newContext({viewport:{width:1920,height:1000},serviceWorkers:'block',reducedMotion:'reduce'});
  await context.addInitScript(()=>{
@@ -117,6 +183,9 @@ async function check(name,fn){try{await fn();report.checks.push({name,pass:true}
   await check('unbound BINS is not represented as an authorized file operation',async()=>{
    assert.equal(await rail.locator('[data-window-utility="bins"]').isDisabled(),true);
    assert.equal(report.writes.some(x=>x.path.includes('bins')),false);
+   const label=await rail.locator('[data-window-utility="bins"]').getAttribute('aria-label');
+   assert.match(label,/not connected/i,'unbound must not be mislabelled as an observed permission denial');
+   report.consumerAcceptance.bins='BLOCKED_SERVICE_UNBOUND';
   });
   for(const width of [320,390,768,1280,1920]){
    await page.locator('[data-native-frame="true"]').evaluate((el,w)=>el.style.setProperty('width',w+'px','important'),width);await page.waitForTimeout(80);
