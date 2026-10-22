@@ -484,3 +484,30 @@ body.native-player-mini .player-artwork, body.native-player-mini .player-locatio
 .player-options p { flex-basis:100%; margin:0; font-size:13px; }
 .player-secondary { flex-wrap:wrap; }
 .player-reveal[hidden], .player-options[hidden] { display:none; }
+
+/* Stream selection stays separate from Play. One action beside each row,
+   plus the same selected-source action before the list, never below it. */
+.source-action-bar { position:sticky; top:8px; z-index:5; padding:12px; border:1px solid var(--line); border-radius:8px; background:var(--surface, #171914); }
+.source-choice { display:flex; align-items:center; gap:12px; flex:1 1 260px; min-width:0; cursor:pointer; }
+.source-row-play { flex:0 0 auto; min-height:44px; }
+.source-option:focus-within { outline:2px solid var(--accent); outline-offset:3px; }
+@media (max-width:620px) {
+  .source-choice { flex-basis:100%; }
+  .source-choice .source-copy { flex-basis:auto; }
+  .source-option .source-cached { margin-left:0; white-space:normal; }
+  .source-row-play { margin-left:auto; }
+  .source-action-bar { gap:6px; padding:8px; }
+  .source-action-bar p { margin:0; }
+}
+
+.detail-episodes { margin:24px 0; min-width:0; }
+.episode-heading { display:flex; align-items:center; flex-wrap:wrap; gap:14px; }
+.episode-heading h2 { margin:0; font-size:22px; }
+.episode-heading label { display:flex; gap:8px; align-items:center; }
+.episode-heading select { min-height:44px; max-width:100%; }
+.episode-rows { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr)); gap:10px; max-height:380px; overflow-y:auto; padding:4px; }
+.episode-option { display:grid; align-content:start; gap:8px; text-align:left; padding:14px; min-width:0; border:1px solid var(--line); border-radius:8px; color:var(--text); background:var(--surface, #171914); overflow-wrap:anywhere; }
+.episode-option span { font-size:12px; line-height:1.6; color:var(--muted); }
+.episode-option[aria-pressed="true"] { border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); }
+.episode-option:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+#episode-selection, #episode-metadata-status { font-size:13px; line-height:1.6; }

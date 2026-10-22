@@ -55,12 +55,13 @@
   })));
   const browseCollections = Object.fromEntries(["movie", "series"].map((type) => [type, {
     id: `browse-${type}`, name: type === "movie" ? "A world of movies." : "Find your next series.",
-    description: type === "movie" ? "A wider catalogue, one good discovery at a time." : "Explore TV series and save your next favorite. Episode playback is not connected yet.",
+    description: type === "movie" ? "A wider catalogue, one good discovery at a time." : "Explore TV series, choose an episode, and check its available streams.",
     movies: [], kind: "browse", type, loaded: false, loading: false, hasMore: true, nextSkip: 0, search: "", error: "",
     catalog: "top", catalogGenre: "", catalogYear: String(currentYear), pages: 0, generation: 0, controller: null,
   }]));
   let loadController;
   let selectedMovie = null;
+  let selectedEpisode = null, selectedSeason = null;
   let visibleMovies = [];
   let carouselIndex = 0;
   let detailsExpanded = false;
@@ -290,15 +291,15 @@
   }
 
   async function quickPlay() {
-    const movie = selectedMovie;
-    if (!movie || movie.type === "series" || launchPending || sourceBusy || commandPending) return;
+    const movie = selectedMovie, target = mediaTarget();
+    if (!target || launchPending || sourceBusy || commandPending) return;
     byId("quick-play").disabled = true;
     try {
-      if (playerStatus.imdb_id === movie.imdbId && ["playing", "paused", "loading"].includes(playerStatus.state)) {
+      if (sameMedia(target, playerStatus) && ["playing", "paused", "loading"].includes(playerStatus.state)) {
         await playSelectedMovie(); return;
       }
       await openSources();
-      if (selectedMovie !== movie || sourceTitle !== movie.imdbId || elements.dialog.hidden) return;
+      if (selectedMovie !== movie || sourceTitle !== mediaKey(target) || mediaKey(mediaTarget()) !== mediaKey(target) || elements.dialog.hidden) return;
       if (!sourceChoices.length) { playerMessage("No eligible cached source was found. Choose a source to review availability."); return; }
       selectedSource = sourceChoices[0].id;
       await playSelectedMovie(selectedSource);
@@ -418,6 +419,7 @@
       isCompleted: movie.isCompleted === true,
       season: Number.isInteger(Number(movie.season)) && movie.season !== null ? Number(movie.season) : null,
       episode: Number.isInteger(Number(movie.episode)) && movie.episode !== null ? Number(movie.episode) : null,
+      episodes: Array.isArray(movie.episodes) ? movie.episodes.filter(ep => ep && Number.isInteger(ep.season) && ep.season >= 0 && Number.isInteger(ep.episode) && ep.episode >= 1 && ep.id === `${movie.imdb_id || movie.imdbId || movie.id}:${ep.season}:${ep.episode}`).map(ep => ({ id: ep.id, season: ep.season, episode: ep.episode, title: text(ep.title), overview: text(ep.overview), released: text(ep.released) })) : [],
       description: text(movie.description),
       background: imageUrl(movie.background),
       cast: Array.isArray(movie.cast) ? movie.cast.filter(x => typeof x === "string").slice(0, 40) : [],
@@ -531,7 +533,7 @@
       : item.catalog === "year" ? "Revisit a year, discover a classic, or see what is new. Keep loading to explore the list."
       : item.catalog === "imdbRating" ? "Featured discoveries from Cinemeta, with more titles as you browse."
       : "Explore what is popular, find your genre, and keep going beyond the first page.";
-    if (item.type === "series") item.description += " Episode playback is not connected yet.";
+    if (item.type === "series") item.description += " Choose a season and episode to check streams.";
   }
 
   function renderCatalogueControls(item) {
@@ -1184,6 +1186,56 @@
     publishContext();
   }
 
+  function mediaTarget(movie = selectedMovie) {
+    if (!movie || !/^tt\d{5,12}$/.test(movie.imdbId)) return null;
+    if (movie.type === "series") {
+      if (!selectedEpisode || !movie.episodes?.some(ep => ep.id === selectedEpisode.id)) return null;
+      return { imdb_id: movie.imdbId, title: movie.title, type: "series", season: selectedEpisode.season, episode: selectedEpisode.episode };
+    }
+    return { imdb_id: movie.imdbId, title: movie.title, type: "movie" };
+  }
+  function mediaKey(target) {
+    if (!target) return "";
+    return `${target.type || "movie"}:${target.imdb_id}${target.type === "series" ? `:${target.season}:${target.episode}` : ""}`;
+  }
+  function sameMedia(target, result) {
+    return Boolean(target && result && result.imdb_id === target.imdb_id
+      && (result.type || "movie") === target.type
+      && (target.type !== "series" || (result.season === target.season && result.episode === target.episode)));
+  }
+  function mediaLabel(target = mediaTarget()) {
+    if (!target) return selectedMovie?.title || "Choose a title";
+    return target.type === "series" ? `${target.title} · S${String(target.season).padStart(2,"0")} E${String(target.episode).padStart(2,"0")} · ${selectedEpisode?.title || "Episode"}` : target.title;
+  }
+  function updateEpisodeSelection() {
+    for (const button of byId("episode-list").querySelectorAll('button[data-episode-id]')) {
+      button.setAttribute("aria-pressed", String(button.dataset.episodeId === selectedEpisode?.id));
+      button.disabled = launchPending;
+    }
+    byId("episode-selection").textContent = selectedEpisode ? `Selected: ${mediaLabel()}` : "Select an episode to choose its streams. Nothing plays on selection.";
+    updatePlayerControls();
+  }
+  function renderEpisodes(movie) {
+    const section = byId("detail-episodes"); section.hidden = movie.type !== "series";
+    if (section.hidden) return;
+    const rows = movie.episodes || [], seasons = [...new Set(rows.map(ep => ep.season))].sort((a,b) => a-b);
+    if (!seasons.includes(selectedSeason)) selectedSeason = seasons.find(s => s > 0) ?? seasons[0] ?? null;
+    const select = byId("episode-season"); select.replaceChildren();
+    for (const season of seasons) { const option = node("option", "", season === 0 ? "Specials" : `Season ${season}`); option.value = String(season); select.append(option); }
+    select.disabled = !rows.length || launchPending; if (selectedSeason !== null) select.value = String(selectedSeason);
+    byId("episode-metadata-status").textContent = !movie.detailsLoaded ? "Loading seasons and episodes…" : rows.length ? `${rows.filter(ep => ep.season === selectedSeason).length} episodes in this season` : "No episode metadata was returned. Refresh episodes or choose another series.";
+    const list = byId("episode-list"); list.replaceChildren();
+    for (const ep of rows.filter(ep => ep.season === selectedSeason)) {
+      const button = node("button", "episode-option"); button.type = "button"; button.dataset.episodeId = ep.id;
+      button.append(node("strong", "", `E${String(ep.episode).padStart(2,"0")} · ${ep.title || `Episode ${ep.episode}`}`));
+      if (ep.released) button.append(node("span", "", `Release date: ${ep.released.slice(0,10)}`));
+      if (ep.overview) button.append(node("span", "", ep.overview));
+      button.addEventListener("click", () => { if (launchPending) return; resetSources(); selectedEpisode = ep; updateEpisodeSelection(); });
+      list.append(button);
+    }
+    updateEpisodeSelection();
+  }
+
   function renderFilmDetails(movie) {
     // The shared centred carousel owns the poster nodes.
     elements.dialogRank.textContent = movie.type === "series" ? "TV series · Your next story" : collection?.kind === "curated" ? `No. ${String(movie.rank).padStart(2, "0")} in the collection` : "Movie Night · Film";
@@ -1191,8 +1243,9 @@
     elements.dialogMeta.textContent = [movie.year, movie.runtime, wallSettings.browsing.show_ratings && movie.rating !== null ? `★ ${movie.rating.toFixed(1)} / 10` : "", movie.type === "series" && movie.season && movie.episode ? `Last watched: S${movie.season} · E${movie.episode}` : ""].filter(Boolean).join(" · ");
     elements.dialogGenres.replaceChildren(...movie.genres.map((genre) => node("span", "genre-tag", genre)));
     elements.dialogDescription.textContent = movie.description || "More details are not available for this title yet.";
-    player.feedback.textContent = movie.type === "series" ? "Episode playback not connected yet." : launchPending ? "Getting your film ready on Aries… This can take a few moments." : "";
-    byId("playback-explanation").textContent = movie.type === "series" ? "You can explore this series and save it to your favorites. Choosing a series does not start movie playback." : "Picture and sound play on Aries. Control your film from the playback bar at the bottom of this page.";
+    player.feedback.textContent = launchPending ? "Getting your selection ready on Aries…" : "";
+    byId("playback-explanation").textContent = movie.type === "series" ? "Choose a season and episode, then a stream. Playback starts only when you press Play." : "Picture and sound play on Aries. Control your film from the playback bar at the bottom of this page.";
+    renderEpisodes(movie);
     renderRichDetails(movie);
     updateFavoriteDetail();
     updatePlayerControls();
@@ -1231,7 +1284,8 @@
     }
     byId("detail-related").hidden = movie.type === "series";
     byId("related-empty").hidden = related.length > 0;
-    byId("choose-sources").hidden = movie.type === "series";
+    byId("choose-sources").hidden = false;
+    byId("credits-heading").textContent = movie.type === "series" ? "About this series" : "Behind the film";
   }
 
   async function loadFilmDetails(movie, generation) {
@@ -1255,6 +1309,7 @@
       if (!movie.poster && extra.poster) movie.poster = extra.poster;
       for (const key of ["background", "cast", "director", "writer", "country", "awards", "language"]) movie[key] = extra[key];
       movie.searchText = normalize([movie.title, movie.year || "", ...movie.genres].join(" "));
+      movie.episodes = extra.episodes;
       movie.detailsLoaded = true;
       renderFilmDetails(movie);
       status.textContent = "";
@@ -1262,8 +1317,10 @@
     } catch {
       if (generation !== detailGeneration || detailController !== controller || controller.signal.aborted || selectedMovie !== movie || elements.dialog.hidden) return;
       status.textContent = "Extra details are unavailable right now. Your current title information is still here.";
+      if (movie.type === "series") byId("episode-metadata-status").textContent = "Episode metadata could not load. Use Refresh episodes to try again.";
     } finally {
       if (detailController === controller) detailController = null;
+      updatePlayerControls();
     }
   }
 
@@ -1292,7 +1349,7 @@
     if (launchPending) return;
     if (elements.dialog.hidden) wallReturn = { scroll: window.scrollY, focus: document.activeElement };
     detailController?.abort(); detailController = null; detailGeneration += 1;
-    resetSources(); selectedMovie = movie;
+    resetSources(); selectedMovie = movie; selectedEpisode = null; selectedSeason = null;
     const status = byId("dialog-metadata-status"); status.textContent = ""; status.hidden = true;
     renderFilmDetails(movie);
     placeBrowseControls(true);
@@ -1384,18 +1441,31 @@
   function renderSources() {
     const visible = filteredSources();
     if (!visible.some(source => source.id === selectedSource)) selectedSource = "";
-    const list = byId("source-list"); list.replaceChildren();
+    const list = byId("source-list"); list.replaceChildren(node("legend", "visually-hidden", "Available sources"));
     for (const source of visible) {
-      const row = node("label", "source-option");
+      const row = node("div", "source-option");
+      const choice = node("label", "source-choice");
       const input = document.createElement("input"); input.type = "radio"; input.name = "source";
       input.value = source.id; input.checked = source.id === selectedSource;
       input.disabled = sourceBusy || launchPending;
       input.addEventListener("change", () => { selectedSource = source.id; updateSourceAction(); });
       const quality = source.quality === "2160p" ? "4K" : source.quality === "unknown" ? "Quality unknown" : source.quality;
       const copy = node("span", "source-copy");
-      copy.append(node("strong", "", source.label || quality));
-      copy.append(node("span", "source-technical", [source.video_codec, source.dynamic_range, ...(source.audio || []), sourceSize(source.size_bytes)].filter(Boolean).join(" · ")));
-      row.append(input, node("span", "source-quality-badge", quality), copy, node("span", "source-cached", "RD cached"));
+      const details = [source.source_format, source.video_codec, source.dynamic_range, ...(source.audio || []), source.container, sourceSize(source.size_bytes)].filter(Boolean);
+      copy.append(node("strong", "", [quality, source.source_format, source.video_codec].filter(Boolean).join(" · ")));
+      copy.append(node("span", "source-technical", details.join(" · ")));
+      copy.append(node("span", "source-technical", source.languages?.length ? `Language hints: ${source.languages.join(", ")}` : "Languages not supplied by provider"));
+      input.setAttribute("aria-label", `Select ${source.label || quality}`);
+      choice.append(input, node("span", "source-quality-badge", quality), copy);
+      const play = node("button", "small-button source-row-play", "Play this stream");
+      play.type = "button"; play.disabled = sourceBusy || launchPending;
+      play.setAttribute("aria-label", `Play ${source.label || quality}`);
+      play.addEventListener("click", () => {
+        if (sourceBusy || launchPending) return;
+        selectedSource = source.id; input.checked = true; updateSourceAction();
+        void playSelectedMovie(source.id);
+      });
+      row.append(choice, node("span", "source-cached", "Provider reports cached"), play);
       list.append(row);
     }
     byId("source-status").textContent = sourceBusy ? "Checking your configured connection…"
@@ -1408,29 +1478,33 @@
   }
 
   function updateSourceAction() {
-    byId("play-source").disabled = sourceBusy || launchPending || !selectedSource || sourceTitle !== selectedMovie?.imdbId;
-    byId("source-selection-note").textContent = selectedSource ? "Your selection is ready. Playback starts only when you press Play." : "Select a source to continue.";
+    byId("play-source").disabled = sourceBusy || launchPending || !selectedSource || sourceTitle !== mediaKey(mediaTarget());
+    byId("source-selection-note").textContent = `${mediaLabel()} · ${selectedSource ? "Stream selected. Press Play to start." : "Select a stream or use its Play button."}`;
     byId("play-source").setAttribute("aria-busy", String(launchPending));
   }
 
   async function openSources() {
-    if (!selectedMovie || selectedMovie.type === "series" || sourceBusy || launchPending) return;
+    const target = mediaTarget();
+    if (!target || sourceBusy || launchPending) return;
     const movie = selectedMovie; const generation = ++sourceGeneration;
     sourceController?.abort(); const controller = new AbortController(); sourceController = controller;
-    sourceBusy = true; sourceChoices = []; selectedSource = ""; sourceTitle = movie.imdbId; sourceError = "";
+    sourceBusy = true; sourceChoices = []; selectedSource = ""; sourceTitle = mediaKey(target); sourceError = "";
+    byId("source-heading").textContent = `Streams for ${mediaLabel(target)}`;
     byId("source-picker").hidden = false; renderSources();
     byId("source-heading").focus({ preventScroll: true });
     byId("source-picker").scrollIntoView({ block: "start", behavior: "instant" });
     try {
-      const result = await playerRequest("sources", { imdb_id: movie.imdbId, title: movie.title }, controller.signal);
+      const result = await playerRequest("sources", target, controller.signal);
       if (generation !== sourceGeneration || selectedMovie !== movie || elements.dialog.hidden) return;
-      if (result.imdb_id !== movie.imdbId || !Array.isArray(result.sources)) throw new Error("source_mismatch");
+      if (mediaKey(mediaTarget()) !== mediaKey(target) || !sameMedia(target, result) || !Array.isArray(result.sources)) throw new Error("source_mismatch");
       const seen = new Set();
       sourceChoices = result.sources.slice(0, 100).filter(source => {
         if (!source || typeof source.id !== "string" || !/^[A-Za-z0-9_-]{24,64}$/.test(source.id) || seen.has(source.id)) return false;
         seen.add(source.id); return true;
       }).map(source => ({ id: source.id, quality: text(source.quality), label: text(source.label).slice(0, 180),
         video_codec: text(source.video_codec), dynamic_range: text(source.dynamic_range),
+        source_format: text(source.source_format), container: text(source.container),
+        languages: Array.isArray(source.languages) ? source.languages.filter(x => typeof x === "string").slice(0, 12) : [],
         audio: Array.isArray(source.audio) ? source.audio.filter(x => typeof x === "string").slice(0, 8) : [],
         size_bytes: typeof source.size_bytes === "number" ? source.size_bytes : null }));
     } catch (error) {
@@ -1456,6 +1530,7 @@
   function safePlayerError(code) {
     const key = typeof code === "string" ? code.toLowerCase() : "";
     if (key.includes("native_player") || key.includes("embedding")) return "The player window isn’t ready yet. Your film has not been started. Please try again.";
+    if (key.includes("source_mismatch")) return "These streams do not match the selected title or episode. Nothing has started. Search again.";
     if (key.includes("source_expired")) return "That source has expired. Search again and select a fresh source.";
     if (key.includes("plugin_disabled")) return "Torrentio is disabled in Movie Night settings. Enable it to choose a stream.";
     if (key.includes("source_required")) return "Choose a stream before starting your film.";
@@ -1506,21 +1581,25 @@
     byId("player-mini").hidden = !active || !isNativeHost();
     byId("player-details-open").hidden = !active;
     byId("player-options-toggle").hidden = !active;
-    byId("quick-play").hidden = selectedMovie?.type === "series";
-    byId("quick-play").disabled = busy || sourceBusy || !selectedMovie || selectedMovie.type === "series";
+    byId("quick-play").hidden = false;
+    byId("quick-play").disabled = busy || sourceBusy || !mediaTarget();
     updateTrackControls();
     player.close.disabled = busy;
     const closeLabel = active ? "Stop playback and close controls" : "Close player controls";
     player.close.setAttribute("aria-label", closeLabel);
     player.close.title = closeLabel;
     const canControl = playerConnected && !busy && ["playing", "paused"].includes(state);
-    const sameMovie = selectedMovie?.imdbId && selectedMovie.imdbId === playerStatus.imdb_id;
+    const target = mediaTarget();
+    const sameMovie = sameMedia(target, playerStatus);
     const isSeries = selectedMovie?.type === "series";
-    player.play.disabled = isSeries || busy || !/^tt\d{5,12}$/.test(selectedMovie?.imdbId || "") || (sameMovie && state === "loading");
+    player.play.disabled = !target || busy || (sameMovie && state === "loading");
     const playLabel = sameMovie && state === "paused" ? "Resume on Aries" : sameMovie && state === "playing" ? "Watch on Aries" : sameMovie && state === "loading" ? "Getting your film ready…" : "Choose a stream";
-    setText(player.playLabel, isSeries ? "Episode playback unavailable" : launchPending ? "Getting your film ready…" : playLabel);
+    setText(player.playLabel, isSeries && !target ? "Select an episode" : launchPending ? "Getting your selection ready…" : playLabel);
     player.play.setAttribute("aria-busy", String(launchPending));
-    byId("choose-sources").disabled = busy || isSeries;
+    byId("choose-sources").disabled = busy || !target;
+    byId("episode-season").disabled = launchPending || !selectedMovie?.episodes?.length;
+    byId("refresh-episodes").disabled = launchPending || Boolean(detailController);
+    for (const button of byId("episode-list").querySelectorAll("button")) button.disabled = launchPending;
     byId("close-dialog").disabled = launchPending;
     updateSourceAction();
     player.toggle.disabled = !canControl;
@@ -1621,10 +1700,11 @@
   }
 
   async function playSelectedMovie(sourceId = null) {
-    if (!selectedMovie || selectedMovie.type === "series" || launchPending || commandPending || nativeActionPending || !/^tt\d{5,12}$/.test(selectedMovie.imdbId)) return;
+    const target = mediaTarget();
+    if (!target || launchPending || commandPending || nativeActionPending) return;
     const movie = selectedMovie;
-    const currentSelection = sourceId && sourceTitle === movie.imdbId && sourceChoices.some(source => source.id === sourceId);
-    const sameActive = playerStatus.imdb_id === movie.imdbId && ["paused", "playing", "loading"].includes(playerStatus.state);
+    const currentSelection = sourceId && sourceTitle === mediaKey(target) && sourceChoices.some(source => source.id === sourceId);
+    const sameActive = sameMedia(target, playerStatus) && ["paused", "playing", "loading"].includes(playerStatus.state);
     if (!sourceId && !sameActive) { await openSources(); return; }
     if (sourceId && !currentSelection) return;
     const generation = detailGeneration;
@@ -1636,9 +1716,9 @@
       const current = await playerRequest("status");
       if (selectedMovie !== movie || generation !== detailGeneration || elements.dialog.hidden) return;
       applyPlayerStatus(current);
-      const sameMovie = current.imdb_id === movie.imdbId;
+      const sameMovie = sameMedia(target, current);
       let data;
-      if (!sourceId && sameMovie && current.state === "paused") data = await playerRequest("command", { command: "resume" });
+      if (!sourceId && sameMovie && current.state === "paused") { const {title, ...identity} = target; data = await playerRequest("command", { command: "resume", ...identity }); }
       else if (!sourceId && sameMovie && ["playing", "loading"].includes(current.state)) data = current;
       else if (!sourceId) {
         launchPending = false; playerMessage(""); await openSources(); return;
@@ -1648,7 +1728,7 @@
           if (ready !== true) throw new Error("native_player_embedding_not_ready");
         }
         if (selectedMovie !== movie || generation !== detailGeneration || elements.dialog.hidden) return;
-        data = await playerRequest("play", { imdb_id: movie.imdbId, title: movie.title, source_id: sourceId });
+        data = await playerRequest("play", { ...target, source_id: sourceId });
       }
       if (data?.state === "error") throw new Error(text(data.last_error) || "playback_error");
       if (data?.state && playerStates.has(data.state)) applyPlayerStatus(data);
@@ -1799,6 +1879,14 @@
     onOpen() { expandTitleDetails(true); },
   });
   byId("close-dialog").addEventListener("click", closeFilm);
+  byId("episode-season").addEventListener("change", () => {
+    if (launchPending || !selectedMovie) return;
+    resetSources(); selectedEpisode = null; selectedSeason = Number(byId("episode-season").value); renderEpisodes(selectedMovie);
+  });
+  byId("refresh-episodes").addEventListener("click", () => {
+    if (!selectedMovie || launchPending || detailController) return;
+    selectedMovie.detailsLoaded = false; resetSources(); renderEpisodes(selectedMovie); void loadFilmDetails(selectedMovie, detailGeneration);
+  });
   byId("choose-sources").addEventListener("click", openSources);
   byId("refresh-sources").addEventListener("click", openSources);
   byId("cancel-sources").addEventListener("click", () => { if (!launchPending) { resetSources(); player.play.focus(); } });

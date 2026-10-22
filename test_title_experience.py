@@ -31,6 +31,26 @@ class TitleExperienceTest(unittest.TestCase):
         self.assertNotIn("PRIVATE", json.dumps(source.public()))
         self.assertNotIn("https://", json.dumps(source.public()))
 
+    def test_description_and_filename_supply_safe_stream_details(self):
+        stream = {"name": "[RD+] 1080p", "description": "Example.S01E02.WEB-DL.x265.English 1.45 GB",
+                  "behaviorHints": {"filename": "Example.S01E02.DDP.5.1.mkv"}}
+        hints = technical_metadata(stream, "")
+        self.assertEqual(hints["video_codec"], "HEVC / H.265")
+        self.assertEqual(hints["source_format"], "WEB-DL")
+        self.assertEqual(hints["container"], "MKV")
+        self.assertEqual(hints["languages"], ["English"])
+        self.assertIn("DD+", hints["audio"])
+        self.assertEqual(hints["size_bytes"], int(1.45 * 1024 ** 3))
+        self.assertNotIn("Example", json.dumps(hints))
+
+    def test_provider_descriptions_never_export_addresses_or_secrets(self):
+        raw = {"description": "https://example.com/PRIVATE_KEY French WEB-DL x264",
+               "behaviorHints": {"filename": "PRIVATE_NAME.mp4", "proxyHeaders": {"request": {"Authorization": "PRIVATE_TOKEN"}}}}
+        result = technical_metadata(raw, "")
+        self.assertNotIn("PRIVATE", json.dumps(result))
+        self.assertNotIn("https://", json.dumps(result))
+        self.assertEqual(result["languages"], ["French"])
+
     def test_unknown_hints_remain_unknown(self):
         hints = technical_metadata({}, "plain release")
         self.assertIsNone(hints["size_bytes"])

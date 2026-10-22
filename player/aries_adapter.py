@@ -293,13 +293,22 @@ class Source:
         return {"id": self.id, "label": self.label, "quality": self.quality, **self.technical}
 
 
+def provider_description(stream):
+    """Read bounded hints privately; never return the provider text to the UI."""
+    hints = stream.get("behaviorHints")
+    filename = hints.get("filename") if isinstance(hints, dict) else None
+    return " ".join(value[:4000] for value in
+                    [stream.get("name"), stream.get("title"), stream.get("description"), filename]
+                    if isinstance(value, str))[:12000]
+
+
 def technical_metadata(stream, description):
     """Extract fixed-vocabulary hints, never provider text, URLs or headers.
 
     These labels describe provider claims, not measured decoder capabilities.
     Unknown fields stay empty; the UI must not invent HDR, audio or language.
     """
-    data = str(description)[:4000]
+    data = (str(description)[:4000] + " " + provider_description(stream))[:16000]
     size = source_size(stream, data)
     codec = ("AV1" if re.search(r"\bAV1\b", data, re.I) else
              "HEVC / H.265" if re.search(r"\b(?:HEVC|[xh][ ._-]?265)\b", data, re.I) else
@@ -316,7 +325,23 @@ def technical_metadata(stream, description):
                            ("7.1", r"(?<!\d)7\.1(?!\d)"), ("5.1", r"(?<!\d)5\.1(?!\d)")]:
         if re.search(pattern, data, re.I) and not (label == "DTS" and "DTS-HD" in audio):
             audio.append(label)
+    # Fixed vocabulary only. These are provider hints, not verified player tracks.
+    languages = [label for label, pattern in [
+        ("English", r"\b(?:English|ENG)\b"), ("French", r"\b(?:French|FRA|FRE)\b"),
+        ("Spanish", r"\b(?:Spanish|SPA)\b"), ("German", r"\b(?:German|GER|DEU)\b"),
+        ("Italian", r"\b(?:Italian|ITA)\b"), ("Japanese", r"\b(?:Japanese|JPN)\b"),
+        ("Korean", r"\b(?:Korean|KOR)\b"), ("Portuguese", r"\b(?:Portuguese|POR)\b"),
+        ("Multiple languages", r"\b(?:MULTI|MULTILANGUAGE|DUAL[ ._-]?AUDIO)\b")]
+        if re.search(pattern, data, re.I)]
+    source_format = next((label for label, pattern in [
+        ("Blu-ray remux", r"\bREMUX\b"), ("Blu-ray", r"\b(?:Blu[ ._-]?Ray|BDRip)\b"),
+        ("WEB-DL", r"\bWEB[ ._-]?DL\b"), ("WEBRip", r"\bWEB[ ._-]?RIP\b"),
+        ("HDTV", r"\bHDTV\b")]
+        if re.search(pattern, data, re.I)), "")
+    container = next((ext.upper() for ext in ["mkv", "mp4", "webm", "avi", "m4v", "ts"]
+                      if re.search(r"\." + ext + r"(?:\s|$)", data, re.I)), "")
     return {"provider": "Torrentio", "availability": "RD cached", "video_codec": codec,
+            "languages": languages, "source_format": source_format, "container": container,
             "dynamic_range": dynamic_range, "audio": audio,
             "size_bytes": int(size) if math.isfinite(size) else None,
             "metadata_basis": "provider-reported"}
@@ -423,7 +448,7 @@ class Resolver:
                 headers = stream_headers(stream)
             except ValueError:
                 continue
-            text = name + " " + str(stream.get("title", ""))[:3000]
+            text = provider_description(stream)
             quality_match = re.search(r"(?<![0-9])(2160|1080|720|480|360)p\b", text, re.I)
             quality = quality_match.group(1) + "p" if quality_match else ("2160p" if re.search(r"\b4k\b", text, re.I) else "unknown")
             rank = qualities.index(quality)

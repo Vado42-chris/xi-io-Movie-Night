@@ -172,6 +172,10 @@
             <div id="dialog-genres" class="genre-tags"></div>
             <p id="dialog-description" class="detail-synopsis"></p>
             <p id="dialog-metadata-status" class="dialog-metadata-status" role="status" aria-live="polite" hidden></p>
+            <section id="detail-episodes" class="detail-episodes" aria-labelledby="episodes-heading" hidden>
+              <div class="episode-heading"><h2 id="episodes-heading">Seasons and episodes</h2><label>Season <select id="episode-season" aria-label="Season"></select></label><button id="refresh-episodes" type="button" class="small-button">Refresh episodes</button></div>
+              <p id="episode-metadata-status" role="status"></p><div id="episode-list" class="episode-rows" aria-label="Episodes"></div><p id="episode-selection" role="status"></p>
+            </section>
             <div class="detail-actions">
               <button id="play-on-aries" class="primary-button" type="button"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="m8 5 11 7-11 7V5Z"/></svg><span id="play-on-aries-label">Choose a stream</span></button>
               <button id="quick-play" class="primary-button" type="button" aria-describedby="quick-play-help">Quick Play</button>
@@ -188,7 +192,7 @@
           <header class="source-heading"><div><p class="eyebrow">Your connection · Aries</p><h2 id="source-heading" tabindex="-1">Choose your stream</h2><p>Nothing plays until you choose a source and press Play.</p></div><button id="cancel-sources" class="small-button" type="button">Close sources</button></header>
           <div class="source-toolbar"><label>Quality<select id="source-quality"><option value="">All qualities</option><option value="2160p">4K · 2160p</option><option value="1080p">1080p</option><option value="720p">720p</option><option value="480p">480p</option><option value="unknown">Unspecified</option></select></label><label>Dynamic range<select id="source-range"><option value="">Any range</option><option value="hdr">HDR / Dolby Vision</option><option value="unspecified">Not specified</option></select></label><button id="refresh-sources" class="small-button" type="button">Search again</button></div>
           <p id="source-status" class="source-status" role="status" aria-live="polite"></p>
-          <form id="source-form"><fieldset id="source-list" class="source-list"><legend class="visually-hidden">Available sources</legend></fieldset><footer class="source-footer"><p id="source-selection-note">Select a source to continue.</p><button id="play-source" class="primary-button" type="submit" disabled><span aria-hidden="true">▶</span> Play selected source</button></footer></form>
+          <form id="source-form"><div class="source-footer source-action-bar"><p id="source-selection-note" role="status">Select a source to continue.</p><button id="play-source" class="primary-button" type="submit" disabled><span aria-hidden="true">▶</span> Play selected source</button></div><fieldset id="source-list" class="source-list"><legend class="visually-hidden">Available sources</legend></fieldset></form>
           <p class="detail-footnote">Quality, file size and audio labels are supplied by the provider, not measured by Movie Night. Account credentials and stream addresses stay in the private player.</p>
         </section>
         <section id="detail-related" class="detail-related" aria-labelledby="related-heading" hidden><div class="detail-section-heading"><h2 id="related-heading">Recommended next</h2><p id="related-scope">Similar genres among titles already loaded in this selection. Not global or personalized recommendations.</p></div><div id="related-titles" class="related-titles"></div><p id="related-empty" class="filter-scope" hidden>No other films with shared genres are loaded in this selection. Widen the filters or load more catalogue titles.</p></section>
