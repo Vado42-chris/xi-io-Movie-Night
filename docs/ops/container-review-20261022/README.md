@@ -31,7 +31,7 @@ Fallback verification deletes the complete container enhancement and recursively
 
 The first expanded harness run is retained in `first-harness-run.json`. Its two failed assertions were fixture defects: a low-specificity allocated width was overridden by production CSS, and scroll offset was compared before returning to the original width. The corrected harness fixes fixture allocation and performs a complete resize round trip. No production patch was changed to hide those failures.
 
-56 product Python regressions, 16 player tests, 12 catalogue self-tests, JavaScript syntax, and diff whitespace checks pass. This does not qualify actual episode playback. Raw logs accompany this document.
+56 product Python regressions, 16 player tests, 12 catalogue self-tests, JavaScript syntax, and diff whitespace checks pass. This does not qualify actual episode playback. Raw outputs are `product-regressions.txt`, `catalogue-self-test.txt`, and `shell-build.txt`; `regressions.json` includes the earlier player-test command and output.
 
 ## Real browser host integration: three acceptance failures
 
