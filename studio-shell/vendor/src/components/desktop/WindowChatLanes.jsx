@@ -102,7 +102,7 @@ export default function WindowChatLanes({ targetId, label }) {
               onClick={() => releaseLane(targetId, lane.edge)}
               title={`${lane.meaning}\n\n${lane.label || lane.conversation_ref}\n\nPress to release this lane.`}
               aria-label={`Release the ${lane.trinity} conversation from ${label || 'this window'}`}
-              className="border border-[hsl(var(--color-intent))]/40 bg-background/70 px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-widest text-[hsl(var(--color-intent))] transition-colors hover:bg-[hsl(var(--color-intent))]/15"
+              className="inline-flex min-h-9 min-w-9 items-center justify-center border border-[hsl(var(--color-intent))]/40 bg-background/90 px-2 py-2 font-mono text-xs uppercase tracking-wide text-[hsl(var(--color-intent))] transition-colors hover:bg-[hsl(var(--color-intent))]/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--color-intent))]"
             >
               {lane.trinity}
             </button>
