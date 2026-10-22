@@ -6,6 +6,12 @@ function button(label, action, cls = 'small-button') { const b = el('button', cl
 const keyOf = movie => `${movie.type}:${movie.id || movie.imdbId}`;
 const wrap = (n, length) => ((n % length) + length) % length;
 
+// Editors and nested action controls retain their own input semantics.
+function inputOwnedElsewhere(target, root) {
+  const control = target?.closest?.('input, textarea, select, a, button, [role="slider"], [role="spinbutton"], [role="combobox"], [role="textbox"], [contenteditable]:not([contenteditable="false"])');
+  return Boolean(control && control !== root && !control.classList.contains('cube-cover'));
+}
+
 let captionSequence = 0;
 
 export class CenteredCarousel {
@@ -24,7 +30,7 @@ export class CenteredCarousel {
       else this.select(index);
     });
     root.addEventListener('keydown', event => {
-      if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || !this.items.length) return;
+      if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || !this.items.length || inputOwnedElsewhere(event.target, root)) return;
       if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) {
         event.preventDefault(); event.stopPropagation();
         if (event.key === 'Home') this.select(0);
@@ -34,7 +40,7 @@ export class CenteredCarousel {
       } else if (event.key === 'Enter' && event.target === root) { event.preventDefault(); this.onOpen(this.items[this.index]); }
     });
     root.addEventListener('pointerdown', event => {
-      if (!event.isPrimary || event.button !== 0) return;
+      if (!event.isPrimary || event.button !== 0 || inputOwnedElsewhere(event.target, root)) return;
       this.pointer = { id: event.pointerId, x: event.clientX, y: event.clientY, drag: false };
     });
     root.addEventListener('pointermove', event => {
@@ -52,11 +58,22 @@ export class CenteredCarousel {
     });
     root.addEventListener('pointercancel', () => { this.pointer = null; root.style.setProperty('--cube-drag', '0px'); });
     root.addEventListener('wheel', event => {
-      if (event.ctrlKey || this.items.length < 2 || (!event.shiftKey && Math.abs(event.deltaX) <= Math.abs(event.deltaY))) return;
+      if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || this.items.length < 2 || inputOwnedElsewhere(event.target, root)) return;
+      // Normal vertical wheel belongs to the page. Some browsers already rotate
+      // Shift+wheel into deltaX, so use the dominant reported axis in that case.
+      if (!event.shiftKey && Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return;
+      const raw = event.shiftKey && Math.abs(event.deltaY) > Math.abs(event.deltaX) ? event.deltaY : event.deltaX;
+      if (!Number.isFinite(raw) || raw === 0) return;
       event.preventDefault();
-      if (performance.now() - (this.lastWheel || 0) < 180) return;
-      this.wheel = (this.wheel || 0) + (event.shiftKey ? event.deltaY : event.deltaX);
-      if (Math.abs(this.wheel) >= 30) { this.move(this.wheel > 0 ? 1 : -1); this.wheel = 0; this.lastWheel = performance.now(); }
+      const now = performance.now();
+      if (this.lastWheel !== undefined && now - this.lastWheel < 180) return;
+      // The threshold is CSS pixels; wheel devices can report lines or pages.
+      const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? Math.max(1, root.clientWidth) : 1;
+      const delta = raw * unit;
+      if (now - (this.lastWheelInput || 0) > 250 || Math.sign(this.wheel || 0) !== Math.sign(delta)) this.wheel = 0;
+      this.lastWheelInput = now;
+      this.wheel = (this.wheel || 0) + delta;
+      if (Math.abs(this.wheel) >= 30) { this.move(this.wheel > 0 ? 1 : -1); this.wheel = 0; this.lastWheel = now; }
     }, { passive: false });
   }
   setItems(items, anchor = null) {

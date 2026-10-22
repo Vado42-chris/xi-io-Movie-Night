@@ -1,0 +1,143 @@
+{
+  "method": "production component; isolated fixture; no native/loki/installed claim",
+  "source_sha256": "8fc5d8ff4ef636e04bffd903882efc4bab571773c10977ed368aeead8a0bb704",
+  "checks": [
+    {
+      "name": "ordinary wheel scrolls page without changing selected card",
+      "method": "trusted browser mouse.wheel",
+      "status": "PASS",
+      "observed": {
+        "scroll": 180,
+        "index": 0,
+        "other": 0,
+        "opened": 0
+      }
+    },
+    {
+      "name": "shift vertical pixels",
+      "method": "dispatched WheelEvent, handler/cancellation probe",
+      "status": "PASS",
+      "observed": {
+        "cancelled": true,
+        "index": 1,
+        "other": 0,
+        "opened": 0
+      }
+    },
+    {
+      "name": "shift horizontal pixels",
+      "method": "dispatched WheelEvent, handler/cancellation probe",
+      "status": "FAIL",
+      "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+    },
+    {
+      "name": "horizontal trackpad-shaped pixels",
+      "method": "dispatched WheelEvent, handler/cancellation probe",
+      "status": "PASS",
+      "observed": {
+        "cancelled": true,
+        "index": 1,
+        "other": 0,
+        "opened": 0
+      }
+    },
+    {
+      "name": "shift vertical lines",
+      "method": "dispatched WheelEvent, handler/cancellation probe",
+      "status": "FAIL",
+      "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+    },
+    {
+      "name": "shift vertical pages",
+      "method": "dispatched WheelEvent, handler/cancellation probe",
+      "status": "FAIL",
+      "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+    },
+    {
+      "name": "direction reversal discards an opposite partial wheel gesture",
+      "method": "dispatched WheelEvent",
+      "status": "FAIL",
+      "error": "Expected values to be strictly equal:\n\n0 !== 4\n"
+    },
+    {
+      "name": "separate partial wheel gestures do not accumulate across idle time",
+      "method": "dispatched WheelEvent with real elapsed time",
+      "status": "FAIL",
+      "error": "Expected values to be strictly equal:\n\n1 !== 0\n"
+    },
+    {
+      "name": "actual Shift plus wheel advances a row, not page",
+      "method": "trusted browser keyboard and mouse.wheel",
+      "status": "PASS",
+      "observed": {
+        "scroll": 0,
+        "index": 1,
+        "opened": 0
+      }
+    },
+    {
+      "name": "zoom and modified browser gestures are unclaimed",
+      "method": "dispatched WheelEvent",
+      "status": "FAIL",
+      "error": "metaKey\n\ntrue !== false\n"
+    },
+    {
+      "name": "empty and singleton rows do not consume scroll",
+      "method": "dispatched WheelEvent",
+      "status": "PASS",
+      "observed": [
+        {
+          "count": 0,
+          "cancelled": false,
+          "index": 0,
+          "other": 0,
+          "opened": 0
+        },
+        {
+          "count": 1,
+          "cancelled": false,
+          "index": 0,
+          "other": 0,
+          "opened": 0
+        }
+      ]
+    },
+    {
+      "name": "row arrow keys are local and Enter alone opens",
+      "method": "trusted browser keyboard",
+      "status": "PASS",
+      "observed": {
+        "selected": "movie:tt0000001",
+        "openCalls": 1
+      }
+    },
+    {
+      "name": "nested editor retains ArrowLeft and wheel ownership",
+      "method": "trusted keyboard plus dispatched WheelEvent",
+      "status": "FAIL",
+      "error": "Expected values to be strictly equal:\n\n3 !== 2\n"
+    },
+    {
+      "name": "Up/Down and Tab leave ordinary page navigation available",
+      "method": "trusted keyboard",
+      "status": "PASS",
+      "observed": {
+        "index": 0,
+        "scroll": 40
+      }
+    },
+    {
+      "name": "reflow keeps instance, DOM focus and selection",
+      "method": "real container resize and keyboard",
+      "status": "PASS",
+      "observed": {
+        "instancePreserved": true,
+        "focusPreserved": true,
+        "selectionPreserved": true
+      }
+    }
+  ],
+  "unexpectedRequests": [],
+  "browser": "152.0.7961.0",
+  "pass": false
+}
