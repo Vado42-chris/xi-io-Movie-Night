@@ -6,6 +6,14 @@ function button(label, action, cls = 'small-button') { const b = el('button', cl
 const keyOf = movie => `${movie.type}:${movie.id || movie.imdbId}`;
 const wrap = (n, length) => ((n % length) + length) % length;
 
+// Editors and nested action controls retain their own input semantics.
+function inputOwnedElsewhere(target, root) {
+  const control = target?.closest?.('input, textarea, select, a, button, [role="slider"], [role="spinbutton"], [role="combobox"], [role="textbox"], [contenteditable]:not([contenteditable="false"])');
+  return Boolean(control && control !== root && !control.classList.contains('cube-cover'));
+}
+
+let captionSequence = 0;
+
 export class CenteredCarousel {
   constructor(root, { poster, onSelect = () => {}, onOpen = () => {}, legacyIds = false }) {
     this.root = root; this.poster = poster; this.onSelect = onSelect; this.onOpen = onOpen;
@@ -22,7 +30,7 @@ export class CenteredCarousel {
       else this.select(index);
     });
     root.addEventListener('keydown', event => {
-      if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || !this.items.length) return;
+      if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || !this.items.length || inputOwnedElsewhere(event.target, root)) return;
       if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) {
         event.preventDefault(); event.stopPropagation();
         if (event.key === 'Home') this.select(0);
@@ -32,7 +40,7 @@ export class CenteredCarousel {
       } else if (event.key === 'Enter' && event.target === root) { event.preventDefault(); this.onOpen(this.items[this.index]); }
     });
     root.addEventListener('pointerdown', event => {
-      if (!event.isPrimary || event.button !== 0) return;
+      if (!event.isPrimary || event.button !== 0 || inputOwnedElsewhere(event.target, root)) return;
       this.pointer = { id: event.pointerId, x: event.clientX, y: event.clientY, drag: false };
     });
     root.addEventListener('pointermove', event => {
@@ -50,11 +58,22 @@ export class CenteredCarousel {
     });
     root.addEventListener('pointercancel', () => { this.pointer = null; root.style.setProperty('--cube-drag', '0px'); });
     root.addEventListener('wheel', event => {
-      if (event.ctrlKey || this.items.length < 2 || (!event.shiftKey && Math.abs(event.deltaX) <= Math.abs(event.deltaY))) return;
+      if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || this.items.length < 2 || inputOwnedElsewhere(event.target, root)) return;
+      // Normal vertical wheel belongs to the page. Some browsers already rotate
+      // Shift+wheel into deltaX, so use the dominant reported axis in that case.
+      if (!event.shiftKey && Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return;
+      const raw = event.shiftKey && Math.abs(event.deltaY) > Math.abs(event.deltaX) ? event.deltaY : event.deltaX;
+      if (!Number.isFinite(raw) || raw === 0) return;
       event.preventDefault();
-      if (performance.now() - (this.lastWheel || 0) < 180) return;
-      this.wheel = (this.wheel || 0) + (event.shiftKey ? event.deltaY : event.deltaX);
-      if (Math.abs(this.wheel) >= 30) { this.move(this.wheel > 0 ? 1 : -1); this.wheel = 0; this.lastWheel = performance.now(); }
+      const now = performance.now();
+      if (this.lastWheel !== undefined && now - this.lastWheel < 180) return;
+      // The threshold is CSS pixels; wheel devices can report lines or pages.
+      const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? Math.max(1, root.clientWidth) : 1;
+      const delta = raw * unit;
+      if (now - (this.lastWheelInput || 0) > 250 || Math.sign(this.wheel || 0) !== Math.sign(delta)) this.wheel = 0;
+      this.lastWheelInput = now;
+      this.wheel = (this.wheel || 0) + delta;
+      if (Math.abs(this.wheel) >= 30) { this.move(this.wheel > 0 ? 1 : -1); this.wheel = 0; this.lastWheel = now; }
     }, { passive: false });
   }
   setItems(items, anchor = null) {
@@ -74,6 +93,21 @@ export class CenteredCarousel {
     const count = this.items.length;
     this.root.dataset.count = String(count); this.root.dataset.index = String(this.index);
     this.root.dataset.selected = count ? keyOf(this.items[this.index]) : '';
+    // Ordinary visible label, not another live announcer beside the row status.
+    if (!this.caption) {
+      this.caption = el('p', 'cube-selected-caption');
+      this.caption.dir = 'auto';
+      do { this.caption.id = `movie-night-carousel-caption-${++captionSequence}`; }
+      while (document.getElementById(this.caption.id));
+      this.captionAction = el('span', '', 'Details:');
+      this.captionAction.id = `${this.caption.id}-action`;
+      this.captionAction.hidden = true;
+    }
+    const title = count ? String(this.items[this.index].title ?? '') : '';
+    if (this.caption.textContent !== title) this.caption.textContent = title;
+    this.caption.dataset.record = this.root.dataset.selected;
+    this.caption.hidden = !count;
+    if (!this.root.contains(this.caption)) this.root.append(this.captionAction, this.caption);
     const needed = new Set();
     const left = Math.min(4, Math.floor((count - 1) / 2));
     const right = Math.min(4, Math.ceil((count - 1) / 2));
@@ -92,7 +126,13 @@ export class CenteredCarousel {
       card.style.setProperty('--cube-scale', String(offset === 0 ? 1 : Math.max(.48, .84 - Math.abs(offset) * .08)));
       card.style.zIndex = String(10 - Math.abs(offset));
       card.style.opacity = String(offset === 0 ? 1 : Math.max(.32, .92 - Math.abs(offset) * .13));
-      card.setAttribute('aria-label', `${offset === 0 ? 'Details' : 'Select'}: ${movie.title}`);
+      if (offset === 0) {
+        card.removeAttribute('aria-label');
+        card.setAttribute('aria-labelledby', `${this.captionAction.id} ${this.caption.id}`);
+      } else {
+        card.removeAttribute('aria-labelledby');
+        card.setAttribute('aria-label', `Select: ${movie.title}`);
+      }
       card.setAttribute('aria-current', String(offset === 0)); card.tabIndex = offset === 0 ? 0 : -1;
       if (this.legacyIds && Math.abs(offset) <= 1) card.id = offset === 0 ? 'dialog-poster' : offset < 0 ? 'carousel-previous-card' : 'carousel-next-card';
     }
