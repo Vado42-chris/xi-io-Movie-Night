@@ -1,0 +1,3061 @@
+{
+  "document_kind": "Independent lane contribution to existing XI-IO framework rebaseline",
+  "created_date": "2026-10-22",
+  "lane": "Movie Night app lane, interaction-to-platform reuse review",
+  "status": "CANDIDATE_FOR_TEAM_COMPARISON; not adopted baseline or observed defect census",
+  "source_checkpoint": {
+    "repo": "Vado42-chris/xi-io-Movie-Night",
+    "head_observed": "c723453e9b216456fe8b0a9031516e06c20563a9",
+    "framework_accepted_source": "f2976548b09743f0d54c308c44a71be30752152f",
+    "audit": "XI-IO-component-audit-20261022.md",
+    "matrix": "products.csv"
+  },
+  "count": 100,
+  "grouping": "Ten editorial groups of ten; not ROTFL gate collapse or 100 qualified cells",
+  "priorities": {
+    "R1": "First reuse leverage: common host, settings, identity and query code",
+    "R2": "Next reuse leverage: repeated collections, chat, connections, editing and evidence states",
+    "R3": "Composition leverage after foundations: lifecycle, white-label output and collaboration"
+  },
+  "priority_note": "Qualitative duplication-removal ordering, not measured savings, severity or a launch permission. Authorization and data-loss defects outrank this sequencing.",
+  "non_goals": [
+    "No new settings registry",
+    "No new chat engine",
+    "No backend services",
+    "No automatic creation of 100 bugs",
+    "No installed or suite adoption claim",
+    "No new canonical Work, worker, quorum or product registry",
+    "No invented Entertainment hue"
+  ],
+  "families": [
+    {
+      "name": "Window geometry and universal utilities",
+      "reuse_priority": "R1",
+      "why": "One host geometry and utility implementation replaces app-specific chrome, sizing rules and entrypoint wiring.",
+      "existing_refs": [
+        "WindowFrame.jsx",
+        "windowRail.css",
+        "windowScroll.css",
+        "SettingsEntryContext.jsx",
+        "settingsEntry.mjs"
+      ],
+      "owner_boundary": "Existing shared Desktop/frame and utility owners"
+    },
+    {
+      "name": "Declaration-driven settings and preferences",
+      "reuse_priority": "R1",
+      "why": "One declaration and interpreter remove duplicate defaults, allowed-value lists and hand-written settings metadata.",
+      "existing_refs": [
+        "SettingsSurface.jsx",
+        "SettingPrimitive.jsx",
+        "SettingControl.jsx",
+        "SettingDetail.jsx",
+        "settingsFamilies.mjs",
+        "Movie Night xiio/settings.schema.json"
+      ],
+      "owner_boundary": "Existing Settings, DataForge declaration and SDK owners; product owns domain bindings"
+    },
+    {
+      "name": "Record identity, selection and action boundaries",
+      "reuse_priority": "R1",
+      "why": "A stable selection contract eliminates separate card/list/detail identities and prevents accidental domain effects.",
+      "existing_refs": [
+        "SystemCard/SystemNav in SystemComponents.jsx",
+        "Article template slots",
+        "Movie Night CenteredCarousel",
+        "SelectedThreadReader.jsx"
+      ],
+      "owner_boundary": "Existing SDK, Articles/Publisher and shared selection owners; effects stay product-owned"
+    },
+    {
+      "name": "Search, provider facets and query semantics",
+      "reuse_priority": "R1",
+      "why": "One predicate and query model removes inconsistent search, wall, carousel, saved-view and count implementations.",
+      "existing_refs": [
+        "SearchLanding.jsx",
+        "SearchForge.jsx",
+        "CanonicalSearch.jsx",
+        "SDK search-field/search-band references",
+        "Movie Night filterMovieQuery/matchesFilters"
+      ],
+      "owner_boundary": "Existing Search/query and domain-schema owners"
+    },
+    {
+      "name": "Collections, navigation and efficient repeated content",
+      "reuse_priority": "R2",
+      "why": "Shared collection behaviour removes independent pagination, carousel, row-ordering and return-navigation implementations.",
+      "existing_refs": [
+        "CubeShelf.jsx",
+        "SystemCard",
+        "Movie Night CenteredCarousel",
+        "Movie Night mountFilterCubes",
+        "existing search/result controls"
+      ],
+      "owner_boundary": "Existing collection/selection primitives with product-specific data adapters"
+    },
+    {
+      "name": "Contextual chat and assistant interaction",
+      "reuse_priority": "R2",
+      "why": "One existing conversation engine can serve docked, detached and standalone hosts without duplicating chat state.",
+      "existing_refs": [
+        "WindowChatBay.jsx",
+        "WindowChatLanes.jsx",
+        "ChatComposer.jsx",
+        "ChatTranscript.jsx",
+        "Attachments.jsx",
+        "ChatSnapControl.jsx",
+        "chatDockStore"
+      ],
+      "owner_boundary": "Existing @ibal/conversation owner and shared window host; no replacement chat engine"
+    },
+    {
+      "name": "Connections, authorized libraries and import workflows",
+      "reuse_priority": "R2",
+      "why": "A shared connection and BINS workflow avoids per-product account pickers, import stores and inconsistent access checks.",
+      "existing_refs": [
+        "ProviderConnect.jsx",
+        "Integrations.jsx",
+        "IntegrationDashboard.jsx",
+        "FileManager.jsx",
+        "BinEntryRow.jsx",
+        "BinFileView.jsx",
+        "existing Ward reader boundary"
+      ],
+      "owner_boundary": "Existing Integrations, BINS and Ward owners; authentication stays provider-specific"
+    },
+    {
+      "name": "Editing, persistence and reversible operations",
+      "reuse_priority": "R2",
+      "why": "Shared edit-session and command-state semantics remove inconsistent Save, Cancel, reset, conflict and export handling.",
+      "existing_refs": [
+        "SystemFileFrame",
+        "SystemFileBar",
+        "DocumentEditor.jsx",
+        "WordPressEditor.jsx",
+        "CanvasBoard",
+        "PublicationReadback.jsx"
+      ],
+      "owner_boundary": "Existing file-command, authoring and revision owners; persistence engines remain domain-owned"
+    },
+    {
+      "name": "Truthful state, provenance and accessibility",
+      "reuse_priority": "R2",
+      "why": "Consistent state and evidence primitives remove repeated ambiguous spinners, false greens and inaccessible recovery controls.",
+      "existing_refs": [
+        "SDK Surface/Note/Unobserved/Chip/Readout",
+        "ShiftTruth.jsx",
+        "ShiftStrip.jsx",
+        "shiftRunReading.mjs",
+        "HeadlessDispatchControl.jsx",
+        "queueDispatchOutcome.mjs"
+      ],
+      "owner_boundary": "Existing SDK status/evidence and accessibility owners; backend states retain their meaning"
+    },
+    {
+      "name": "Plugin lifecycle, white-label publishing and collaboration",
+      "reuse_priority": "R3",
+      "why": "Once foundational contracts pass, one set of lifecycle and composition surfaces scales to many products and sites.",
+      "existing_refs": [
+        "appLifecycle.mjs",
+        "AddonManager.jsx",
+        "ArticleTemplates",
+        "ArticleTemplateCard",
+        "Publisher template/slot references",
+        "OfficeSuite.jsx",
+        "existing contacts/invitation surfaces"
+      ],
+      "owner_boundary": "Existing lifecycle, Articles/Publisher and collaboration owners; domain rules stay with products"
+    }
+  ],
+  "opportunities": [
+    {
+      "candidate_ref": "MN-REUSE-001",
+      "family_order": 1,
+      "family": "Window geometry and universal utilities",
+      "reuse_priority": "R1",
+      "title": "Available-width layout",
+      "candidate_consumers": [
+        "Movie Night",
+        "Marketplace",
+        "BINS"
+      ],
+      "shared_requirement": "Use the content region left after the rail and contextual dock, without inherited narrow-page caps.",
+      "verification_probe": "Resize with chat open and closed; content fills its allocated region without overlapping chat.",
+      "existing_reference_leads": [
+        "WindowFrame.jsx",
+        "windowRail.css",
+        "windowScroll.css",
+        "SettingsEntryContext.jsx",
+        "settingsEntry.mjs"
+      ],
+      "owner_boundary": "Existing shared Desktop/frame and utility owners",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-002",
+      "family_order": 1,
+      "family": "Window geometry and universal utilities",
+      "reuse_priority": "R1",
+      "title": "Readable text inside wide layouts",
+      "candidate_consumers": [
+        "sam_law",
+        "Articles",
+        "WordPress"
+      ],
+      "shared_requirement": "Separate paragraph reading measure from the width available to cards, tables, timelines and inspectors.",
+      "verification_probe": "A long paragraph remains readable while its neighbouring collection uses all available width.",
+      "existing_reference_leads": [
+        "WindowFrame.jsx",
+        "windowRail.css",
+        "windowScroll.css",
+        "SettingsEntryContext.jsx",
+        "settingsEntry.mjs"
+      ],
+      "owner_boundary": "Existing shared Desktop/frame and utility owners",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-003",
+      "family_order": 1,
+      "family": "Window geometry and universal utilities",
+      "reuse_priority": "R1",
+      "title": "One scroll owner per region",
+      "candidate_consumers": [
+        "Office",
+        "BINS",
+        "Movie Night"
+      ],
+      "shared_requirement": "Declare whether the document, canvas or list owns scrolling; do not nest accidental scroll traps.",
+      "verification_probe": "Wheel and touch move the intended region; header and controls remain reachable.",
+      "existing_reference_leads": [
+        "WindowFrame.jsx",
+        "windowRail.css",
+        "windowScroll.css",
+        "SettingsEntryContext.jsx",
+        "settingsEntry.mjs"
+      ],
+      "owner_boundary": "Existing shared Desktop/frame and utility owners",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-004",
+      "family_order": 1,
+      "family": "Window geometry and universal utilities",
+      "reuse_priority": "R1",
+      "title": "Permanent lower-left utilities",
+      "candidate_consumers": [
+        "All desktop plugins",
+        "standalone apps"
+      ],
+      "shared_requirement": "Reuse the existing BINS, @ibal and Settings utility zone, separate from window-management controls.",
+      "verification_probe": "All three are reachable in a short window and narrow layout, with labels and visible focus.",
+      "existing_reference_leads": [
+        "WindowFrame.jsx",
+        "windowRail.css",
+        "windowScroll.css",
+        "SettingsEntryContext.jsx",
+        "settingsEntry.mjs"
+      ],
+      "owner_boundary": "Existing shared Desktop/frame and utility owners",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-005",
+      "family_order": 1,
+      "family": "Window geometry and universal utilities",
+      "reuse_priority": "R1",
+      "title": "Adaptive dock sizing",
+      "candidate_consumers": [
+        "Movie Night",
+        "Inbox",
+        "sam_law"
+      ],
+      "shared_requirement": "Respect minimum content and chat sizes; use the accepted narrow-screen presentation when both cannot fit.",
+      "verification_probe": "Narrow and widen the host without losing selection, draft, focus or reachable controls.",
+      "existing_reference_leads": [
+        "WindowFrame.jsx",
+        "windowRail.css",
+        "windowScroll.css",
+        "SettingsEntryContext.jsx",
+        "settingsEntry.mjs"
+      ],
+      "owner_boundary": "Existing shared Desktop/frame and utility owners",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-006",
+      "family_order": 1,
+      "family": "Window geometry and universal utilities",
+      "reuse_priority": "R1",
+      "title": "Native versus virtual frame adapter",
+      "candidate_consumers": [
+        "Movie Night",
+        "Arcade",
+        "Inbox"
+      ],
+      "shared_requirement": "Keep one frame rendering contract with host-specific move, resize, minimize and maximize bindings.",
+      "verification_probe": "Native controls operate the actual window; virtual controls operate only their owned pane.",
+      "existing_reference_leads": [
+        "WindowFrame.jsx",
+        "windowRail.css",
+        "windowScroll.css",
+        "SettingsEntryContext.jsx",
+        "settingsEntry.mjs"
+      ],
+      "owner_boundary": "Existing shared Desktop/frame and utility owners",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-007",
+      "family_order": 1,
+      "family": "Window geometry and universal utilities",
+      "reuse_priority": "R1",
+      "title": "Geometry recovery",
+      "candidate_consumers": [
+        "Office",
+        "BINS",
+        "Repo Reaper"
+      ],
+      "shared_requirement": "Restore saved position and size relative to current displays, not obsolete coordinates.",
+      "verification_probe": "Reopen after removing a display; the full title bar and recovery controls remain reachable.",
+      "existing_reference_leads": [
+        "WindowFrame.jsx",
+        "windowRail.css",
+        "windowScroll.css",
+        "SettingsEntryContext.jsx",
+        "settingsEntry.mjs"
+      ],
+      "owner_boundary": "Existing shared Desktop/frame and utility owners",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-008",
+      "family_order": 1,
+      "family": "Window geometry and universal utilities",
+      "reuse_priority": "R1",
+      "title": "Fullscreen state preservation",
+      "candidate_consumers": [
+        "Movie Night",
+        "Arcade",
+        "Presentations"
+      ],
+      "shared_requirement": "Enter and exit fullscreen without changing the selected resource, conversation or unsaved work.",
+      "verification_probe": "Toggle fullscreen twice and compare resource identity, draft and return geometry.",
+      "existing_reference_leads": [
+        "WindowFrame.jsx",
+        "windowRail.css",
+        "windowScroll.css",
+        "SettingsEntryContext.jsx",
+        "settingsEntry.mjs"
+      ],
+      "owner_boundary": "Existing shared Desktop/frame and utility owners",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-009",
+      "family_order": 1,
+      "family": "Window geometry and universal utilities",
+      "reuse_priority": "R1",
+      "title": "Focus restoration",
+      "candidate_consumers": [
+        "Marketplace",
+        "BINS",
+        "Work views"
+      ],
+      "shared_requirement": "Return focus to the originating item after details, dialogs or context panels close.",
+      "verification_probe": "Keyboard-open a detail view, close it and continue from the same item without restarting navigation.",
+      "existing_reference_leads": [
+        "WindowFrame.jsx",
+        "windowRail.css",
+        "windowScroll.css",
+        "SettingsEntryContext.jsx",
+        "settingsEntry.mjs"
+      ],
+      "owner_boundary": "Existing shared Desktop/frame and utility owners",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-010",
+      "family_order": 1,
+      "family": "Window geometry and universal utilities",
+      "reuse_priority": "R1",
+      "title": "Declared rail extensions",
+      "candidate_consumers": [
+        "Movie Night",
+        "Inbox",
+        "WordPress"
+      ],
+      "shared_requirement": "Place product tools in existing rail slots while universal utilities remain owned by the shared frame.",
+      "verification_probe": "Each action appears once; consumer tools cannot displace or duplicate shared utilities.",
+      "existing_reference_leads": [
+        "WindowFrame.jsx",
+        "windowRail.css",
+        "windowScroll.css",
+        "SettingsEntryContext.jsx",
+        "settingsEntry.mjs"
+      ],
+      "owner_boundary": "Existing shared Desktop/frame and utility owners",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-011",
+      "family_order": 2,
+      "family": "Declaration-driven settings and preferences",
+      "reuse_priority": "R1",
+      "title": "Full catalogue at the caller",
+      "candidate_consumers": [
+        "Movie Night",
+        "Marketplace",
+        "Office"
+      ],
+      "shared_requirement": "Open the complete settings catalogue at the requesting app or document section, never an app-only substitute.",
+      "verification_probe": "Open from two apps; initial sections differ but the same authorized catalogue remains available.",
+      "existing_reference_leads": [
+        "SettingsSurface.jsx",
+        "SettingPrimitive.jsx",
+        "SettingControl.jsx",
+        "SettingDetail.jsx",
+        "settingsFamilies.mjs",
+        "Movie Night xiio/settings.schema.json"
+      ],
+      "owner_boundary": "Existing Settings, DataForge declaration and SDK owners; product owns domain bindings",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-012",
+      "family_order": 2,
+      "family": "Declaration-driven settings and preferences",
+      "reuse_priority": "R1",
+      "title": "Declared control types",
+      "candidate_consumers": [
+        "Theme",
+        "Desktop",
+        "account preferences"
+      ],
+      "shared_requirement": "Render boolean, choice, range, order and text controls from the declared type, not the current value.",
+      "verification_probe": "An unset or null value cannot silently turn a choice or boolean into free text.",
+      "existing_reference_leads": [
+        "SettingsSurface.jsx",
+        "SettingPrimitive.jsx",
+        "SettingControl.jsx",
+        "SettingDetail.jsx",
+        "settingsFamilies.mjs",
+        "Movie Night xiio/settings.schema.json"
+      ],
+      "owner_boundary": "Existing Settings, DataForge declaration and SDK owners; product owns domain bindings",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-013",
+      "family_order": 2,
+      "family": "Declaration-driven settings and preferences",
+      "reuse_priority": "R1",
+      "title": "One default resolver",
+      "candidate_consumers": [
+        "Movie Night",
+        "Inbox",
+        "account preferences"
+      ],
+      "shared_requirement": "Derive default and fallback values from one versioned declaration across UI and persistence.",
+      "verification_probe": "A missing preference produces the same value in the panel, validator and actual consumer.",
+      "existing_reference_leads": [
+        "SettingsSurface.jsx",
+        "SettingPrimitive.jsx",
+        "SettingControl.jsx",
+        "SettingDetail.jsx",
+        "settingsFamilies.mjs",
+        "Movie Night xiio/settings.schema.json"
+      ],
+      "owner_boundary": "Existing Settings, DataForge declaration and SDK owners; product owns domain bindings",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-014",
+      "family_order": 2,
+      "family": "Declaration-driven settings and preferences",
+      "reuse_priority": "R1",
+      "title": "Validation parity",
+      "candidate_consumers": [
+        "Theme import",
+        "Movie Night",
+        "product manifests"
+      ],
+      "shared_requirement": "Apply the same declaration at every trust boundary without maintaining separate allowed-value lists.",
+      "verification_probe": "Run identical valid, invalid and unknown-field fixtures through every entrypoint and compare outcomes.",
+      "existing_reference_leads": [
+        "SettingsSurface.jsx",
+        "SettingPrimitive.jsx",
+        "SettingControl.jsx",
+        "SettingDetail.jsx",
+        "settingsFamilies.mjs",
+        "Movie Night xiio/settings.schema.json"
+      ],
+      "owner_boundary": "Existing Settings, DataForge declaration and SDK owners; product owns domain bindings",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-015",
+      "family_order": 2,
+      "family": "Declaration-driven settings and preferences",
+      "reuse_priority": "R1",
+      "title": "Scope and inheritance disclosure",
+      "candidate_consumers": [
+        "Office",
+        "Desktop",
+        "sam_law"
+      ],
+      "shared_requirement": "Show user, device, workspace, app or document ownership and whether a value is inherited or overridden.",
+      "verification_probe": "Reset an app override without changing the device or document value; disclose the effective result.",
+      "existing_reference_leads": [
+        "SettingsSurface.jsx",
+        "SettingPrimitive.jsx",
+        "SettingControl.jsx",
+        "SettingDetail.jsx",
+        "settingsFamilies.mjs",
+        "Movie Night xiio/settings.schema.json"
+      ],
+      "owner_boundary": "Existing Settings, DataForge declaration and SDK owners; product owns domain bindings",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-016",
+      "family_order": 2,
+      "family": "Declaration-driven settings and preferences",
+      "reuse_priority": "R1",
+      "title": "Preview and cancel",
+      "candidate_consumers": [
+        "Theme",
+        "Movie Night",
+        "Publisher"
+      ],
+      "shared_requirement": "Treat previews as reversible presentation, not silently persisted preferences or privileged effects.",
+      "verification_probe": "Preview, cancel and reopen; both actual behaviour and stored preference return to their prior state.",
+      "existing_reference_leads": [
+        "SettingsSurface.jsx",
+        "SettingPrimitive.jsx",
+        "SettingControl.jsx",
+        "SettingDetail.jsx",
+        "settingsFamilies.mjs",
+        "Movie Night xiio/settings.schema.json"
+      ],
+      "owner_boundary": "Existing Settings, DataForge declaration and SDK owners; product owns domain bindings",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-017",
+      "family_order": 2,
+      "family": "Declaration-driven settings and preferences",
+      "reuse_priority": "R1",
+      "title": "Save with effect readback",
+      "candidate_consumers": [
+        "Movie Night",
+        "Office",
+        "Inbox"
+      ],
+      "shared_requirement": "Distinguish saved bytes from an applied setting and from restart-qualified behaviour.",
+      "verification_probe": "Save, close and reopen; verify the declared consumer effect, not merely the stored value.",
+      "existing_reference_leads": [
+        "SettingsSurface.jsx",
+        "SettingPrimitive.jsx",
+        "SettingControl.jsx",
+        "SettingDetail.jsx",
+        "settingsFamilies.mjs",
+        "Movie Night xiio/settings.schema.json"
+      ],
+      "owner_boundary": "Existing Settings, DataForge declaration and SDK owners; product owns domain bindings",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-018",
+      "family_order": 2,
+      "family": "Declaration-driven settings and preferences",
+      "reuse_priority": "R1",
+      "title": "Scoped reset preview",
+      "candidate_consumers": [
+        "Desktop",
+        "Movie Night",
+        "WordPress"
+      ],
+      "shared_requirement": "Show exactly which declared values reset and which unrelated settings and files remain untouched.",
+      "verification_probe": "Reset one section, verify defaults and unchanged sibling preferences, then reopen and verify effects.",
+      "existing_reference_leads": [
+        "SettingsSurface.jsx",
+        "SettingPrimitive.jsx",
+        "SettingControl.jsx",
+        "SettingDetail.jsx",
+        "settingsFamilies.mjs",
+        "Movie Night xiio/settings.schema.json"
+      ],
+      "owner_boundary": "Existing Settings, DataForge declaration and SDK owners; product owns domain bindings",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-019",
+      "family_order": 2,
+      "family": "Declaration-driven settings and preferences",
+      "reuse_priority": "R1",
+      "title": "Independent import and export policies",
+      "candidate_consumers": [
+        "Settings",
+        "BINS preference transfer",
+        "Office"
+      ],
+      "shared_requirement": "Honour each declared import, export and reset policy independently, with validation before applying data.",
+      "verification_probe": "Import-only and export-only declarations work independently; denied operations cannot mutate state.",
+      "existing_reference_leads": [
+        "SettingsSurface.jsx",
+        "SettingPrimitive.jsx",
+        "SettingControl.jsx",
+        "SettingDetail.jsx",
+        "settingsFamilies.mjs",
+        "Movie Night xiio/settings.schema.json"
+      ],
+      "owner_boundary": "Existing Settings, DataForge declaration and SDK owners; product owns domain bindings",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-020",
+      "family_order": 2,
+      "family": "Declaration-driven settings and preferences",
+      "reuse_priority": "R1",
+      "title": "Unavailable setting explanation",
+      "candidate_consumers": [
+        "Native device controls",
+        "providers",
+        "document settings"
+      ],
+      "shared_requirement": "Show missing declarations, permissions or adapters as specific unavailable states, not enabled decorative controls.",
+      "verification_probe": "Remove a required binding; the panel explains the missing capability and sends no fake success callback.",
+      "existing_reference_leads": [
+        "SettingsSurface.jsx",
+        "SettingPrimitive.jsx",
+        "SettingControl.jsx",
+        "SettingDetail.jsx",
+        "settingsFamilies.mjs",
+        "Movie Night xiio/settings.schema.json"
+      ],
+      "owner_boundary": "Existing Settings, DataForge declaration and SDK owners; product owns domain bindings",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-021",
+      "family_order": 3,
+      "family": "Record identity, selection and action boundaries",
+      "reuse_priority": "R1",
+      "title": "Typed resource identity",
+      "candidate_consumers": [
+        "Movie Night",
+        "BINS",
+        "Marketplace"
+      ],
+      "shared_requirement": "Carry a domain-qualified identity through every projection instead of using labels or list indexes as identity.",
+      "verification_probe": "Two same-titled records remain distinct across sorting, rendering changes and detail navigation.",
+      "existing_reference_leads": [
+        "SystemCard/SystemNav in SystemComponents.jsx",
+        "Article template slots",
+        "Movie Night CenteredCarousel",
+        "SelectedThreadReader.jsx"
+      ],
+      "owner_boundary": "Existing SDK, Articles/Publisher and shared selection owners; effects stay product-owned",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-022",
+      "family_order": 3,
+      "family": "Record identity, selection and action boundaries",
+      "reuse_priority": "R1",
+      "title": "Parent-child identity",
+      "candidate_consumers": [
+        "TV seasons and episodes",
+        "document sections",
+        "Work attempts"
+      ],
+      "shared_requirement": "Retain the parent and child tuple during selection and action, including valid zero-valued children such as specials.",
+      "verification_probe": "Change parent while a child is selected; stale child actions are rejected and the selection is cleared or rebound.",
+      "existing_reference_leads": [
+        "SystemCard/SystemNav in SystemComponents.jsx",
+        "Article template slots",
+        "Movie Night CenteredCarousel",
+        "SelectedThreadReader.jsx"
+      ],
+      "owner_boundary": "Existing SDK, Articles/Publisher and shared selection owners; effects stay product-owned",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-023",
+      "family_order": 3,
+      "family": "Record identity, selection and action boundaries",
+      "reuse_priority": "R1",
+      "title": "Revision-bound selection",
+      "candidate_consumers": [
+        "BINS",
+        "Office",
+        "Repo Reaper"
+      ],
+      "shared_requirement": "Bind selection to the relevant record version or source generation rather than silently following a changed head.",
+      "verification_probe": "Update a selected resource elsewhere; show the change and require explicit reconciliation before version-sensitive effects.",
+      "existing_reference_leads": [
+        "SystemCard/SystemNav in SystemComponents.jsx",
+        "Article template slots",
+        "Movie Night CenteredCarousel",
+        "SelectedThreadReader.jsx"
+      ],
+      "owner_boundary": "Existing SDK, Articles/Publisher and shared selection owners; effects stay product-owned",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-024",
+      "family_order": 3,
+      "family": "Record identity, selection and action boundaries",
+      "reuse_priority": "R1",
+      "title": "Selection is not execution",
+      "candidate_consumers": [
+        "Movie Night",
+        "Marketplace",
+        "Cadence"
+      ],
+      "shared_requirement": "Keep highlight, inspect and activate separate from play, purchase, install, publish or run.",
+      "verification_probe": "Mouse, keyboard and swipe selection cause zero domain-effect requests.",
+      "existing_reference_leads": [
+        "SystemCard/SystemNav in SystemComponents.jsx",
+        "Article template slots",
+        "Movie Night CenteredCarousel",
+        "SelectedThreadReader.jsx"
+      ],
+      "owner_boundary": "Existing SDK, Articles/Publisher and shared selection owners; effects stay product-owned",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-025",
+      "family_order": 3,
+      "family": "Record identity, selection and action boundaries",
+      "reuse_priority": "R1",
+      "title": "Nested action isolation",
+      "candidate_consumers": [
+        "Inbox",
+        "Marketplace",
+        "BINS"
+      ],
+      "shared_requirement": "Prevent a favorite, checkbox, menu or remove action inside a card from also activating the card.",
+      "verification_probe": "Activate every nested control by keyboard and pointer; only its intended action fires once.",
+      "existing_reference_leads": [
+        "SystemCard/SystemNav in SystemComponents.jsx",
+        "Article template slots",
+        "Movie Night CenteredCarousel",
+        "SelectedThreadReader.jsx"
+      ],
+      "owner_boundary": "Existing SDK, Articles/Publisher and shared selection owners; effects stay product-owned",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-026",
+      "family_order": 3,
+      "family": "Record identity, selection and action boundaries",
+      "reuse_priority": "R1",
+      "title": "Keyboard card semantics",
+      "candidate_consumers": [
+        "Marketplace",
+        "BINS",
+        "Movie Night"
+      ],
+      "shared_requirement": "Give selectable and activatable cards the appropriate focus, role and keyboard behaviour.",
+      "verification_probe": "Navigate, select and open using the keyboard; preserve focus and expose disabled states correctly.",
+      "existing_reference_leads": [
+        "SystemCard/SystemNav in SystemComponents.jsx",
+        "Article template slots",
+        "Movie Night CenteredCarousel",
+        "SelectedThreadReader.jsx"
+      ],
+      "owner_boundary": "Existing SDK, Articles/Publisher and shared selection owners; effects stay product-owned",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-027",
+      "family_order": 3,
+      "family": "Record identity, selection and action boundaries",
+      "reuse_priority": "R1",
+      "title": "Capability-gated primary action",
+      "candidate_consumers": [
+        "Ward",
+        "Marketplace",
+        "Movie Night"
+      ],
+      "shared_requirement": "Derive action availability from the relevant qualified capability and authorization, not metadata presence.",
+      "verification_probe": "A listed title or plugin with no callable effect cannot offer an apparently working Play or Install action.",
+      "existing_reference_leads": [
+        "SystemCard/SystemNav in SystemComponents.jsx",
+        "Article template slots",
+        "Movie Night CenteredCarousel",
+        "SelectedThreadReader.jsx"
+      ],
+      "owner_boundary": "Existing SDK, Articles/Publisher and shared selection owners; effects stay product-owned",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-028",
+      "family_order": 3,
+      "family": "Record identity, selection and action boundaries",
+      "reuse_priority": "R1",
+      "title": "Selection-scoped batch action",
+      "candidate_consumers": [
+        "BINS",
+        "Inbox",
+        "Work queues"
+      ],
+      "shared_requirement": "State whether an action applies to selected records, loaded results or the whole matched set.",
+      "verification_probe": "With unloaded pages present, the confirmation and effect use exactly the declared selection scope.",
+      "existing_reference_leads": [
+        "SystemCard/SystemNav in SystemComponents.jsx",
+        "Article template slots",
+        "Movie Night CenteredCarousel",
+        "SelectedThreadReader.jsx"
+      ],
+      "owner_boundary": "Existing SDK, Articles/Publisher and shared selection owners; effects stay product-owned",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-029",
+      "family_order": 3,
+      "family": "Record identity, selection and action boundaries",
+      "reuse_priority": "R1",
+      "title": "Stable selection after removal",
+      "candidate_consumers": [
+        "Inbox",
+        "BINS",
+        "Marketplace"
+      ],
+      "shared_requirement": "Reconcile the selected item when it disappears without selecting an unrelated record for an existing action.",
+      "verification_probe": "Remove the focused row; focus moves predictably and any pending action stays bound to its original identity.",
+      "existing_reference_leads": [
+        "SystemCard/SystemNav in SystemComponents.jsx",
+        "Article template slots",
+        "Movie Night CenteredCarousel",
+        "SelectedThreadReader.jsx"
+      ],
+      "owner_boundary": "Existing SDK, Articles/Publisher and shared selection owners; effects stay product-owned",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-030",
+      "family_order": 3,
+      "family": "Record identity, selection and action boundaries",
+      "reuse_priority": "R1",
+      "title": "Explicit destination selection",
+      "candidate_consumers": [
+        "Publisher",
+        "Calendar",
+        "Movie Night"
+      ],
+      "shared_requirement": "Display the actual account, device, site or recipient that will receive an action, distinct from the viewing host.",
+      "verification_probe": "Switch destination and cancel; no operation reaches the previous target or an inferred default.",
+      "existing_reference_leads": [
+        "SystemCard/SystemNav in SystemComponents.jsx",
+        "Article template slots",
+        "Movie Night CenteredCarousel",
+        "SelectedThreadReader.jsx"
+      ],
+      "owner_boundary": "Existing SDK, Articles/Publisher and shared selection owners; effects stay product-owned",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-031",
+      "family_order": 4,
+      "family": "Search, provider facets and query semantics",
+      "reuse_priority": "R1",
+      "title": "Source is not content category",
+      "candidate_consumers": [
+        "Movie Night",
+        "BINS",
+        "Marketplace"
+      ],
+      "shared_requirement": "Keep provider, account or repository separate from genre, file type or plugin category.",
+      "verification_probe": "Combine provider and category; changing one preserves and intersects the other.",
+      "existing_reference_leads": [
+        "SearchLanding.jsx",
+        "SearchForge.jsx",
+        "CanonicalSearch.jsx",
+        "SDK search-field/search-band references",
+        "Movie Night filterMovieQuery/matchesFilters"
+      ],
+      "owner_boundary": "Existing Search/query and domain-schema owners",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-032",
+      "family_order": 4,
+      "family": "Search, provider facets and query semantics",
+      "reuse_priority": "R1",
+      "title": "Multi-account source scope",
+      "candidate_consumers": [
+        "Inbox",
+        "BINS",
+        "Calendar"
+      ],
+      "shared_requirement": "Distinguish two accounts at one provider and keep each query inside its authorized source scope.",
+      "verification_probe": "Identical folder or mailbox names in different accounts never merge or leak results.",
+      "existing_reference_leads": [
+        "SearchLanding.jsx",
+        "SearchForge.jsx",
+        "CanonicalSearch.jsx",
+        "SDK search-field/search-band references",
+        "Movie Night filterMovieQuery/matchesFilters"
+      ],
+      "owner_boundary": "Existing Search/query and domain-schema owners",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-033",
+      "family_order": 4,
+      "family": "Search, provider facets and query semantics",
+      "reuse_priority": "R1",
+      "title": "Composable predicates",
+      "candidate_consumers": [
+        "Movie Night",
+        "Search",
+        "Work queues"
+      ],
+      "shared_requirement": "Reuse declared AND, OR, exclusion, date and range semantics rather than per-view filter code.",
+      "verification_probe": "The same query returns the same identity set in wall, list, carousel and saved-view evaluation.",
+      "existing_reference_leads": [
+        "SearchLanding.jsx",
+        "SearchForge.jsx",
+        "CanonicalSearch.jsx",
+        "SDK search-field/search-band references",
+        "Movie Night filterMovieQuery/matchesFilters"
+      ],
+      "owner_boundary": "Existing Search/query and domain-schema owners",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-034",
+      "family_order": 4,
+      "family": "Search, provider facets and query semantics",
+      "reuse_priority": "R1",
+      "title": "Unknown filter preservation",
+      "candidate_consumers": [
+        "Movie Night",
+        "BINS",
+        "Marketplace"
+      ],
+      "shared_requirement": "Preserve unsupported or disconnected filter values as explicit unresolved conditions instead of broadening to All.",
+      "verification_probe": "Load a saved query for an unavailable provider; show the restriction and do not return unrelated sources.",
+      "existing_reference_leads": [
+        "SearchLanding.jsx",
+        "SearchForge.jsx",
+        "CanonicalSearch.jsx",
+        "SDK search-field/search-band references",
+        "Movie Night filterMovieQuery/matchesFilters"
+      ],
+      "owner_boundary": "Existing Search/query and domain-schema owners",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-035",
+      "family_order": 4,
+      "family": "Search, provider facets and query semantics",
+      "reuse_priority": "R1",
+      "title": "Reversible filter chips",
+      "candidate_consumers": [
+        "Search",
+        "Movie Night",
+        "Inbox"
+      ],
+      "shared_requirement": "Show active constraints and remove one without clearing unrelated predicates or source scope.",
+      "verification_probe": "Remove a genre or status chip; the remaining account, year and query constraints stay intact.",
+      "existing_reference_leads": [
+        "SearchLanding.jsx",
+        "SearchForge.jsx",
+        "CanonicalSearch.jsx",
+        "SDK search-field/search-band references",
+        "Movie Night filterMovieQuery/matchesFilters"
+      ],
+      "owner_boundary": "Existing Search/query and domain-schema owners",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-036",
+      "family_order": 4,
+      "family": "Search, provider facets and query semantics",
+      "reuse_priority": "R1",
+      "title": "Explicit search coverage",
+      "candidate_consumers": [
+        "Search",
+        "Movie Night",
+        "BINS"
+      ],
+      "shared_requirement": "Label whether the query covers loaded records, a local index or a provider-wide search.",
+      "verification_probe": "Filter a partial page and verify that counts and empty states do not claim global completeness.",
+      "existing_reference_leads": [
+        "SearchLanding.jsx",
+        "SearchForge.jsx",
+        "CanonicalSearch.jsx",
+        "SDK search-field/search-band references",
+        "Movie Night filterMovieQuery/matchesFilters"
+      ],
+      "owner_boundary": "Existing Search/query and domain-schema owners",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-037",
+      "family_order": 4,
+      "family": "Search, provider facets and query semantics",
+      "reuse_priority": "R1",
+      "title": "Saved queries rather than copied results",
+      "candidate_consumers": [
+        "Movie Night",
+        "BINS",
+        "Work views"
+      ],
+      "shared_requirement": "Store filter definitions and sorting as live views while keeping manually curated membership a separate domain concept.",
+      "verification_probe": "Change underlying records; the saved query updates without rewriting a playlist or collection membership.",
+      "existing_reference_leads": [
+        "SearchLanding.jsx",
+        "SearchForge.jsx",
+        "CanonicalSearch.jsx",
+        "SDK search-field/search-band references",
+        "Movie Night filterMovieQuery/matchesFilters"
+      ],
+      "owner_boundary": "Existing Search/query and domain-schema owners",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-038",
+      "family_order": 4,
+      "family": "Search, provider facets and query semantics",
+      "reuse_priority": "R1",
+      "title": "Query reset with declared scope",
+      "candidate_consumers": [
+        "Search",
+        "BINS",
+        "Marketplace"
+      ],
+      "shared_requirement": "Reset filters separately from source selection, saved-view deletion or account disconnect.",
+      "verification_probe": "Clear filters and verify no saved cube, file or provider connection was removed.",
+      "existing_reference_leads": [
+        "SearchLanding.jsx",
+        "SearchForge.jsx",
+        "CanonicalSearch.jsx",
+        "SDK search-field/search-band references",
+        "Movie Night filterMovieQuery/matchesFilters"
+      ],
+      "owner_boundary": "Existing Search/query and domain-schema owners",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-039",
+      "family_order": 4,
+      "family": "Search, provider facets and query semantics",
+      "reuse_priority": "R1",
+      "title": "Identity-stable sorting",
+      "candidate_consumers": [
+        "Movie Night",
+        "BINS",
+        "Benchmark"
+      ],
+      "shared_requirement": "Apply stable tie-breaking and preserve the selected identity when sort order changes.",
+      "verification_probe": "Sort tied records repeatedly; selection remains on the same resource, not the same index.",
+      "existing_reference_leads": [
+        "SearchLanding.jsx",
+        "SearchForge.jsx",
+        "CanonicalSearch.jsx",
+        "SDK search-field/search-band references",
+        "Movie Night filterMovieQuery/matchesFilters"
+      ],
+      "owner_boundary": "Existing Search/query and domain-schema owners",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-040",
+      "family_order": 4,
+      "family": "Search, provider facets and query semantics",
+      "reuse_priority": "R1",
+      "title": "Query share and clone boundaries",
+      "candidate_consumers": [
+        "Movie Night",
+        "Work views",
+        "Search"
+      ],
+      "shared_requirement": "Copy or share the query definition with provenance, never credentials or implied access to its results.",
+      "verification_probe": "Open a shared query as a second user; unavailable sources remain restricted and no private results are embedded.",
+      "existing_reference_leads": [
+        "SearchLanding.jsx",
+        "SearchForge.jsx",
+        "CanonicalSearch.jsx",
+        "SDK search-field/search-band references",
+        "Movie Night filterMovieQuery/matchesFilters"
+      ],
+      "owner_boundary": "Existing Search/query and domain-schema owners",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-041",
+      "family_order": 5,
+      "family": "Collections, navigation and efficient repeated content",
+      "reuse_priority": "R2",
+      "title": "Identity-preserving view switch",
+      "candidate_consumers": [
+        "Movie Night",
+        "Marketplace",
+        "BINS"
+      ],
+      "shared_requirement": "Switch wall, list, carousel or table presentation without replacing query, selection or resource identity.",
+      "verification_probe": "Change view twice; filters and selected identity are unchanged, with a predictable scroll anchor.",
+      "existing_reference_leads": [
+        "CubeShelf.jsx",
+        "SystemCard",
+        "Movie Night CenteredCarousel",
+        "Movie Night mountFilterCubes",
+        "existing search/result controls"
+      ],
+      "owner_boundary": "Existing collection/selection primitives with product-specific data adapters",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-042",
+      "family_order": 5,
+      "family": "Collections, navigation and efficient repeated content",
+      "reuse_priority": "R2",
+      "title": "Centred active-item navigation",
+      "candidate_consumers": [
+        "Movie Night",
+        "Arcade",
+        "template browser"
+      ],
+      "shared_requirement": "Reuse centred selection with neighbouring items and explicit open behaviour rather than a separate engine per catalogue.",
+      "verification_probe": "Arrows, pointer and keyboard select the same next identity; centred activation opens details without running it.",
+      "existing_reference_leads": [
+        "CubeShelf.jsx",
+        "SystemCard",
+        "Movie Night CenteredCarousel",
+        "Movie Night mountFilterCubes",
+        "existing search/result controls"
+      ],
+      "owner_boundary": "Existing collection/selection primitives with product-specific data adapters",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-043",
+      "family_order": 5,
+      "family": "Collections, navigation and efficient repeated content",
+      "reuse_priority": "R2",
+      "title": "Directional gesture ownership",
+      "candidate_consumers": [
+        "Movie Night",
+        "BINS shelves",
+        "Marketplace"
+      ],
+      "shared_requirement": "Distinguish horizontal collection gestures from vertical page scrolling and zoom gestures.",
+      "verification_probe": "Vertical scrolling and pinch/zoom remain available while horizontal gestures navigate only the active row.",
+      "existing_reference_leads": [
+        "CubeShelf.jsx",
+        "SystemCard",
+        "Movie Night CenteredCarousel",
+        "Movie Night mountFilterCubes",
+        "existing search/result controls"
+      ],
+      "owner_boundary": "Existing collection/selection primitives with product-specific data adapters",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-044",
+      "family_order": 5,
+      "family": "Collections, navigation and efficient repeated content",
+      "reuse_priority": "R2",
+      "title": "Bounded rendering",
+      "candidate_consumers": [
+        "Movie Night",
+        "Marketplace",
+        "BINS"
+      ],
+      "shared_requirement": "Virtualize large collections while retaining logical focus and screen-reader position information.",
+      "verification_probe": "Browse a large fixture without mounting every card or losing focus when an item leaves the rendered range.",
+      "existing_reference_leads": [
+        "CubeShelf.jsx",
+        "SystemCard",
+        "Movie Night CenteredCarousel",
+        "Movie Night mountFilterCubes",
+        "existing search/result controls"
+      ],
+      "owner_boundary": "Existing collection/selection primitives with product-specific data adapters",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-045",
+      "family_order": 5,
+      "family": "Collections, navigation and efficient repeated content",
+      "reuse_priority": "R2",
+      "title": "Query-keyed cache reuse",
+      "candidate_consumers": [
+        "Search",
+        "Movie Night",
+        "BINS"
+      ],
+      "shared_requirement": "Share equivalent result requests only within the same authorization scope, query and source generation.",
+      "verification_probe": "Two identical authorized queries reuse data; changed account, scope or generation does not reuse private results.",
+      "existing_reference_leads": [
+        "CubeShelf.jsx",
+        "SystemCard",
+        "Movie Night CenteredCarousel",
+        "Movie Night mountFilterCubes",
+        "existing search/result controls"
+      ],
+      "owner_boundary": "Existing collection/selection primitives with product-specific data adapters",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-046",
+      "family_order": 5,
+      "family": "Collections, navigation and efficient repeated content",
+      "reuse_priority": "R2",
+      "title": "Cursor-aware continuation",
+      "candidate_consumers": [
+        "Movie Night",
+        "Inbox",
+        "BINS"
+      ],
+      "shared_requirement": "Follow provider continuation tokens rather than deriving the next page from visible item counts.",
+      "verification_probe": "Empty sanitized pages and duplicate records do not skip, repeat indefinitely or terminate a valid continuation.",
+      "existing_reference_leads": [
+        "CubeShelf.jsx",
+        "SystemCard",
+        "Movie Night CenteredCarousel",
+        "Movie Night mountFilterCubes",
+        "existing search/result controls"
+      ],
+      "owner_boundary": "Existing collection/selection primitives with product-specific data adapters",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-047",
+      "family_order": 5,
+      "family": "Collections, navigation and efficient repeated content",
+      "reuse_priority": "R2",
+      "title": "Honest ends and refresh",
+      "candidate_consumers": [
+        "Movie Night",
+        "Marketplace",
+        "Search"
+      ],
+      "shared_requirement": "Distinguish finite results, locally wrapped navigation, loading more and genuinely exhausted sources.",
+      "verification_probe": "Wrap a local carousel and exhaust a provider feed; labels never imply undiscovered items are already cached.",
+      "existing_reference_leads": [
+        "CubeShelf.jsx",
+        "SystemCard",
+        "Movie Night CenteredCarousel",
+        "Movie Night mountFilterCubes",
+        "existing search/result controls"
+      ],
+      "owner_boundary": "Existing collection/selection primitives with product-specific data adapters",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-048",
+      "family_order": 5,
+      "family": "Collections, navigation and efficient repeated content",
+      "reuse_priority": "R2",
+      "title": "Editable vertical row layout",
+      "candidate_consumers": [
+        "Movie Night",
+        "BINS",
+        "Work dashboards"
+      ],
+      "shared_requirement": "Unlock row order with drag and keyboard alternatives, plus reversible save and cancel.",
+      "verification_probe": "Reorder rows, cancel, then save a second arrangement; reopening matches only the saved order.",
+      "existing_reference_leads": [
+        "CubeShelf.jsx",
+        "SystemCard",
+        "Movie Night CenteredCarousel",
+        "Movie Night mountFilterCubes",
+        "existing search/result controls"
+      ],
+      "owner_boundary": "Existing collection/selection primitives with product-specific data adapters",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-049",
+      "family_order": 5,
+      "family": "Collections, navigation and efficient repeated content",
+      "reuse_priority": "R2",
+      "title": "Per-row filter editing",
+      "candidate_consumers": [
+        "Movie Night",
+        "BINS saved searches",
+        "Work dashboards"
+      ],
+      "shared_requirement": "Bind the shared filter editor to one row and distinguish saved row rules from temporary page filters.",
+      "verification_probe": "Edit one row; every other row keeps its original query and order.",
+      "existing_reference_leads": [
+        "CubeShelf.jsx",
+        "SystemCard",
+        "Movie Night CenteredCarousel",
+        "Movie Night mountFilterCubes",
+        "existing search/result controls"
+      ],
+      "owner_boundary": "Existing collection/selection primitives with product-specific data adapters",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-050",
+      "family_order": 5,
+      "family": "Collections, navigation and efficient repeated content",
+      "reuse_priority": "R2",
+      "title": "Return-navigation restoration",
+      "candidate_consumers": [
+        "Movie Night",
+        "Marketplace",
+        "BINS"
+      ],
+      "shared_requirement": "Restore the originating query, item and scroll anchor after detail or secondary navigation.",
+      "verification_probe": "Open details, inspect a related item and return; the original collection remains recognizable and navigable.",
+      "existing_reference_leads": [
+        "CubeShelf.jsx",
+        "SystemCard",
+        "Movie Night CenteredCarousel",
+        "Movie Night mountFilterCubes",
+        "existing search/result controls"
+      ],
+      "owner_boundary": "Existing collection/selection primitives with product-specific data adapters",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-051",
+      "family_order": 6,
+      "family": "Contextual chat and assistant interaction",
+      "reuse_priority": "R2",
+      "title": "App-scoped right dock",
+      "candidate_consumers": [
+        "Movie Night",
+        "Inbox",
+        "sam_law"
+      ],
+      "shared_requirement": "Bind the existing chat outside the content region to the calling window, user and current selection.",
+      "verification_probe": "Open two app windows and change selection in one; the other conversation context remains isolated.",
+      "existing_reference_leads": [
+        "WindowChatBay.jsx",
+        "WindowChatLanes.jsx",
+        "ChatComposer.jsx",
+        "ChatTranscript.jsx",
+        "Attachments.jsx",
+        "ChatSnapControl.jsx",
+        "chatDockStore"
+      ],
+      "owner_boundary": "Existing @ibal/conversation owner and shared window host; no replacement chat engine",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-052",
+      "family_order": 6,
+      "family": "Contextual chat and assistant interaction",
+      "reuse_priority": "R2",
+      "title": "Visible context envelope",
+      "candidate_consumers": [
+        "@ibal",
+        "BINS",
+        "Work views"
+      ],
+      "shared_requirement": "Show which app, selected records and scope the assistant is using, with an explicit clear or switch action.",
+      "verification_probe": "Change the selected source; the next request carries the displayed context rather than an obsolete selection.",
+      "existing_reference_leads": [
+        "WindowChatBay.jsx",
+        "WindowChatLanes.jsx",
+        "ChatComposer.jsx",
+        "ChatTranscript.jsx",
+        "Attachments.jsx",
+        "ChatSnapControl.jsx",
+        "chatDockStore"
+      ],
+      "owner_boundary": "Existing @ibal/conversation owner and shared window host; no replacement chat engine",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-053",
+      "family_order": 6,
+      "family": "Contextual chat and assistant interaction",
+      "reuse_priority": "R2",
+      "title": "Actual chat detachment",
+      "candidate_consumers": [
+        "Movie Night",
+        "Office",
+        "Inbox"
+      ],
+      "shared_requirement": "Move the same conversation into a real host window where supported, not a floating div labelled Undock.",
+      "verification_probe": "Detach and inspect the host window identity; history, draft and context remain bound to the same conversation.",
+      "existing_reference_leads": [
+        "WindowChatBay.jsx",
+        "WindowChatLanes.jsx",
+        "ChatComposer.jsx",
+        "ChatTranscript.jsx",
+        "Attachments.jsx",
+        "ChatSnapControl.jsx",
+        "chatDockStore"
+      ],
+      "owner_boundary": "Existing @ibal/conversation owner and shared window host; no replacement chat engine",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-054",
+      "family_order": 6,
+      "family": "Contextual chat and assistant interaction",
+      "reuse_priority": "R2",
+      "title": "Recover closed detached chat",
+      "candidate_consumers": [
+        "Movie Night",
+        "Marketplace",
+        "sam_law"
+      ],
+      "shared_requirement": "Reopen or focus the existing conversation from the permanent @ibal utility after its detached window closes.",
+      "verification_probe": "Close detached chat and reopen it; no duplicate conversation or lost draft is created.",
+      "existing_reference_leads": [
+        "WindowChatBay.jsx",
+        "WindowChatLanes.jsx",
+        "ChatComposer.jsx",
+        "ChatTranscript.jsx",
+        "Attachments.jsx",
+        "ChatSnapControl.jsx",
+        "chatDockStore"
+      ],
+      "owner_boundary": "Existing @ibal/conversation owner and shared window host; no replacement chat engine",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-055",
+      "family_order": 6,
+      "family": "Contextual chat and assistant interaction",
+      "reuse_priority": "R2",
+      "title": "Draft continuity across presentation",
+      "candidate_consumers": [
+        "@ibal",
+        "Inbox assistant",
+        "Office assistant"
+      ],
+      "shared_requirement": "Preserve unsent text and attachments across dock, detach, minimize and reopen transitions.",
+      "verification_probe": "Change presentation with an unsent draft; its content survives and no message is sent.",
+      "existing_reference_leads": [
+        "WindowChatBay.jsx",
+        "WindowChatLanes.jsx",
+        "ChatComposer.jsx",
+        "ChatTranscript.jsx",
+        "Attachments.jsx",
+        "ChatSnapControl.jsx",
+        "chatDockStore"
+      ],
+      "owner_boundary": "Existing @ibal/conversation owner and shared window host; no replacement chat engine",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-056",
+      "family_order": 6,
+      "family": "Contextual chat and assistant interaction",
+      "reuse_priority": "R2",
+      "title": "Proposal versus authorized action",
+      "candidate_consumers": [
+        "@ibal",
+        "Cadence",
+        "Repo Reaper"
+      ],
+      "shared_requirement": "Present suggestions and previews separately from user-approved execution.",
+      "verification_probe": "A generated list, patch or workflow proposal cannot trigger save, send or run until its explicit action is authorized.",
+      "existing_reference_leads": [
+        "WindowChatBay.jsx",
+        "WindowChatLanes.jsx",
+        "ChatComposer.jsx",
+        "ChatTranscript.jsx",
+        "Attachments.jsx",
+        "ChatSnapControl.jsx",
+        "chatDockStore"
+      ],
+      "owner_boundary": "Existing @ibal/conversation owner and shared window host; no replacement chat engine",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-057",
+      "family_order": 6,
+      "family": "Contextual chat and assistant interaction",
+      "reuse_priority": "R2",
+      "title": "Truthful message lifecycle",
+      "candidate_consumers": [
+        "@ibal",
+        "AI Mail",
+        "Inbox"
+      ],
+      "shared_requirement": "Present pending, delivered, failed and acknowledged states from real receipts rather than one optimistic Sent state.",
+      "verification_probe": "Timeout a send; preserve its uncertainty and prevent retry from silently duplicating the message.",
+      "existing_reference_leads": [
+        "WindowChatBay.jsx",
+        "WindowChatLanes.jsx",
+        "ChatComposer.jsx",
+        "ChatTranscript.jsx",
+        "Attachments.jsx",
+        "ChatSnapControl.jsx",
+        "chatDockStore"
+      ],
+      "owner_boundary": "Existing @ibal/conversation owner and shared window host; no replacement chat engine",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-058",
+      "family_order": 6,
+      "family": "Contextual chat and assistant interaction",
+      "reuse_priority": "R2",
+      "title": "Shared attachment picking",
+      "candidate_consumers": [
+        "@ibal",
+        "Inbox",
+        "sam_law"
+      ],
+      "shared_requirement": "Use the authorized BINS picker and preserve resource references, revisions and permission scope.",
+      "verification_probe": "Attach a file and revoke access before sending; no unauthorized bytes enter the message.",
+      "existing_reference_leads": [
+        "WindowChatBay.jsx",
+        "WindowChatLanes.jsx",
+        "ChatComposer.jsx",
+        "ChatTranscript.jsx",
+        "Attachments.jsx",
+        "ChatSnapControl.jsx",
+        "chatDockStore"
+      ],
+      "owner_boundary": "Existing @ibal/conversation owner and shared window host; no replacement chat engine",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-059",
+      "family_order": 6,
+      "family": "Contextual chat and assistant interaction",
+      "reuse_priority": "R2",
+      "title": "Optional assistant onboarding",
+      "candidate_consumers": [
+        "Movie Night",
+        "Arcade",
+        "Office"
+      ],
+      "shared_requirement": "Reuse the declared provider/model setup flow while keeping non-AI browsing and editing usable.",
+      "verification_probe": "Start with no AI connection; core tasks work and setup explains the exact missing capability.",
+      "existing_reference_leads": [
+        "WindowChatBay.jsx",
+        "WindowChatLanes.jsx",
+        "ChatComposer.jsx",
+        "ChatTranscript.jsx",
+        "Attachments.jsx",
+        "ChatSnapControl.jsx",
+        "chatDockStore"
+      ],
+      "owner_boundary": "Existing @ibal/conversation owner and shared window host; no replacement chat engine",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-060",
+      "family_order": 6,
+      "family": "Contextual chat and assistant interaction",
+      "reuse_priority": "R2",
+      "title": "Long response and failure recovery",
+      "candidate_consumers": [
+        "@ibal",
+        "Benchmark",
+        "Work views"
+      ],
+      "shared_requirement": "Reuse streaming, cancellation, retry and partial-response presentation without replacing the conversation engine.",
+      "verification_probe": "Cancel a response, retain the useful partial text and retry without duplicating prior domain actions.",
+      "existing_reference_leads": [
+        "WindowChatBay.jsx",
+        "WindowChatLanes.jsx",
+        "ChatComposer.jsx",
+        "ChatTranscript.jsx",
+        "Attachments.jsx",
+        "ChatSnapControl.jsx",
+        "chatDockStore"
+      ],
+      "owner_boundary": "Existing @ibal/conversation owner and shared window host; no replacement chat engine",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-061",
+      "family_order": 7,
+      "family": "Connections, authorized libraries and import workflows",
+      "reuse_priority": "R2",
+      "title": "Capability-labelled connection setup",
+      "candidate_consumers": [
+        "Movie Night",
+        "BINS",
+        "Inbox"
+      ],
+      "shared_requirement": "Declare whether a connection supports discovery, import, preview, sync, deep linking or native action.",
+      "verification_probe": "Connect a catalogue-only provider; the UI does not claim playback or write access.",
+      "existing_reference_leads": [
+        "ProviderConnect.jsx",
+        "Integrations.jsx",
+        "IntegrationDashboard.jsx",
+        "FileManager.jsx",
+        "BinEntryRow.jsx",
+        "BinFileView.jsx",
+        "existing Ward reader boundary"
+      ],
+      "owner_boundary": "Existing Integrations, BINS and Ward owners; authentication stays provider-specific",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-062",
+      "family_order": 7,
+      "family": "Connections, authorized libraries and import workflows",
+      "reuse_priority": "R2",
+      "title": "Scoped authorization explanation",
+      "candidate_consumers": [
+        "BINS",
+        "Calendar",
+        "WordPress"
+      ],
+      "shared_requirement": "Show requested account access, purpose and approved scope through the existing connection flow.",
+      "verification_probe": "Decline a scope; unrelated functions remain available and no extra permission is inferred.",
+      "existing_reference_leads": [
+        "ProviderConnect.jsx",
+        "Integrations.jsx",
+        "IntegrationDashboard.jsx",
+        "FileManager.jsx",
+        "BinEntryRow.jsx",
+        "BinFileView.jsx",
+        "existing Ward reader boundary"
+      ],
+      "owner_boundary": "Existing Integrations, BINS and Ward owners; authentication stays provider-specific",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-063",
+      "family_order": 7,
+      "family": "Connections, authorized libraries and import workflows",
+      "reuse_priority": "R2",
+      "title": "Account and endpoint chooser",
+      "candidate_consumers": [
+        "Ollama setup",
+        "Plex connection",
+        "remote repositories"
+      ],
+      "shared_requirement": "Reuse setup and testing presentation with provider-owned URL, authentication and trust validation.",
+      "verification_probe": "Select a different configured endpoint; test results identify that endpoint without exposing credentials.",
+      "existing_reference_leads": [
+        "ProviderConnect.jsx",
+        "Integrations.jsx",
+        "IntegrationDashboard.jsx",
+        "FileManager.jsx",
+        "BinEntryRow.jsx",
+        "BinFileView.jsx",
+        "existing Ward reader boundary"
+      ],
+      "owner_boundary": "Existing Integrations, BINS and Ward owners; authentication stays provider-specific",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-064",
+      "family_order": 7,
+      "family": "Connections, authorized libraries and import workflows",
+      "reuse_priority": "R2",
+      "title": "Connection-test readback",
+      "candidate_consumers": [
+        "Movie Night",
+        "BINS",
+        "Ward"
+      ],
+      "shared_requirement": "Distinguish configured credentials, reachable service and usable required capability.",
+      "verification_probe": "A healthy endpoint missing the required feature produces a specific partial/unavailable result, not Connected-and-ready.",
+      "existing_reference_leads": [
+        "ProviderConnect.jsx",
+        "Integrations.jsx",
+        "IntegrationDashboard.jsx",
+        "FileManager.jsx",
+        "BinEntryRow.jsx",
+        "BinFileView.jsx",
+        "existing Ward reader boundary"
+      ],
+      "owner_boundary": "Existing Integrations, BINS and Ward owners; authentication stays provider-specific",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-065",
+      "family_order": 7,
+      "family": "Connections, authorized libraries and import workflows",
+      "reuse_priority": "R2",
+      "title": "Expiry and reconnect",
+      "candidate_consumers": [
+        "Inbox",
+        "BINS",
+        "Calendar"
+      ],
+      "shared_requirement": "Reuse expired, revoked, offline and reconnect states while preserving selected files and unfinished work.",
+      "verification_probe": "Expire a connection mid-task; reconnect returns to the same safe task state without copying credentials into UI state.",
+      "existing_reference_leads": [
+        "ProviderConnect.jsx",
+        "Integrations.jsx",
+        "IntegrationDashboard.jsx",
+        "FileManager.jsx",
+        "BinEntryRow.jsx",
+        "BinFileView.jsx",
+        "existing Ward reader boundary"
+      ],
+      "owner_boundary": "Existing Integrations, BINS and Ward owners; authentication stays provider-specific",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-066",
+      "family_order": 7,
+      "family": "Connections, authorized libraries and import workflows",
+      "reuse_priority": "R2",
+      "title": "Scoped BINS entry",
+      "candidate_consumers": [
+        "Movie Night",
+        "Office",
+        "sam_law"
+      ],
+      "shared_requirement": "Open the existing authorized library at the caller's app/work context without moving or duplicating its files.",
+      "verification_probe": "Open BINS from two apps; initial scope differs, custody is unchanged and authorization is rechecked.",
+      "existing_reference_leads": [
+        "ProviderConnect.jsx",
+        "Integrations.jsx",
+        "IntegrationDashboard.jsx",
+        "FileManager.jsx",
+        "BinEntryRow.jsx",
+        "BinFileView.jsx",
+        "existing Ward reader boundary"
+      ],
+      "owner_boundary": "Existing Integrations, BINS and Ward owners; authentication stays provider-specific",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-067",
+      "family_order": 7,
+      "family": "Connections, authorized libraries and import workflows",
+      "reuse_priority": "R2",
+      "title": "Reference versus import choice",
+      "candidate_consumers": [
+        "Movie Night",
+        "BINS",
+        "WordPress"
+      ],
+      "shared_requirement": "Explain link/reference, local copy, metadata import and synchronization as distinct operations.",
+      "verification_probe": "Preview each supported operation; only the explicitly chosen operation changes the declared destination.",
+      "existing_reference_leads": [
+        "ProviderConnect.jsx",
+        "Integrations.jsx",
+        "IntegrationDashboard.jsx",
+        "FileManager.jsx",
+        "BinEntryRow.jsx",
+        "BinFileView.jsx",
+        "existing Ward reader boundary"
+      ],
+      "owner_boundary": "Existing Integrations, BINS and Ward owners; authentication stays provider-specific",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-068",
+      "family_order": 7,
+      "family": "Connections, authorized libraries and import workflows",
+      "reuse_priority": "R2",
+      "title": "Import preview and conflict policy",
+      "candidate_consumers": [
+        "Nuvio snapshots",
+        "BINS",
+        "contact imports"
+      ],
+      "shared_requirement": "Reuse count, mapping, duplicate and conflict review before applying supported imports.",
+      "verification_probe": "Run an import twice; the declared merge policy preserves overrides and reports duplicates without silent loss.",
+      "existing_reference_leads": [
+        "ProviderConnect.jsx",
+        "Integrations.jsx",
+        "IntegrationDashboard.jsx",
+        "FileManager.jsx",
+        "BinEntryRow.jsx",
+        "BinFileView.jsx",
+        "existing Ward reader boundary"
+      ],
+      "owner_boundary": "Existing Integrations, BINS and Ward owners; authentication stays provider-specific",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-069",
+      "family_order": 7,
+      "family": "Connections, authorized libraries and import workflows",
+      "reuse_priority": "R2",
+      "title": "Revocation-safe previews",
+      "candidate_consumers": [
+        "BINS",
+        "sam_law",
+        "Office"
+      ],
+      "shared_requirement": "Make preview, download and export consume the same authorized reader and revoke cached access appropriately.",
+      "verification_probe": "Revoke permission during a read; no later path exposes private bytes from stale authorization.",
+      "existing_reference_leads": [
+        "ProviderConnect.jsx",
+        "Integrations.jsx",
+        "IntegrationDashboard.jsx",
+        "FileManager.jsx",
+        "BinEntryRow.jsx",
+        "BinFileView.jsx",
+        "existing Ward reader boundary"
+      ],
+      "owner_boundary": "Existing Integrations, BINS and Ward owners; authentication stays provider-specific",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-070",
+      "family_order": 7,
+      "family": "Connections, authorized libraries and import workflows",
+      "reuse_priority": "R2",
+      "title": "Disconnect without unintended deletion",
+      "candidate_consumers": [
+        "Movie Night",
+        "BINS",
+        "Inbox"
+      ],
+      "shared_requirement": "Separate revoking a connection from deleting imported records, user files or saved preferences.",
+      "verification_probe": "Disconnect a provider; explain retained data and require a separate explicit operation for deletion.",
+      "existing_reference_leads": [
+        "ProviderConnect.jsx",
+        "Integrations.jsx",
+        "IntegrationDashboard.jsx",
+        "FileManager.jsx",
+        "BinEntryRow.jsx",
+        "BinFileView.jsx",
+        "existing Ward reader boundary"
+      ],
+      "owner_boundary": "Existing Integrations, BINS and Ward owners; authentication stays provider-specific",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-071",
+      "family_order": 8,
+      "family": "Editing, persistence and reversible operations",
+      "reuse_priority": "R2",
+      "title": "Shared dirty-state contract",
+      "candidate_consumers": [
+        "Office",
+        "WordPress",
+        "Movie Night layouts"
+      ],
+      "shared_requirement": "Track committed versus draft values without mistaking delayed server hydration for a user edit.",
+      "verification_probe": "Open before data arrives; untouched values stay clean and genuine edits stay dirty.",
+      "existing_reference_leads": [
+        "SystemFileFrame",
+        "SystemFileBar",
+        "DocumentEditor.jsx",
+        "WordPressEditor.jsx",
+        "CanvasBoard",
+        "PublicationReadback.jsx"
+      ],
+      "owner_boundary": "Existing file-command, authoring and revision owners; persistence engines remain domain-owned",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-072",
+      "family_order": 8,
+      "family": "Editing, persistence and reversible operations",
+      "reuse_priority": "R2",
+      "title": "Local undo and redo",
+      "candidate_consumers": [
+        "Office",
+        "VectorFORGE",
+        "layout editing"
+      ],
+      "shared_requirement": "Reuse undo interaction while each domain owns valid inverse operations and irreversible boundaries.",
+      "verification_probe": "Undo a local edit without undoing an external publish or another user's action.",
+      "existing_reference_leads": [
+        "SystemFileFrame",
+        "SystemFileBar",
+        "DocumentEditor.jsx",
+        "WordPressEditor.jsx",
+        "CanvasBoard",
+        "PublicationReadback.jsx"
+      ],
+      "owner_boundary": "Existing file-command, authoring and revision owners; persistence engines remain domain-owned",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-073",
+      "family_order": 8,
+      "family": "Editing, persistence and reversible operations",
+      "reuse_priority": "R2",
+      "title": "Concurrent-edit conflict",
+      "candidate_consumers": [
+        "Settings",
+        "Office",
+        "filter cubes"
+      ],
+      "shared_requirement": "Preserve revision checks and unsaved drafts when another window saves first.",
+      "verification_probe": "Submit a stale revision; retain the draft, show conflict and do not overwrite the winner.",
+      "existing_reference_leads": [
+        "SystemFileFrame",
+        "SystemFileBar",
+        "DocumentEditor.jsx",
+        "WordPressEditor.jsx",
+        "CanvasBoard",
+        "PublicationReadback.jsx"
+      ],
+      "owner_boundary": "Existing file-command, authoring and revision owners; persistence engines remain domain-owned",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-074",
+      "family_order": 8,
+      "family": "Editing, persistence and reversible operations",
+      "reuse_priority": "R2",
+      "title": "Autosave feedback",
+      "candidate_consumers": [
+        "Articles",
+        "Resume",
+        "WordPress"
+      ],
+      "shared_requirement": "Show draft, saving, saved and failed states tied to the actual revision and save response.",
+      "verification_probe": "Delay and fail autosave; the UI never reports the unsaved revision as persisted.",
+      "existing_reference_leads": [
+        "SystemFileFrame",
+        "SystemFileBar",
+        "DocumentEditor.jsx",
+        "WordPressEditor.jsx",
+        "CanvasBoard",
+        "PublicationReadback.jsx"
+      ],
+      "owner_boundary": "Existing file-command, authoring and revision owners; persistence engines remain domain-owned",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-075",
+      "family_order": 8,
+      "family": "Editing, persistence and reversible operations",
+      "reuse_priority": "R2",
+      "title": "Saved-revision preview",
+      "candidate_consumers": [
+        "Office",
+        "Publisher",
+        "sam_law"
+      ],
+      "shared_requirement": "Bind preview to a known revision and disclose when it shows unsaved changes instead.",
+      "verification_probe": "Save, reopen and preview; compare the actual artifact revision and content, not a cached screenshot.",
+      "existing_reference_leads": [
+        "SystemFileFrame",
+        "SystemFileBar",
+        "DocumentEditor.jsx",
+        "WordPressEditor.jsx",
+        "CanvasBoard",
+        "PublicationReadback.jsx"
+      ],
+      "owner_boundary": "Existing file-command, authoring and revision owners; persistence engines remain domain-owned",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-076",
+      "family_order": 8,
+      "family": "Editing, persistence and reversible operations",
+      "reuse_priority": "R2",
+      "title": "Command separation",
+      "candidate_consumers": [
+        "Office",
+        "Publisher",
+        "BINS"
+      ],
+      "shared_requirement": "Keep Save, Save as, Export, Share and Publish as distinct commands with distinct destinations and effects.",
+      "verification_probe": "Invoke each supported command; its result and authorization do not imply the others completed.",
+      "existing_reference_leads": [
+        "SystemFileFrame",
+        "SystemFileBar",
+        "DocumentEditor.jsx",
+        "WordPressEditor.jsx",
+        "CanvasBoard",
+        "PublicationReadback.jsx"
+      ],
+      "owner_boundary": "Existing file-command, authoring and revision owners; persistence engines remain domain-owned",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-077",
+      "family_order": 8,
+      "family": "Editing, persistence and reversible operations",
+      "reuse_priority": "R2",
+      "title": "Drag-to-commit binding",
+      "candidate_consumers": [
+        "Canvas authoring",
+        "presentations",
+        "cube layouts"
+      ],
+      "shared_requirement": "Make drag-end produce a real domain change or a clearly reversible local draft, never a no-op callback.",
+      "verification_probe": "Drag an item, save and reopen; the persisted order or geometry matches the committed operation.",
+      "existing_reference_leads": [
+        "SystemFileFrame",
+        "SystemFileBar",
+        "DocumentEditor.jsx",
+        "WordPressEditor.jsx",
+        "CanvasBoard",
+        "PublicationReadback.jsx"
+      ],
+      "owner_boundary": "Existing file-command, authoring and revision owners; persistence engines remain domain-owned",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-078",
+      "family_order": 8,
+      "family": "Editing, persistence and reversible operations",
+      "reuse_priority": "R2",
+      "title": "Deletion-scope confirmation",
+      "candidate_consumers": [
+        "BINS",
+        "Marketplace",
+        "Office"
+      ],
+      "shared_requirement": "Identify whether removal affects a view, item reference, local copy, application or underlying source.",
+      "verification_probe": "Remove a home row or plugin shortcut; underlying content remains unless explicitly included in the action.",
+      "existing_reference_leads": [
+        "SystemFileFrame",
+        "SystemFileBar",
+        "DocumentEditor.jsx",
+        "WordPressEditor.jsx",
+        "CanvasBoard",
+        "PublicationReadback.jsx"
+      ],
+      "owner_boundary": "Existing file-command, authoring and revision owners; persistence engines remain domain-owned",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-079",
+      "family_order": 8,
+      "family": "Editing, persistence and reversible operations",
+      "reuse_priority": "R2",
+      "title": "Export fidelity report",
+      "candidate_consumers": [
+        "WordPress",
+        "Office",
+        "Articles"
+      ],
+      "shared_requirement": "Report unsupported fields or blocks before export instead of silently omitting them.",
+      "verification_probe": "Export a mixed-content fixture and compare preserved identities, fields and declared losses.",
+      "existing_reference_leads": [
+        "SystemFileFrame",
+        "SystemFileBar",
+        "DocumentEditor.jsx",
+        "WordPressEditor.jsx",
+        "CanvasBoard",
+        "PublicationReadback.jsx"
+      ],
+      "owner_boundary": "Existing file-command, authoring and revision owners; persistence engines remain domain-owned",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-080",
+      "family_order": 8,
+      "family": "Editing, persistence and reversible operations",
+      "reuse_priority": "R2",
+      "title": "Recovery after interruption",
+      "candidate_consumers": [
+        "Repo Reaper",
+        "document editors",
+        "settings"
+      ],
+      "shared_requirement": "Recover a staged draft or failed transaction without replaying an uncertain external effect.",
+      "verification_probe": "Interrupt between request and acknowledgement; reopen with a recoverable state and no duplicate mutation.",
+      "existing_reference_leads": [
+        "SystemFileFrame",
+        "SystemFileBar",
+        "DocumentEditor.jsx",
+        "WordPressEditor.jsx",
+        "CanvasBoard",
+        "PublicationReadback.jsx"
+      ],
+      "owner_boundary": "Existing file-command, authoring and revision owners; persistence engines remain domain-owned",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-081",
+      "family_order": 9,
+      "family": "Truthful state, provenance and accessibility",
+      "reuse_priority": "R2",
+      "title": "Distinct empty and unavailable states",
+      "candidate_consumers": [
+        "Movie Night",
+        "BINS",
+        "Search"
+      ],
+      "shared_requirement": "Differentiate no matches, no data, not loaded, disconnected and permission-denied results.",
+      "verification_probe": "Exercise each state; the message and recovery action match the cause without leaking hidden records.",
+      "existing_reference_leads": [
+        "SDK Surface/Note/Unobserved/Chip/Readout",
+        "ShiftTruth.jsx",
+        "ShiftStrip.jsx",
+        "shiftRunReading.mjs",
+        "HeadlessDispatchControl.jsx",
+        "queueDispatchOutcome.mjs"
+      ],
+      "owner_boundary": "Existing SDK status/evidence and accessibility owners; backend states retain their meaning",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-082",
+      "family_order": 9,
+      "family": "Truthful state, provenance and accessibility",
+      "reuse_priority": "R2",
+      "title": "Visible stale-data age",
+      "candidate_consumers": [
+        "Movie Night",
+        "Work views",
+        "Benchmark"
+      ],
+      "shared_requirement": "Label cached or stale results with source generation and freshness rather than presenting them as current.",
+      "verification_probe": "Disconnect after loading; existing results remain inspectable but visibly stale where applicable.",
+      "existing_reference_leads": [
+        "SDK Surface/Note/Unobserved/Chip/Readout",
+        "ShiftTruth.jsx",
+        "ShiftStrip.jsx",
+        "shiftRunReading.mjs",
+        "HeadlessDispatchControl.jsx",
+        "queueDispatchOutcome.mjs"
+      ],
+      "owner_boundary": "Existing SDK status/evidence and accessibility owners; backend states retain their meaning",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-083",
+      "family_order": 9,
+      "family": "Truthful state, provenance and accessibility",
+      "reuse_priority": "R2",
+      "title": "Cancelled-request isolation",
+      "candidate_consumers": [
+        "Search",
+        "TV episodes",
+        "document previews"
+      ],
+      "shared_requirement": "Ignore late results for a previous query, parent record or permission scope.",
+      "verification_probe": "Rapidly switch series or document; delayed responses cannot replace the current view.",
+      "existing_reference_leads": [
+        "SDK Surface/Note/Unobserved/Chip/Readout",
+        "ShiftTruth.jsx",
+        "ShiftStrip.jsx",
+        "shiftRunReading.mjs",
+        "HeadlessDispatchControl.jsx",
+        "queueDispatchOutcome.mjs"
+      ],
+      "owner_boundary": "Existing SDK status/evidence and accessibility owners; backend states retain their meaning",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-084",
+      "family_order": 9,
+      "family": "Truthful state, provenance and accessibility",
+      "reuse_priority": "R2",
+      "title": "Honest progress and denominators",
+      "candidate_consumers": [
+        "BINS imports",
+        "installs",
+        "Work runs"
+      ],
+      "shared_requirement": "Show indeterminate progress when totals are unknown and exact denominators only when established.",
+      "verification_probe": "Remove total-count evidence; the UI does not fabricate a percentage or completion.",
+      "existing_reference_leads": [
+        "SDK Surface/Note/Unobserved/Chip/Readout",
+        "ShiftTruth.jsx",
+        "ShiftStrip.jsx",
+        "shiftRunReading.mjs",
+        "HeadlessDispatchControl.jsx",
+        "queueDispatchOutcome.mjs"
+      ],
+      "owner_boundary": "Existing SDK status/evidence and accessibility owners; backend states retain their meaning",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-085",
+      "family_order": 9,
+      "family": "Truthful state, provenance and accessibility",
+      "reuse_priority": "R2",
+      "title": "Readable evidence drilldown",
+      "candidate_consumers": [
+        "Ward",
+        "Benchmark",
+        "Repo Reaper"
+      ],
+      "shared_requirement": "Pair a human-readable status with inspectable source, generation, command and readback references.",
+      "verification_probe": "Trace a claim to its actual evidence; a missing receipt stays unresolved rather than yielding a green badge.",
+      "existing_reference_leads": [
+        "SDK Surface/Note/Unobserved/Chip/Readout",
+        "ShiftTruth.jsx",
+        "ShiftStrip.jsx",
+        "shiftRunReading.mjs",
+        "HeadlessDispatchControl.jsx",
+        "queueDispatchOutcome.mjs"
+      ],
+      "owner_boundary": "Existing SDK status/evidence and accessibility owners; backend states retain their meaning",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-086",
+      "family_order": 9,
+      "family": "Truthful state, provenance and accessibility",
+      "reuse_priority": "R2",
+      "title": "Work-stage fidelity",
+      "candidate_consumers": [
+        "Switchboard",
+        "Cadence",
+        "AI Mail"
+      ],
+      "shared_requirement": "Preserve queued, delivered, acknowledged, executing, returned and independently verified states.",
+      "verification_probe": "End an agent run without an accepted return; parent Work does not become completed.",
+      "existing_reference_leads": [
+        "SDK Surface/Note/Unobserved/Chip/Readout",
+        "ShiftTruth.jsx",
+        "ShiftStrip.jsx",
+        "shiftRunReading.mjs",
+        "HeadlessDispatchControl.jsx",
+        "queueDispatchOutcome.mjs"
+      ],
+      "owner_boundary": "Existing SDK status/evidence and accessibility owners; backend states retain their meaning",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-087",
+      "family_order": 9,
+      "family": "Truthful state, provenance and accessibility",
+      "reuse_priority": "R2",
+      "title": "Uncertain-outcome recovery",
+      "candidate_consumers": [
+        "Marketplace",
+        "publishing",
+        "Work dispatch"
+      ],
+      "shared_requirement": "Distinguish failure from unknown outcome and check existing operation identity before offering retry.",
+      "verification_probe": "Lose the response after an effect; recovery avoids duplicate purchase, publish or dispatch.",
+      "existing_reference_leads": [
+        "SDK Surface/Note/Unobserved/Chip/Readout",
+        "ShiftTruth.jsx",
+        "ShiftStrip.jsx",
+        "shiftRunReading.mjs",
+        "HeadlessDispatchControl.jsx",
+        "queueDispatchOutcome.mjs"
+      ],
+      "owner_boundary": "Existing SDK status/evidence and accessibility owners; backend states retain their meaning",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-088",
+      "family_order": 9,
+      "family": "Truthful state, provenance and accessibility",
+      "reuse_priority": "R2",
+      "title": "Non-colour status meaning",
+      "candidate_consumers": [
+        "Ward",
+        "Marketplace",
+        "all themed views"
+      ],
+      "shared_requirement": "Keep text and icons for status independent of product-family hue and user theme.",
+      "verification_probe": "Neutral, dark, light and unassigned-colour presentations retain the same readable status meaning.",
+      "existing_reference_leads": [
+        "SDK Surface/Note/Unobserved/Chip/Readout",
+        "ShiftTruth.jsx",
+        "ShiftStrip.jsx",
+        "shiftRunReading.mjs",
+        "HeadlessDispatchControl.jsx",
+        "queueDispatchOutcome.mjs"
+      ],
+      "owner_boundary": "Existing SDK status/evidence and accessibility owners; backend states retain their meaning",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-089",
+      "family_order": 9,
+      "family": "Truthful state, provenance and accessibility",
+      "reuse_priority": "R2",
+      "title": "Reduced-motion and large-text behaviour",
+      "candidate_consumers": [
+        "Movie Night",
+        "AuDHD Field Guide",
+        "Office"
+      ],
+      "shared_requirement": "Reuse declared accessibility preferences without losing navigation, clipping actions or forcing animation.",
+      "verification_probe": "Increase text and reduce motion; all core controls remain operable and essential states visible.",
+      "existing_reference_leads": [
+        "SDK Surface/Note/Unobserved/Chip/Readout",
+        "ShiftTruth.jsx",
+        "ShiftStrip.jsx",
+        "shiftRunReading.mjs",
+        "HeadlessDispatchControl.jsx",
+        "queueDispatchOutcome.mjs"
+      ],
+      "owner_boundary": "Existing SDK status/evidence and accessibility owners; backend states retain their meaning",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-090",
+      "family_order": 9,
+      "family": "Truthful state, provenance and accessibility",
+      "reuse_priority": "R2",
+      "title": "Accessible error recovery",
+      "candidate_consumers": [
+        "Settings",
+        "BINS",
+        "provider setup"
+      ],
+      "shared_requirement": "Associate errors with their controls and return keyboard focus to the relevant fix without clearing valid input.",
+      "verification_probe": "Submit one invalid field; announce the error, preserve other fields and complete correction by keyboard.",
+      "existing_reference_leads": [
+        "SDK Surface/Note/Unobserved/Chip/Readout",
+        "ShiftTruth.jsx",
+        "ShiftStrip.jsx",
+        "shiftRunReading.mjs",
+        "HeadlessDispatchControl.jsx",
+        "queueDispatchOutcome.mjs"
+      ],
+      "owner_boundary": "Existing SDK status/evidence and accessibility owners; backend states retain their meaning",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-091",
+      "family_order": 10,
+      "family": "Plugin lifecycle, white-label publishing and collaboration",
+      "reuse_priority": "R3",
+      "title": "First-run capability checklist",
+      "candidate_consumers": [
+        "Movie Night",
+        "Arcade",
+        "Inbox"
+      ],
+      "shared_requirement": "Assemble onboarding from real declared prerequisites rather than machine-specific instructions or invented readiness.",
+      "verification_probe": "On a fresh profile, each required capability has a truthful setup action and optional capabilities can be skipped.",
+      "existing_reference_leads": [
+        "appLifecycle.mjs",
+        "AddonManager.jsx",
+        "ArticleTemplates",
+        "ArticleTemplateCard",
+        "Publisher template/slot references",
+        "OfficeSuite.jsx",
+        "existing contacts/invitation surfaces"
+      ],
+      "owner_boundary": "Existing lifecycle, Articles/Publisher and collaboration owners; domain rules stay with products",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-092",
+      "family_order": 10,
+      "family": "Plugin lifecycle, white-label publishing and collaboration",
+      "reuse_priority": "R3",
+      "title": "Install-state separation",
+      "candidate_consumers": [
+        "Marketplace",
+        "desktop launcher",
+        "Settings Applications"
+      ],
+      "shared_requirement": "Distinguish listed, entitled, installed, configured, runnable and update-eligible states.",
+      "verification_probe": "A catalogue entry without an installed runtime cannot be labelled Launch-ready.",
+      "existing_reference_leads": [
+        "appLifecycle.mjs",
+        "AddonManager.jsx",
+        "ArticleTemplates",
+        "ArticleTemplateCard",
+        "Publisher template/slot references",
+        "OfficeSuite.jsx",
+        "existing contacts/invitation surfaces"
+      ],
+      "owner_boundary": "Existing lifecycle, Articles/Publisher and collaboration owners; domain rules stay with products",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-093",
+      "family_order": 10,
+      "family": "Plugin lifecycle, white-label publishing and collaboration",
+      "reuse_priority": "R3",
+      "title": "Update and rollback review",
+      "candidate_consumers": [
+        "Marketplace",
+        "Ward",
+        "Office plugins"
+      ],
+      "shared_requirement": "Reuse version, permission-change, compatibility and recovery presentation around existing installers.",
+      "verification_probe": "Review an update requiring new scope; cancelling changes neither the installed generation nor user data.",
+      "existing_reference_leads": [
+        "appLifecycle.mjs",
+        "AddonManager.jsx",
+        "ArticleTemplates",
+        "ArticleTemplateCard",
+        "Publisher template/slot references",
+        "OfficeSuite.jsx",
+        "existing contacts/invitation surfaces"
+      ],
+      "owner_boundary": "Existing lifecycle, Articles/Publisher and collaboration owners; domain rules stay with products",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-094",
+      "family_order": 10,
+      "family": "Plugin lifecycle, white-label publishing and collaboration",
+      "reuse_priority": "R3",
+      "title": "Removal with retained work",
+      "candidate_consumers": [
+        "Marketplace",
+        "BINS",
+        "standalone plugins"
+      ],
+      "shared_requirement": "Separate app removal and future-update eligibility from access to retained work and existing entitled capability.",
+      "verification_probe": "Unsubscribe or remove a plugin under its declared policy; show what remains and verify the declared data retention.",
+      "existing_reference_leads": [
+        "appLifecycle.mjs",
+        "AddonManager.jsx",
+        "ArticleTemplates",
+        "ArticleTemplateCard",
+        "Publisher template/slot references",
+        "OfficeSuite.jsx",
+        "existing contacts/invitation surfaces"
+      ],
+      "owner_boundary": "Existing lifecycle, Articles/Publisher and collaboration owners; domain rules stay with products",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-095",
+      "family_order": 10,
+      "family": "Plugin lifecycle, white-label publishing and collaboration",
+      "reuse_priority": "R3",
+      "title": "White-label semantic slots",
+      "candidate_consumers": [
+        "Articles",
+        "Publisher",
+        "Marketplace",
+        "public sites"
+      ],
+      "shared_requirement": "Render shared title, description, provenance, actions and related-item slots with target-specific styling.",
+      "verification_probe": "Two branded targets preserve the same semantic identities and action meaning without copying component logic.",
+      "existing_reference_leads": [
+        "appLifecycle.mjs",
+        "AddonManager.jsx",
+        "ArticleTemplates",
+        "ArticleTemplateCard",
+        "Publisher template/slot references",
+        "OfficeSuite.jsx",
+        "existing contacts/invitation surfaces"
+      ],
+      "owner_boundary": "Existing lifecycle, Articles/Publisher and collaboration owners; domain rules stay with products",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-096",
+      "family_order": 10,
+      "family": "Plugin lifecycle, white-label publishing and collaboration",
+      "reuse_priority": "R3",
+      "title": "Source-labelled related content",
+      "candidate_consumers": [
+        "Movie Night",
+        "Marketplace",
+        "Articles"
+      ],
+      "shared_requirement": "Share recommendation-section states and presentation while each product owns ranking, eligibility and explanation.",
+      "verification_probe": "A local related-item set is labelled as such; no recommendations is explicit and does not fabricate global coverage.",
+      "existing_reference_leads": [
+        "appLifecycle.mjs",
+        "AddonManager.jsx",
+        "ArticleTemplates",
+        "ArticleTemplateCard",
+        "Publisher template/slot references",
+        "OfficeSuite.jsx",
+        "existing contacts/invitation surfaces"
+      ],
+      "owner_boundary": "Existing lifecycle, Articles/Publisher and collaboration owners; domain rules stay with products",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-097",
+      "family_order": 10,
+      "family": "Plugin lifecycle, white-label publishing and collaboration",
+      "reuse_priority": "R3",
+      "title": "Schema-derived template inspector",
+      "candidate_consumers": [
+        "Articles",
+        "Office",
+        "WordPress"
+      ],
+      "shared_requirement": "Populate required slots, allowed options and missing-binding explanations from the selected template declaration.",
+      "verification_probe": "Change template versions; inspector and validator agree without a separate hand-written field list.",
+      "existing_reference_leads": [
+        "appLifecycle.mjs",
+        "AddonManager.jsx",
+        "ArticleTemplates",
+        "ArticleTemplateCard",
+        "Publisher template/slot references",
+        "OfficeSuite.jsx",
+        "existing contacts/invitation surfaces"
+      ],
+      "owner_boundary": "Existing lifecycle, Articles/Publisher and collaboration owners; domain rules stay with products",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-098",
+      "family_order": 10,
+      "family": "Plugin lifecycle, white-label publishing and collaboration",
+      "reuse_priority": "R3",
+      "title": "Target preview and publish readback",
+      "candidate_consumers": [
+        "Publisher",
+        "WordPress",
+        "xi-io sites"
+      ],
+      "shared_requirement": "Preserve the target identity, revision, path and accepted generation from preview through verified publication.",
+      "verification_probe": "Publishing to one target cannot overwrite another domain; preview alone never marks a site deployed.",
+      "existing_reference_leads": [
+        "appLifecycle.mjs",
+        "AddonManager.jsx",
+        "ArticleTemplates",
+        "ArticleTemplateCard",
+        "Publisher template/slot references",
+        "OfficeSuite.jsx",
+        "existing contacts/invitation surfaces"
+      ],
+      "owner_boundary": "Existing lifecycle, Articles/Publisher and collaboration owners; domain rules stay with products",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-099",
+      "family_order": 10,
+      "family": "Plugin lifecycle, white-label publishing and collaboration",
+      "reuse_priority": "R3",
+      "title": "Participant and invitation states",
+      "candidate_consumers": [
+        "Movie Night",
+        "Calendar",
+        "RealityPools"
+      ],
+      "shared_requirement": "Reuse participant picking and pending/accepted/declined/expired states through existing collaboration contracts.",
+      "verification_probe": "Sending or queuing an invite does not imply delivery, acceptance, content entitlement or attendance.",
+      "existing_reference_leads": [
+        "appLifecycle.mjs",
+        "AddonManager.jsx",
+        "ArticleTemplates",
+        "ArticleTemplateCard",
+        "Publisher template/slot references",
+        "OfficeSuite.jsx",
+        "existing contacts/invitation surfaces"
+      ],
+      "owner_boundary": "Existing lifecycle, Articles/Publisher and collaboration owners; domain rules stay with products",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    },
+    {
+      "candidate_ref": "MN-REUSE-100",
+      "family_order": 10,
+      "family": "Plugin lifecycle, white-label publishing and collaboration",
+      "reuse_priority": "R3",
+      "title": "Session readiness and recovery",
+      "candidate_consumers": [
+        "Movie Night watch parties",
+        "Arcade",
+        "shared Work sessions"
+      ],
+      "shared_requirement": "Reuse lobby, ready, disconnected, rejoin and leave presentation while each domain owns synchronization and access rules.",
+      "verification_probe": "A reconnect preserves session identity; guests without required access cannot inherit the host's credentials or privileges.",
+      "existing_reference_leads": [
+        "appLifecycle.mjs",
+        "AddonManager.jsx",
+        "ArticleTemplates",
+        "ArticleTemplateCard",
+        "Publisher template/slot references",
+        "OfficeSuite.jsx",
+        "existing contacts/invitation surfaces"
+      ],
+      "owner_boundary": "Existing lifecycle, Articles/Publisher and collaboration owners; domain rules stay with products",
+      "disposition": "PROPOSED_REUSE_OR_EXTENSION",
+      "source_basis": "OWNER_REQUIREMENT_AND_SOURCE_AUDIT; not a fresh consumer reproduction",
+      "consumer_adoption": "NOT_ASSESSED_BY_THIS_OPPORTUNITY_SET",
+      "experiment_result": "NOT_RUN",
+      "canonical_bug_id": null,
+      "canonical_work_id": null
+    }
+  ],
+  "review_state": {
+    "other_lane_list_received": false,
+    "independent_candidate_authorship": true,
+    "independent_runtime_verification": false,
+    "human_ab_testing": "NOT_RUN",
+    "quorum": "NOT_OBTAINED",
+    "bugzilla_updates": "NOT_PERFORMED",
+    "five_consumer_matrix": "EXISTING_OWNER_MATRIX_UNCHANGED"
+  }
+}
