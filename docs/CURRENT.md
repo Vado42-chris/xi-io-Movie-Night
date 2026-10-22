@@ -2,7 +2,17 @@
 
 Date: 2026-10-22. State: active prototype; settings and provider-filter source on main; provider UI visually read back in the reopened native app. Broader native and suite qualification remains open.
 
-## Goal and next action
+## Universal series-card binding, 2026-10-22
+
+Current owner correction: episode linkage is a product-wide card contract, not a list of individual shows to repair. Continue existing #1 / #3 / PR #8 and Work `settings-sdk-publisher-audit-2026-09-26`.
+
+Every supported series card, whether from imported Library, Favorites, Recent, the catalogue, a saved cube, the detail carousel or a deep link, enters the same showFilm/loadFilmDetails path. Opening/reopening a series reads its hierarchy through the existing server metadata cache. It does not require an agent request, a title-specific patch, manual refresh, source lookup or playback. Missing/incomplete/failed metadata stays distinct from a successful empty episode list. The source candidate also preserves exact season/episode identity, including S00, into deliberate source/play/resume operations.
+
+The prior Son of Zorn read was one diagnostic sample, not completion of episode linking. Current private-library census: 479 series occurrences, 461 distinct supported series IDs. Provider metadata was independently sampled for 12 different IDs and returned 2,616 correctly parent-bound episode records. This is metadata evidence, not 461 real-provider checks or stream/playback proof. The private census and receipt remain outside Git.
+
+The existing episode/source browser runner now covers all entry paths, broad identifier sets, incomplete/empty/offline/wrong-series responses, automatic reopen recovery and stale replies. Its optional served-generation gate fails before browser testing when the actual Aries HTML/JS/CSS differ from the qualified candidate. Synthetic provider results are explicitly separate from live service readback. Existing draft #8 is not accepted main; native input, real playback, full BINS/session and canonical RETURN gates remain open.
+
+## Earlier goal and next action (historical)
 Accepted source: settings declaration/scoped reset at 7e26a30; provider-neutral Library and independent provider filtering at 6bbb760. Both were pushed to main and read back from GitHub. The next app increment is user-editable saved filter cubes rendered as stacked carousel rows, reusing the existing filter engine and saved-view data, with Wall/Carousel switching and persisted row order. Do not create playlists or a second shell. TV episode playback remains unimplemented. No random film launch.
 
 ## Current source and runtime

@@ -420,6 +420,7 @@
       season: Number.isInteger(Number(movie.season)) && movie.season !== null ? Number(movie.season) : null,
       episode: Number.isInteger(Number(movie.episode)) && movie.episode !== null ? Number(movie.episode) : null,
       episodes: Array.isArray(movie.episodes) ? movie.episodes.filter(ep => ep && Number.isInteger(ep.season) && ep.season >= 0 && Number.isInteger(ep.episode) && ep.episode >= 1 && ep.id === `${movie.imdb_id || movie.imdbId || movie.id}:${ep.season}:${ep.episode}`).map(ep => ({ id: ep.id, season: ep.season, episode: ep.episode, title: text(ep.title), overview: text(ep.overview), released: text(ep.released) })) : [],
+      episodesLoaded: Array.isArray(movie.episodes),
       description: text(movie.description),
       background: imageUrl(movie.background),
       cast: Array.isArray(movie.cast) ? movie.cast.filter(x => typeof x === "string").slice(0, 40) : [],
@@ -1218,12 +1219,21 @@
   function renderEpisodes(movie) {
     const section = byId("detail-episodes"); section.hidden = movie.type !== "series";
     if (section.hidden) return;
+    section.dataset.seriesId = movie.imdbId;
+    byId("episode-list").setAttribute("aria-label", `${movie.title} episodes`);
     const rows = movie.episodes || [], seasons = [...new Set(rows.map(ep => ep.season))].sort((a,b) => a-b);
     if (!seasons.includes(selectedSeason)) selectedSeason = seasons.find(s => s > 0) ?? seasons[0] ?? null;
     const select = byId("episode-season"); select.replaceChildren();
     for (const season of seasons) { const option = node("option", "", season === 0 ? "Specials" : `Season ${season}`); option.value = String(season); select.append(option); }
     select.disabled = !rows.length || launchPending; if (selectedSeason !== null) select.value = String(selectedSeason);
-    byId("episode-metadata-status").textContent = !movie.detailsLoaded ? "Loading seasons and episodes…" : rows.length ? `${rows.filter(ep => ep.season === selectedSeason).length} episodes in this season` : "No episode metadata was returned. Refresh episodes or choose another series.";
+    const count = rows.filter(ep => ep.season === selectedSeason).length;
+    byId("episode-metadata-status").textContent = !/^tt\d{5,12}$/.test(movie.imdbId)
+      ? "This series has no supported catalogue identity. Its episodes cannot be linked yet."
+      : !wallSettings.plugins.cinemeta_enabled && !rows.length
+        ? "The episode metadata connection is disabled in Settings. Your library is unchanged."
+        : movie.episodeError || (!movie.episodesLoaded ? "Loading seasons and episodes…"
+          : rows.length ? `${count} ${count === 1 ? "episode" : "episodes"} in this season`
+          : "The catalogue returned no episodes for this series. We will check again when you reopen it.");
     const list = byId("episode-list"); list.replaceChildren();
     for (const ep of rows.filter(ep => ep.season === selectedSeason)) {
       const button = node("button", "episode-option"); button.type = "button"; button.dataset.episodeId = ep.id;
@@ -1291,6 +1301,7 @@
   async function loadFilmDetails(movie, generation) {
     const controller = new AbortController();
     detailController = controller;
+    movie.episodeError = "";
     const status = byId("dialog-metadata-status");
     status.hidden = false;
     status.textContent = "Getting the full details…";
@@ -1300,6 +1311,7 @@
       if (generation !== detailGeneration || detailController !== controller || selectedMovie !== movie || elements.dialog.hidden) return;
       const extra = normalizeMovie(result.movie, movie.index);
       if (!extra || extra.imdbId !== movie.imdbId || extra.type !== movie.type) throw new Error("metadata_mismatch");
+      if (movie.type === "series" && !extra.episodesLoaded) throw new Error("episode_metadata_incomplete");
       // Hydrate display fields only. Keep list identity, rank and watch progress.
       if (extra.description) movie.description = extra.description;
       if (extra.genres.length) movie.genres = extra.genres;
@@ -1310,6 +1322,10 @@
       for (const key of ["background", "cast", "director", "writer", "country", "awards", "language"]) movie[key] = extra[key];
       movie.searchText = normalize([movie.title, movie.year || "", ...movie.genres].join(" "));
       movie.episodes = extra.episodes;
+      movie.episodesLoaded = extra.episodesLoaded;
+      if (movie.type === "series" && selectedEpisode) {
+        selectedEpisode = movie.episodes.find(ep => ep.id === selectedEpisode.id) || null;
+      }
       movie.detailsLoaded = true;
       renderFilmDetails(movie);
       status.textContent = "";
@@ -1317,7 +1333,10 @@
     } catch {
       if (generation !== detailGeneration || detailController !== controller || controller.signal.aborted || selectedMovie !== movie || elements.dialog.hidden) return;
       status.textContent = "Extra details are unavailable right now. Your current title information is still here.";
-      if (movie.type === "series") byId("episode-metadata-status").textContent = "Episode metadata could not load. Use Refresh episodes to try again.";
+      if (movie.type === "series") {
+        movie.episodeError = "Episode metadata could not load. Reopening this series will try again; your library is unchanged.";
+        renderEpisodes(movie);
+      }
     } finally {
       if (detailController === controller) detailController = null;
       updatePlayerControls();
@@ -1362,7 +1381,10 @@
     carouselIndex = Math.max(0, visibleMovies.findIndex(item => movieKey(item) === movieKey(movie)));
     renderCarousel();
     publishContext();
-    if (wallSettings.plugins.cinemeta_enabled && !movie.detailsLoaded && /^tt\d{5,12}$/.test(movie.imdbId)) void loadFilmDetails(movie, detailGeneration);
+    // Every series entry uses the existing server metadata cache. Reopening
+    // refreshes the hierarchy without another client cache, per-title repair,
+    // or Refresh requirement. Already linked episodes remain visible while read.
+    if (wallSettings.plugins.cinemeta_enabled && (movie.type === "series" || !movie.detailsLoaded) && /^tt\d{5,12}$/.test(movie.imdbId)) void loadFilmDetails(movie, detailGeneration);
   }
 
   function placeBrowseControls(inDetail) {
@@ -1598,7 +1620,7 @@
     player.play.setAttribute("aria-busy", String(launchPending));
     byId("choose-sources").disabled = busy || !target;
     byId("episode-season").disabled = launchPending || !selectedMovie?.episodes?.length;
-    byId("refresh-episodes").disabled = launchPending || Boolean(detailController);
+    byId("refresh-episodes").disabled = launchPending || Boolean(detailController) || !wallSettings.plugins.cinemeta_enabled || !/^tt\d{5,12}$/.test(selectedMovie?.imdbId || "");
     for (const button of byId("episode-list").querySelectorAll("button")) button.disabled = launchPending;
     byId("close-dialog").disabled = launchPending;
     updateSourceAction();
@@ -1884,8 +1906,8 @@
     resetSources(); selectedEpisode = null; selectedSeason = Number(byId("episode-season").value); renderEpisodes(selectedMovie);
   });
   byId("refresh-episodes").addEventListener("click", () => {
-    if (!selectedMovie || launchPending || detailController) return;
-    selectedMovie.detailsLoaded = false; resetSources(); renderEpisodes(selectedMovie); void loadFilmDetails(selectedMovie, detailGeneration);
+    if (!selectedMovie || launchPending || detailController || !wallSettings.plugins.cinemeta_enabled || !/^tt\d{5,12}$/.test(selectedMovie.imdbId)) return;
+    selectedMovie.episodeError = ""; selectedMovie.detailsLoaded = false; resetSources(); renderEpisodes(selectedMovie); void loadFilmDetails(selectedMovie, detailGeneration);
   });
   byId("choose-sources").addEventListener("click", openSources);
   byId("refresh-sources").addEventListener("click", openSources);
