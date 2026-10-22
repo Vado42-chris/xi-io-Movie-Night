@@ -25,3 +25,6 @@ Isolated browser source tests pass at 1920, 1280, 768 and 390px. Track widths ar
 
 ## Publication boundary
 The specimen can be served as static review assets through the existing /studio/assets route. That does not create a service or qualify playback. The production app has not been closed or reopened for this repair, preserving current work and the chat draft. No settings, credentials, private formats or backend files are changed.
+
+## Independent replay against accepted main
+The separate app reviewer stopped its duplicate candidate before applying it, joined accepted source 3ec3f987eeb56e56bd6037c196a042e80b46a9ac, and extended the existing regression to 2560/1920/1280/768/390/320px. All six runs passed, with zero centre error and page overflow, source recommendation navigation, season/specials and state transitions, disabled unbound playback and no real network/writes. Private replay receipt: movie-night-runtime/title-specimen-20261022/independent-six-widths/report.json. Generated runtime receipts remain excluded from this public repository. Current HTTP CSS and the three specimen assets match source bytes. The already-open native app was not closed or refreshed; no native acceptance or TV playback completion is claimed.

@@ -45,7 +45,7 @@ async function widthMetrics(page){return page.evaluate(()=>{
 });}
 (async()=>{
 const browser=await chromium.launch({executablePath:process.env.MOVIE_NIGHT_CHROME||'/usr/bin/google-chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
-try{for(const width of [1920,1280,768,390]){
+try{for(const width of [2560,1920,1280,768,390,320]){
  const {ctx,page,state}=await setup(browser,width);const result={width,pass:false};results.push(result);
  try{
   await page.goto(origin,{waitUntil:'domcontentloaded'});await page.waitForFunction(()=>document.querySelectorAll('.movie-card').length===100);
