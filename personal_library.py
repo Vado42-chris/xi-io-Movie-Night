@@ -362,6 +362,25 @@ def set_favorite(item_id, kind, favorite):
         return _view(state)
 
 
+def resume_position(item_id, kind="movie", season=None, episode=None):
+    """Read the existing history format using exact episode identity; no writes."""
+    if not isinstance(item_id, str) or kind not in ("movie", "series"):
+        return 0
+    with _lock:
+        state = _read()
+        rows = state["imported"]["recent"] + list(state["local_history"].values())
+        matches = [row for row in rows if row.get("type") == kind
+                   and row.get("id", "").split(":")[0] == item_id
+                   and (kind == "movie" or (row.get("season") == season and row.get("episode") == episode))]
+        if not matches:
+            return 0
+        latest = max(matches, key=lambda row: row.get("lastUpdatedEpochMs", 0))
+        position, duration = latest.get("lastPositionMs", 0), latest.get("durationMs", 0)
+        if latest.get("isCompleted") or not 0 < position < duration or position >= duration * .95:
+            return 0
+        return min(position / 1000, 86400)
+
+
 def record_progress(item_id, kind, position_ms, duration_ms, is_completed=False, season=None, episode=None):
     """Optional server hook for observed playback progress; never starts or controls a player."""
     if (_integer(position_ms) is None or _integer(duration_ms) is None or not isinstance(is_completed, bool)

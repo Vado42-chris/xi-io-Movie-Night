@@ -415,6 +415,33 @@ def browse(params):
     return _cached(path, make_result)
 
 
+def episode_records(raw, series_id):
+    """Public episode metadata only. Stream URLs and provider hints never pass through."""
+    if not isinstance(raw, list):
+        return []
+    found = {}
+    for video in raw[:20000]:
+        if not isinstance(video, dict):
+            continue
+        season, episode = video.get("season"), video.get("episode")
+        if type(season) is not int or type(episode) is not int or not 0 <= season <= 10000 or not 1 <= episode <= 100000:
+            continue
+        identity = f"{series_id}:{season}:{episode}"
+        if video.get("id") != identity or identity in found:
+            continue
+        released = _text(video.get("released"), 40)
+        if released:
+            try:
+                datetime.fromisoformat(released.replace("Z", "+00:00"))
+            except ValueError:
+                released = ""
+        found[identity] = {"id": identity, "season": season, "episode": episode,
+            "title": _text(video.get("title"), 300) or f"Episode {episode}",
+            "overview": _text(video.get("overview"), 2000), "released": released,
+            "thumbnail": _poster(video.get("thumbnail"))}
+    return sorted(found.values(), key=lambda row: (row["season"], row["episode"]))
+
+
 def meta(params):
     """Return {movie, source}; metadata only, including for series records."""
     media_type = _validate_params(params, ("type", "id"))
@@ -440,6 +467,8 @@ def meta(params):
                                              if isinstance(value, str) and _text(value, 120))) if isinstance(values, list) else []
         for key in ("country", "awards", "language"):
             record[key] = _text(raw.get(key), 800)
+        if media_type == "series":
+            record["episodes"] = episode_records(raw.get("videos"), imdb_id)
         record["metadata_source"] = "Cinemeta"
         return {"movie": record, "source": "Cinemeta", "type": media_type}
 

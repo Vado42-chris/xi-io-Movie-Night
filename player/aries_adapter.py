@@ -53,8 +53,8 @@ ERRORS = {
     "provider_unavailable": "The configured source provider could not be reached.",
     "source_timeout": "The source provider did not respond in time.",
     "no_cached_sources": "No confirmed cached Real-Debrid sources were returned.",
-    "source_expired": "That source expired or does not match this movie. Search again.",
-    "source_required": "Choose a source before starting a movie.",
+    "source_expired": "That source expired or does not match this title and episode. Search again.",
+    "source_required": "Choose a source before starting playback.",
     "busy": "Another playback request is in progress. Try again shortly.",
     "player_unavailable": "The independent player is unavailable.",
     "player_failed": "The independent player could not start playback.",
@@ -169,6 +169,25 @@ def movie_input(payload):
     return imdb_id, title.strip()
 
 
+def media_input(payload):
+    """One playback identity. Legacy movie requests remain valid."""
+    imdb_id, title = movie_input(payload)
+    kind = payload.get("type", "movie")
+    season, episode = payload.get("season"), payload.get("episode")
+    if kind not in ("movie", "series"):
+        raise SafeError("bad_request")
+    if kind == "movie":
+        if season is not None or episode is not None:
+            raise SafeError("bad_request")
+    elif type(season) is not int or type(episode) is not int or not 0 <= season <= 10000 or not 1 <= episode <= 100000:
+        raise SafeError("bad_request")
+    return imdb_id, title, kind, season, episode
+
+
+def media_identity(imdb_id, kind="movie", season=None, episode=None):
+    return f"{imdb_id}:{season}:{episode}" if kind == "series" else imdb_id
+
+
 def configured_manifest(path):
     try:
         values = java_properties(read_file(path, 1024 * 1024))
@@ -262,6 +281,13 @@ class Source:
     headers: list = field(repr=False)
 
     technical: dict = field(default_factory=dict)
+    media_type: str = "movie"
+    season: int = None
+    episode: int = None
+
+    @property
+    def video_id(self):
+        return media_identity(self.imdb_id, self.media_type, self.season, self.episode)
 
     def public(self):
         return {"id": self.id, "label": self.label, "quality": self.quality, **self.technical}
@@ -362,16 +388,18 @@ class Resolver:
             raise SafeError("provider_unavailable", 502)
         return value
 
-    def sources(self, imdb_id, title):
+    def sources(self, imdb_id, title, media_type="movie", season=None, episode=None):
+        imdb_id, title, media_type, season, episode = media_input({"imdb_id": imdb_id, "title": title, "type": media_type, "season": season, "episode": episode})
+        target_id = media_identity(imdb_id, media_type, season, episode)
         manifest, profile, digest = self.selection()
         now = time.monotonic()
         with self.lock:
             self.cache = {key: source for key, source in self.cache.items() if source.expires > now}
-            existing = [s for s in self.cache.values() if s.imdb_id == imdb_id and s.provider_digest == digest]
+            existing = [s for s in self.cache.values() if s.video_id == target_id and s.media_type == media_type and s.provider_digest == digest]
             if existing:
                 return existing
         p = urlsplit(manifest)
-        endpoint = urlunsplit(("https", "torrentio.strem.fun", p.path[:-len("manifest.json")] + "stream/movie/" + imdb_id + ".json", "", ""))
+        endpoint = urlunsplit(("https", "torrentio.strem.fun", p.path[:-len("manifest.json")] + "stream/" + media_type + "/" + target_id + ".json", "", ""))
         qualities = ["1080p", "720p", "2160p", "480p", "360p", "unknown"]
         if profile["quality"] != "balanced":
             qualities.remove(profile["quality"])
@@ -412,7 +440,7 @@ class Resolver:
         for index, (_, quality, url, headers, technical) in enumerate(candidates[:100], 1):
             sources.append(Source(secrets.token_urlsafe(24), imdb_id, title, quality,
                                   quality + " · RD cached · Source " + str(index),
-                                  time.monotonic() + SOURCE_TTL, digest, url, headers, technical))
+                                  time.monotonic() + SOURCE_TTL, digest, url, headers, technical, media_type, season, episode))
         with self.lock:
             # Bound private in-memory cache; never persist provider payloads.
             while len(self.cache) + len(sources) > 256 and self.cache:
@@ -421,14 +449,15 @@ class Resolver:
                 self.cache[source.id] = source
         return sources
 
-    def get(self, source_id, imdb_id):
+    def get(self, source_id, imdb_id, media_type="movie", season=None, episode=None):
         if not isinstance(source_id, str) or not OPAQUE.fullmatch(source_id):
             raise SafeError("source_expired", 409)
         digest = self.selection()[2]
         with self.lock:
             source = self.cache.get(source_id)
             if (not source or source.expires <= time.monotonic() or source.imdb_id != imdb_id
-                    or source.provider_digest != digest):
+                    or source.provider_digest != digest or source.media_type != media_type
+                    or source.video_id != media_identity(imdb_id, media_type, season, episode)):
                 raise SafeError("source_expired", 409)
             return source
 
@@ -442,6 +471,7 @@ class Player:
         self.process = None
         self.imdb_id = None
         self.title = None
+        self.media_type, self.season, self.episode = "movie", None, None
         self.loading_since = None
         self.has_played = False
         self.last_error = None
@@ -451,7 +481,7 @@ class Player:
         if self.selection_file and self.selection_file.exists():
             try:
                 selection = json.loads(read_file(self.selection_file, 4096, private=True))
-                self.imdb_id, self.title = movie_input(selection)
+                self.imdb_id, self.title, self.media_type, self.season, self.episode = media_input(selection)
                 self.has_played = True
             except (SafeError, ValueError, TypeError):
                 pass
@@ -472,7 +502,10 @@ class Player:
             temporary = self.selection_file.with_name(self.selection_file.name + "." + secrets.token_hex(8))
             fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
             with os.fdopen(fd, "w", encoding="utf-8") as handle:
-                json.dump({"imdb_id": self.imdb_id, "title": self.title}, handle)
+                record = {"imdb_id": self.imdb_id, "title": self.title}
+                if self.media_type == "series":
+                    record.update(type=self.media_type, season=self.season, episode=self.episode)
+                json.dump(record, handle)
             os.replace(temporary, self.selection_file)
         except (OSError, SafeError):
             # A metadata write must not disturb an already running film.
@@ -663,6 +696,7 @@ class Player:
 
     def clear_playback(self, stopped=False):
         self.imdb_id = self.title = self.loading_since = None
+        self.media_type, self.season, self.episode = "movie", None, None
         self.has_played = False
         self.last_error = None
         self.stop_requested = stopped
@@ -671,7 +705,9 @@ class Player:
     def snapshot(self):
         return {"client": "aries", "state": "idle", "imdb_id": self.imdb_id, "title": self.title,
                 "position": None, "duration": None, "volume": None, "last_error": self.last_error,
-                "muted": self.muted, "fullscreen": self.fullscreen}
+                "muted": self.muted, "fullscreen": self.fullscreen, "type": self.media_type,
+                "season": self.season, "episode": self.episode,
+                "video_id": media_identity(self.imdb_id, self.media_type, self.season, self.episode) if self.imdb_id else None}
 
     def ipc(self, command, optional=False):
         self.validate_socket()
@@ -786,7 +822,7 @@ class Player:
                             result.update(state="error", last_error=self.last_error)
                     else:
                         self.clear_playback()
-                        result.update(imdb_id=None, title=None, position=None, duration=None, last_error=None)
+                        result.update(imdb_id=None, title=None, position=None, duration=None, last_error=None, type="movie", season=None, episode=None, video_id=None)
                 elif result["position"] is None:
                     result["state"] = "loading"
                 else:
@@ -808,10 +844,14 @@ class Player:
                     result.update(state="error", last_error=ERRORS[exc.code])
             return result
 
-    def play(self, source):
+    def play(self, source, start_seconds=0):
         with self.lock:
             try:
-                imdb_id, title = movie_input({"imdb_id": source.imdb_id, "title": source.title})
+                imdb_id, title, kind, season, episode = media_input({"imdb_id": source.imdb_id, "title": source.title,
+                    "type": getattr(source, "media_type", "movie"), "season": getattr(source, "season", None), "episode": getattr(source, "episode", None)})
+                if type(start_seconds) not in (int, float) or not math.isfinite(start_seconds) or not 0 <= start_seconds <= 86400:
+                    raise SafeError("bad_request")
+                display_title = f"{title} · S{season:02}E{episode:02}" if kind == "series" else title
                 volume = current_settings()["playback"]["default_volume"]
                 self.prepare_embedding_for_play()
                 self.ensure()
@@ -823,11 +863,16 @@ class Player:
                 self.ipc(["set_property", "volume", volume])
                 # Set a literal media title; only this fixed window-title template
                 # is expanded by mpv. Never display the provider's URL/filename.
-                self.ipc(["set_property", "force-media-title", title])
+                self.ipc(["set_property", "force-media-title", display_title])
                 self.ipc(["set_property", "title", "${media-title} — Movie Night"])
                 self.ipc(["set_property", "pause", False])
-                self.ipc(["loadfile", source.url, "replace"])
+                load = ["loadfile", source.url, "replace"]
+                if start_seconds > 0:
+                    # Installed mpv 0.34.1 accepts per-file options as argument four.
+                    load.append("start=" + str(round(start_seconds, 3)))
+                self.ipc(load)
                 self.imdb_id, self.title = imdb_id, title
+                self.media_type, self.season, self.episode = kind, season, episode
                 self.save_selection()
                 self.loading_since = time.monotonic()
                 self.has_played = False
@@ -836,7 +881,7 @@ class Player:
             except SafeError as exc:
                 self.last_error = ERRORS[exc.code]
                 raise
-            return {"ok": True, "client": "aries", "state": "loading", "imdb_id": source.imdb_id, "title": source.title}
+            return {**self.snapshot(), "ok": True, "state": "loading"}
 
     def command(self, name, value=None):
         with self.lock:
@@ -886,11 +931,13 @@ class Adapter:
 
     def post(self, path, payload):
         if path == "/sources":
-            if set(payload) - {"imdb_id", "title"}:
+            if set(payload) - {"imdb_id", "title", "type", "season", "episode"}:
                 raise SafeError("bad_request")
-            imdb_id, title = movie_input(payload)
-            sources = self.resolver.sources(imdb_id, title)
-            result = {"imdb_id": imdb_id, "sources": [s.public() for s in sources], "count": len(sources)}
+            imdb_id, title, kind, season, episode = media_input(payload)
+            sources = self.resolver.sources(imdb_id, title, kind, season, episode)
+            result = {"imdb_id": imdb_id, "type": kind, "season": season, "episode": episode,
+                      "video_id": media_identity(imdb_id, kind, season, episode),
+                      "sources": [s.public() for s in sources], "count": len(sources)}
             if not sources:
                 result["reason"] = "no_cached_sources"
             return 200, result
@@ -900,17 +947,25 @@ class Adapter:
             raise SafeError("busy", 409)
         try:
             if path == "/play":
-                if set(payload) - {"imdb_id", "title", "source_id"}:
+                if set(payload) - {"imdb_id", "title", "type", "season", "episode", "source_id", "start_seconds"}:
                     raise SafeError("bad_request")
-                imdb_id, title = movie_input(payload)
+                imdb_id, title, kind, season, episode = media_input(payload)
                 # New playback always binds the user's explicit choice. Resume
                 # uses /command and does not resolve or replace the source.
                 if "source_id" not in payload:
                     raise SafeError("source_required", 409)
-                source = self.resolver.get(payload["source_id"], imdb_id)
-                return 202, self.player.play(source)
-            if set(payload) - {"command", "value"} or not isinstance(payload.get("command"), str):
+                source = self.resolver.get(payload["source_id"], imdb_id) if kind == "movie" else self.resolver.get(payload["source_id"], imdb_id, kind, season, episode)
+                start = payload.get("start_seconds", 0)
+                if type(start) not in (int, float) or not math.isfinite(start) or not 0 <= start <= 86400:
+                    raise SafeError("bad_request")
+                return 202, self.player.play(source, start) if start else self.player.play(source)
+            if set(payload) - {"command", "value", "imdb_id", "type", "season", "episode"} or not isinstance(payload.get("command"), str):
                 raise SafeError("bad_request")
+            if any(key in payload for key in ("imdb_id", "type", "season", "episode")):
+                imdb_id, _, kind, season, episode = media_input(payload)
+                current = self.player.snapshot()
+                if current.get("imdb_id") != imdb_id or current.get("type", "movie") != kind or current.get("season") != season or current.get("episode") != episode:
+                    raise SafeError("source_expired", 409)
             return 200, self.player.command(payload["command"], payload.get("value"))
         finally:
             self.actions.release()
