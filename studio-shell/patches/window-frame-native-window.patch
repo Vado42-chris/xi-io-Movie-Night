@@ -1,12 +1,14 @@
+diff --git a/src/components/desktop/WindowFrame.jsx b/src/components/desktop/WindowFrame.jsx
+index 6350a72..8da79de 100644
 --- a/src/components/desktop/WindowFrame.jsx
 +++ b/src/components/desktop/WindowFrame.jsx
-@@ -60,9 +60,14 @@
- 
- function WindowFrameContent({
-     title, icon: Icon, theme, children, onClose, onMinimize, isActive, onFocus, lane,
+@@ -3 +3 @@ import { motion, useDragControls, useMotionValue } from 'framer-motion';
+-import { X, Minus, Maximize2, Minimize2, GripVertical, Settings, Layout, Command, Cpu, Database, Activity, GitBranch, Layers, Pin } from 'lucide-react';
++import { X, Minus, Maximize2, Minimize2, GripVertical, Settings, Layout, Command, Cpu, Database, Activity, GitBranch, Layers, Pin, Sparkles } from 'lucide-react';
+@@ -63 +63 @@ function WindowFrameContent({
 -    initialPosition, initialSize, onGeometryChange, ...props
 +    initialPosition, initialSize, onGeometryChange, nativeWindow, titleBarActions, ...props
- }) {
+@@ -65 +65,6 @@ function WindowFrameContent({
 -    const [isMaximized, setIsMaximized] = useState(false);
 +    // Local Movie Night adapter: native geometry belongs to the OS window.
 +    // With no nativeWindow prop, the pinned Studio desktop behavior is retained.
@@ -14,33 +16,15 @@
 +    const [internalMaximized, setIsMaximized] = useState(false);
 +    const isMaximized = isNativeWindow ? nativeWindow.maximized === true : internalMaximized;
 +    const isNativeFullscreen = isNativeWindow && nativeWindow.fullscreen === true;
-     /* ── A SIZE IS TAKEN ONLY IF IT IS ONE ────────────────────────────────────
-      *
-      * This was `initialSize || { default }`, which accepts ANY truthy object —
-@@ -206,7 +211,7 @@
-        geometry actually changes — the end of a drag and the end of a resize —
-        never during them. */
-     const reportGeometry = (patch = {}) => {
+@@ -209 +214 @@ function WindowFrameContent({
 -        if (!onGeometryChange) return;
 +        if (isNativeWindow || !onGeometryChange) return;
-         onGeometryChange({
-             x: x.get(),
-             y: y.get(),
-@@ -330,6 +335,10 @@
-        origin — the two used to be separate pieces of state and only one of them
-        came back. */
-     const toggleMaximize = () => {
+@@ -332,0 +338,4 @@ function WindowFrameContent({
 +        if (isNativeWindow) {
 +            if (!isNativeFullscreen) nativeWindow.toggleMaximize();
 +            return;
 +        }
-         if (isMaximized) {
-             x.set(restoreRef.current.x);
-             y.set(restoreRef.current.y);
-@@ -342,6 +351,42 @@
-         }
-     };
- 
+@@ -344,0 +354,36 @@ function WindowFrameContent({
 +    const isChromeControl = (event) => Boolean(event.target?.closest?.(
 +        'button, a, input, select, textarea, summary, [role="button"], [role="menuitem"], [contenteditable="true"], [data-no-window-drag], [data-native-resize]'
 +    ));
@@ -77,13 +61,7 @@
 +        ? nativeInputProps(startChromeDrag)
 +        : { onPointerDown: startChromeDrag };
 +
-     // Resize Logic
-     const isResizing = useRef(false);
- 
-@@ -359,6 +404,13 @@
-      * exactly, and React is told once, when it is over.
-      */
-     const startResize = (e, direction) => {
+@@ -361,0 +407,7 @@ function WindowFrameContent({
 +        if (isNativeWindow) {
 +            if (e.button !== 0 || e.isPrimary === false || isMaximized || isNativeFullscreen) return;
 +            e.preventDefault();
@@ -91,59 +69,32 @@
 +            nativeWindow.startResize(direction);
 +            return;
 +        }
-         e.preventDefault();
-         e.stopPropagation();
-         isResizing.current = true;
-@@ -457,24 +509,28 @@
-         document.addEventListener('mouseup', handleMouseUp);
-     };
- 
+@@ -459,0 +512,4 @@ function WindowFrameContent({
 +    const resizeHandleProps = (direction) => isNativeWindow
 +        ? { 'data-native-resize': direction, ...nativeInputProps((event) => startResize(event, direction)) }
 +        : { onMouseDown: (event) => startResize(event, direction) };
 +
-     return (
-         <ContextMenu>
-         <ContextMenuTrigger asChild>
-         <motion.div
-             ref={frameRef}
+@@ -465,2 +521,2 @@ function WindowFrameContent({
 -            drag={!isMaximized}
 -            dragControls={dragControls}
 +            drag={!isNativeWindow && !isMaximized}
 +            dragControls={isNativeWindow ? undefined : dragControls}
-             dragMomentum={false}
-             dragListener={false}
-             /* A window is dragged from its title bar and its rail. Without bounds
-                it could be dragged clean out of the desktop and left there — off
-                the top of the field, unreachable, with no way to bring it back.
-                It is now held inside the desktop it belongs to. */
+@@ -473 +529 @@ function WindowFrameContent({
 -            dragConstraints={props.constraintsRef}
 +            dragConstraints={isNativeWindow ? undefined : props.constraintsRef}
-             dragElastic={0}
+@@ -475,3 +531,3 @@ function WindowFrameContent({
 -            onDragStart={handleWindowDragStart}
 -            onDrag={handleWindowDrag}
 -            onDragEnd={handleWindowDragEnd}
 +            onDragStart={isNativeWindow ? undefined : handleWindowDragStart}
 +            onDrag={isNativeWindow ? undefined : handleWindowDrag}
 +            onDragEnd={isNativeWindow ? undefined : handleWindowDragEnd}
-             /* ── NO 3D, AND NO BLUR WHILE IT MOVES ────────────────────────
-              *
-              * The entrance carried `rotateX: 5`, and a 3D rotation on a window
-@@ -495,8 +551,8 @@
-                back to the origin it was dragged away from. Opacity and scale
-                only — both of which the compositor owns and neither of which the
-                drag reads. */
+@@ -498,2 +554,2 @@ function WindowFrameContent({
 -            initial={{ opacity: 0, scale: 0.94 }}
 -            animate={{ opacity: 1, scale: 1 }}
 +            initial={isNativeWindow ? false : { opacity: 0, scale: 0.94 }}
 +            animate={isNativeWindow ? undefined : { opacity: 1, scale: 1 }}
-             onAnimationStart={() => frameRef.current?.setAttribute('data-settling', 'true')}
-             onAnimationComplete={() => frameRef.current?.removeAttribute('data-settling')}
-             // Depth is an ordering, not an animation. It used to live inside
-@@ -526,10 +582,11 @@
-                  * ordering, and an ordering is not a number a window should be
-                  * inventing; this one is handed in. */
-                 zIndex: lane,
+@@ -529,4 +585,5 @@ function WindowFrameContent({
 -                x,
 -                y,
 -                width: isMaximized ? '100%' : size.width,
@@ -153,35 +104,15 @@
 +                ...(isNativeWindow ? { top: 0, left: 0, scale: 1 } : {}),
 +                width: isNativeWindow || isMaximized ? '100%' : size.width,
 +                height: isNativeWindow ? '100%' : isMaximized ? 'calc(100% - 5.5rem)' : size.height,
-                 /* The frame carries the window's own colour. It used to be the
-                    shell's teal for every window and a plain grey for every
-                    unfocused one, so two windows side by side were one object
-@@ -547,10 +604,11 @@
-                    its edge the moment the light changed. */
-                 borderColor: hot ? 'hsl(var(--glass-edge) / 0.45)' : isActive ? accentCss(theme, 0.45) : 'hsl(var(--border))',
-             }}
+@@ -550 +607 @@ function WindowFrameContent({
 -            exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
 +            exit={isNativeWindow ? undefined : { opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
-             onPointerDown={onFocus}
-             {...dropProps}
-             data-hot={hot ? 'true' : 'false'}
+@@ -553,0 +611 @@ function WindowFrameContent({
 +            data-native-frame={isNativeWindow ? 'true' : undefined}
-             className={cn(
-                 // `xi-window` carries one rule: the backdrop blur is switched off
-                 // while this element is being dragged or resized. A backdrop-filter
-@@ -612,7 +670,7 @@
-             {/* RESIZE HANDLES — four edges and four corners.
-                 The corners are declared last so they sit over the edges where
-                 the two overlap, which is the order they are grabbed in. */}
+@@ -615 +673 @@ function WindowFrameContent({
 -            {!isMaximized && (
 +            {!isMaximized && !isNativeFullscreen && (
-                 <>
-                     {/* THE HANDLES LIVE INSIDE THE WINDOW, and that is the whole
-                         of "no true 4-way supports".
-@@ -630,18 +688,18 @@
-                         four-way. Inset, all eight are now inside the clip and all
-                         eight are grabbable. The corners are still declared last
-                         so they win where they overlap the edges. */}
+@@ -633,8 +691,8 @@ function WindowFrameContent({
 -                    <div className="absolute left-0 top-3 bottom-3 w-1.5 cursor-w-resize z-50" onMouseDown={(e) => startResize(e, 'left')} />
 -                    <div className="absolute right-0 top-3 bottom-3 w-1.5 cursor-e-resize z-50" onMouseDown={(e) => startResize(e, 'right')} />
 -                    <div className="absolute top-0 left-3 right-3 h-1.5 cursor-n-resize z-50" onMouseDown={(e) => startResize(e, 'top')} />
@@ -198,52 +129,67 @@
 +                    <div className="absolute left-0 top-0 w-3 h-3 cursor-nw-resize z-50" {...resizeHandleProps('left-top')} />
 +                    <div className="absolute right-0 top-0 w-3 h-3 cursor-ne-resize z-50" {...resizeHandleProps('right-top')} />
 +                    <div className="absolute left-0 bottom-0 w-3 h-3 cursor-sw-resize z-50" {...resizeHandleProps('left-bottom')} />
-                     {/* The bottom-right corner keeps its grip mark — it is the
-                         handle everyone reaches for, and the mark is how a window
-                         says it can be resized at all. */}
+@@ -644 +702 @@ function WindowFrameContent({
 -                    <div className="absolute right-0 bottom-0 w-5 h-5 cursor-se-resize z-50 group/resize" onMouseDown={(e) => startResize(e, 'right-bottom')}>
 +                    <div className="absolute right-0 bottom-0 w-5 h-5 cursor-se-resize z-50 group/resize" {...resizeHandleProps('right-bottom')}>
-                         <div className="absolute bottom-1 right-1 w-2 h-2 border-r-2 border-b-2 border-muted-foreground/40 group-hover/resize:border-foreground transition-colors" />
-                     </div>
-                 </>
-@@ -650,13 +708,10 @@
-             {/* LEFT RAIL - THE GLYPH PANEL */}
-             <div 
-                 className={`w-16 border-r border-border flex flex-col items-center py-6 gap-6 z-20 shrink-0 relative xi-grid cursor-grab active:cursor-grabbing select-none ${hot ? 'xi-desktop-glass-hot' : 'xi-desktop-glass-chrome'}`}
+@@ -652,6 +710,4 @@ function WindowFrameContent({
+-                className={`w-16 border-r border-border flex flex-col items-center py-6 gap-6 z-20 shrink-0 relative xi-grid cursor-grab active:cursor-grabbing select-none ${hot ? 'xi-desktop-glass-hot' : 'xi-desktop-glass-chrome'}`}
 -                onPointerDown={(e) => {
 -                    onFocus(e);
 -                    if (!isMaximized) dragControls.start(e);
 -                }}
 -                onDoubleClick={toggleMaximize}
++                data-window-rail="left"
++                className={`window-left-rail w-16 border-r border-border flex flex-col items-center py-6 gap-6 z-20 shrink-0 relative xi-grid cursor-grab active:cursor-grabbing select-none ${hot ? 'xi-desktop-glass-hot' : 'xi-desktop-glass-chrome'}`}
 +                {...chromeDragProps}
 +                onDoubleClick={maximizeFromChrome}
-             >
+@@ -659 +715 @@ function WindowFrameContent({
 -                {/* Decorative tint only. The rail's own pointerdown starts the drag,
 +                {/* Decorative tint only. The rail's own input handler starts the drag,
-                     so this layer must never intercept a click aimed at the controls. */}
-                 {/* ── THE WINDOW'S COLOUR, ON ITS OWN CHROME ───────────────────
-                  *
-@@ -741,13 +796,13 @@
-                             <Pin className={CHROME_ICON.bar} />
-                         </button>
-                     )}
+@@ -679 +735 @@ function WindowFrameContent({
+-                <div className="mt-2 mb-4 shrink-0 relative group/glyph">
++                <div className="window-rail-glyph mt-2 mb-4 shrink-0 relative group/glyph">
+@@ -738 +794,27 @@ function WindowFrameContent({
+-                <div className="relative z-30 shrink-0 flex flex-col gap-3 w-full px-3 pb-4" onPointerDown={(e) => e.stopPropagation()}>
++                <div className="window-rail-actions relative z-30 flex flex-col w-full" data-no-window-drag
++                    onPointerDown={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}
++                    onDoubleClick={(e) => e.stopPropagation()}>
++                    {/* Host callbacks bind existing services. Absence is unavailable,
++                        never a fabricated successful BINS or Settings operation. */}
++                    {(props.onOpenSettings || props.onOpenChat || props.onOpenBins) && (
++                        <div className="window-utility-zone" role="group" aria-label={`${title} window utilities`}>
++                            <button type="button" data-window-utility="bins" className="window-utility-button"
++                                onClick={props.onOpenBins} disabled={typeof props.onOpenBins !== 'function'}
++                                title={props.onOpenBins ? 'Open BINS library' : 'BINS: authorized library binding is not connected'}
++                                aria-label={props.onOpenBins ? 'Open BINS library' : 'BINS library unavailable: not connected'}>
++                                <Database className={CHROME_ICON.bar} aria-hidden="true" />
++                            </button>
++                            <button type="button" data-window-utility="chat" className="window-utility-button"
++                                ref={props.chatButtonRef} onClick={props.onOpenChat} disabled={typeof props.onOpenChat !== 'function'}
++                                aria-expanded={props.chatOpen === true} aria-controls={props.chatPanelId}
++                                title="Open or restore @ibal" aria-label="Open or restore @ibal">
++                                <Sparkles className={CHROME_ICON.bar} aria-hidden="true" />
++                            </button>
++                            <button type="button" data-window-utility="settings" className="window-utility-button"
++                                onClick={props.onOpenSettings} disabled={typeof props.onOpenSettings !== 'function'}
++                                title="Settings" aria-label={`Open ${title} settings`}>
++                                <Settings className={CHROME_ICON.bar} aria-hidden="true" />
++                            </button>
++                        </div>
++                    )}
++                    <div className="window-lifecycle-controls" role="group" aria-label={`${title} window controls`}>
+@@ -744 +826 @@ function WindowFrameContent({
 -                    <button onClick={onMinimize} className="w-10 h-10 rounded-none hover:bg-foreground/[0.06] flex items-center justify-center text-muted-foreground hover:text-white transition-colors" title="Minimize">
 +                    <button onClick={onMinimize} className="w-10 h-10 rounded-none hover:bg-foreground/[0.06] flex items-center justify-center text-muted-foreground hover:text-white transition-colors" title="Minimize" aria-label="Minimize window">
-                         <Minus className={CHROME_ICON.bar} />
-                     </button>
+@@ -747 +829 @@ function WindowFrameContent({
 -                    <button onClick={toggleMaximize} className="w-10 h-10 rounded-none hover:bg-foreground/[0.06] flex items-center justify-center text-muted-foreground hover:text-white transition-colors" title={isMaximized ? "Restore" : "Maximize"}>
 +                    <button onClick={toggleMaximize} className="w-10 h-10 rounded-none hover:bg-foreground/[0.06] flex items-center justify-center text-muted-foreground hover:text-white transition-colors" title={isMaximized ? "Restore" : "Maximize"} aria-label={isMaximized ? "Restore window" : "Maximize window"} disabled={isNativeFullscreen}>
-                         {isMaximized ? <Minimize2 className={CHROME_ICON.bar} /> : <Maximize2 className={CHROME_ICON.bar} />}
-                     </button>
+@@ -750 +832 @@ function WindowFrameContent({
 -                    <button onClick={onClose} className="w-10 h-10 rounded-none hover:bg-[hsl(var(--color-warning))]/15 flex items-center justify-center text-muted-foreground hover:text-[hsl(var(--color-warning))] transition-colors" title="Close">
 +                    <button onClick={onClose} className="w-10 h-10 rounded-none hover:bg-[hsl(var(--color-warning))]/15 flex items-center justify-center text-muted-foreground hover:text-[hsl(var(--color-warning))] transition-colors" title="Close" aria-label="Close window">
-                         <X className={CHROME_ICON.bar} />
-                     </button>
-                 </div>
-@@ -782,11 +837,8 @@
-                        it — this paints over the glass and underneath the text,
-                        which is where a tint belongs. */
-                     style={{ boxShadow: `inset 0 0 0 999px ${accentCss(theme, 0.12)}` }}
+@@ -752,0 +835 @@ function WindowFrameContent({
++                    </div>
+@@ -785,5 +868,2 @@ function WindowFrameContent({
 -                    onPointerDown={(e) => {
 -                        onFocus(e);
 -                        if (!isMaximized) dragControls.start(e);
@@ -251,13 +197,7 @@
 -                    onDoubleClick={toggleMaximize}
 +                    {...chromeDragProps}
 +                    onDoubleClick={maximizeFromChrome}
-                 >
-                     <GripVertical className={cn(CHROME_ICON.bar, 'text-muted-foreground/70 shrink-0')} />
-                     {Icon && <Icon className={cn(CHROME_ICON.bar, 'shrink-0')} style={{ color: accentCss(theme, 0.95) }} />}
-@@ -812,6 +864,13 @@
-                         {identity.title}
-                     </span>
-                     <AttachedChips hostId={props.windowId} />
+@@ -814,0 +895,7 @@ function WindowFrameContent({
 +                    {titleBarActions && (
 +                        <div className="ml-auto shrink-0 flex items-center gap-2" data-no-window-drag
 +                            onPointerDown={(event) => event.stopPropagation()}
@@ -265,44 +205,29 @@
 +                            {titleBarActions}
 +                        </div>
 +                    )}
-                 </div>
-                 
-                 {/* Standard App Menu Bar */}
-@@ -821,6 +880,7 @@
-                         surfaceRef={props.chatTarget?.id || `surface:${title}`}
-                         workRef={props.chatTarget?.workRef || props.workRef || `surface:${title}`}
-                         artifactRef={props.artifactRef || null}
+@@ -823,0 +911 @@ function WindowFrameContent({
 +                        onSettings={props.onOpenSettings}
-                         className="opacity-50 hover:opacity-100 transition-opacity"
-                     />
-                 </div>
-@@ -884,11 +944,11 @@
-                 <div className={`h-8 border-t border-border xi-grid flex items-center px-4 justify-between text-[10px] font-mono text-muted-foreground/70 uppercase tracking-widest select-none ${hot ? 'xi-desktop-glass-hot' : 'xi-desktop-glass-chrome'}`}>
-                     <div className="flex items-center gap-4">
-                         <span className="flex items-center gap-2">WINDOW OPEN</span>
+@@ -863 +951,3 @@ function WindowFrameContent({
+-                    className="flex-1 min-h-0 overflow-hidden relative xi-grid flex flex-col lg:flex-row xi-articles-glass"
++                    data-chat-open={Boolean(dock.open && dock.binding?.id === props.chatTarget?.id)}
++                    data-chat-side={dock.side === 'left' ? 'left' : 'right'}
++                    className="xi-window-work-area flex-1 min-h-0 overflow-hidden relative xi-grid flex xi-articles-glass"
+@@ -865 +955 @@ function WindowFrameContent({
+-                    <div className="flex-1 min-h-0 min-w-0 overflow-hidden relative">{children}</div>
++                    <div className="xi-window-primary flex-1 min-h-0 min-w-0 overflow-hidden relative">{children}</div>
+@@ -880 +970 @@ function WindowFrameContent({
+-                    {props.chatTarget && <ChatDockSlot {...props.chatTarget} />}
++                    {props.chatTarget && <ChatDockSlot {...props.chatTarget} withinFrame />}
+@@ -887 +977 @@ function WindowFrameContent({
 -                        <span>RUNTIME: UNOBSERVED</span>
 +                        <span>{props.footerStatus || 'RUNTIME: UNOBSERVED'}</span>
-                     </div>
-                     <div className="flex items-center gap-2">
-                         <span>{window.isSecureContext ? 'HTTPS CONTEXT' : 'INSECURE CONTEXT'}</span>
+@@ -891 +981 @@ function WindowFrameContent({
 -                        <Settings className="w-3 h-3" />
-+                        {props.onOpenSettings ? <button type="button" className="window-settings-cog" title={`${title} settings`} aria-label={`Open ${title} settings`} onClick={props.onOpenSettings}><Settings className="w-4 h-4" /></button> : <Settings className="w-3 h-3" />}
-                     </div>
-                 </div>
-             </div>
-@@ -947,7 +1007,7 @@
-             <ContextMenuItem onSelect={onMinimize}>
-                 <Minus className="w-4 h-4 mr-2" /> Minimize
-             </ContextMenuItem>
++                        {/* Settings is in the persistent left utility zone, not this status footer. */}
+@@ -950 +1040 @@ function WindowFrameContent({
 -            <ContextMenuItem onSelect={toggleMaximize}>
 +            <ContextMenuItem onSelect={toggleMaximize} disabled={isNativeFullscreen}>
-                 {isMaximized
-                     ? <Minimize2 className="w-4 h-4 mr-2" />
-                     : <Maximize2 className="w-4 h-4 mr-2" />}
-@@ -965,4 +1025,4 @@
-         </ContextMenuContent>
-         </ContextMenu>
-     );
+@@ -968 +1058 @@ function WindowFrameContent({
 -}
 \ No newline at end of file
 +}

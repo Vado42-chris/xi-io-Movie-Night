@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { registerChatTarget, useChatDock, snapChat, setChatDragging } from '@/lib/chatDockStore';
 import { useWhiteLabel } from '@/lib/whiteLabelStore';
 import { compileWindowFormation } from '@/lib/windowFormation.mjs';
@@ -8,7 +9,7 @@ import { DEVICE } from '@/lib/chatSnap.mjs';
 /* `fill` is for a slot inside a small panel (an assistant sidebar) that has no
    room beside its content: the docked conversation takes the whole panel, and
    Undock gives the panel back. Without it the slot is a column at the edge. */
-export default function ChatDockSlot({ id, label, workRef, category = 'Work surface', coordinate = null, fill = false }) {
+export default function ChatDockSlot({ id, label, workRef, category = 'Work surface', coordinate = null, fill = false, withinFrame = false }) {
   const ref = useRef(null); const dock = useChatDock();
   const whiteLabel = useWhiteLabel();
   const device = useDeviceShape();
@@ -46,7 +47,7 @@ export default function ChatDockSlot({ id, label, workRef, category = 'Work surf
 
   /* Mobile registers the SAME target identity but does not render a second chat
    * projection. MobileLeftRail is the sole visual chat owner below 1024px. */
-  if (device !== DEVICE.DESKTOP) {
+  if (!withinFrame && device !== DEVICE.DESKTOP) {
     return <span ref={ref} hidden data-chat-drop-target={id} data-chat-registration-only="narrow" />;
   }
 
@@ -74,7 +75,7 @@ export default function ChatDockSlot({ id, label, workRef, category = 'Work surf
       className={bound
         ? `${fill
             ? 'xi-chat-dock xi-chat-dock-fill'
-            : `xi-chat-dock relative border-[hsl(var(--glass-edge))]/15 ${side === 'left' ? 'border-r lg:order-first' : 'border-l'}`} min-h-0 min-w-0 flex flex-col${whiteLabel ? ' xi-white-label' : ''}`
+            : `xi-chat-dock relative border-[hsl(var(--glass-edge))]/15 ${side === 'left' ? 'border-r order-first' : 'border-l'}`} min-h-0 min-w-0 flex flex-col${whiteLabel ? ' xi-white-label' : ''}`
         : offered
           ? `xi-chat-drop-target${whiteLabel ? ' xi-white-label' : ''}`
           : 'hidden'}
@@ -114,4 +115,32 @@ export default function ChatDockSlot({ id, label, workRef, category = 'Work surf
       {offered && <span className="xi-chat-drop-label">Snap chat to {label}</span>}
     </aside>
   );
+}
+
+/** Keep one existing conversation instance while its presentation moves.
+ * This owns DOM placement and focus only, never draft storage, Work or authority.
+ * Native cross-window undocking requires the existing host lifecycle separately.
+ */
+export function PersistentChatPortal({ children, panelId, target, fallbackRef, parkingRef, open, focusOnOpenRef, composerSelector }) {
+  const [container] = useState(() => {
+    const node = document.createElement('div');
+    node.id = panelId;
+    node.className = 'xi-chat-session';
+    return node;
+  });
+  useLayoutEffect(() => {
+    const destination = open ? (target || fallbackRef.current) : parkingRef.current;
+    if (!destination) return;
+    const focused = container.contains(document.activeElement) ? document.activeElement : null;
+    // Passing a new portal target would remount its React children. Move this
+    // stable DOM container instead, retaining state and any pending operation.
+    if (container.parentNode !== destination) destination.appendChild(container);
+    container.hidden = !open;
+    if (open && focusOnOpenRef.current) {
+      focusOnOpenRef.current = false;
+      container.querySelector(composerSelector)?.focus({ preventScroll: true });
+    } else if (open && focused?.isConnected) focused.focus({ preventScroll: true });
+  }, [container, target, open, fallbackRef, parkingRef, focusOnOpenRef, composerSelector]);
+  useLayoutEffect(() => () => container.remove(), [container]);
+  return createPortal(children, container, panelId);
 }

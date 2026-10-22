@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { createPortal } from 'react-dom';
 import { BrowserRouter } from 'react-router-dom';
 import { Film, Sparkles, Maximize2, Settings } from 'lucide-react';
 import { Toaster } from 'sonner';
 import WindowFrame from '@/components/desktop/WindowFrame';
+import { PersistentChatPortal } from '@/components/chat/ChatDockSlot';
 import { GridProvider } from '@/components/desktop/DesktopGridSystem';
 import { SnapGuideProvider } from '@/lib/snapGuide';
 import { useChatDock, setChatOpen, snapChat, setChatSide, setChatView } from '@/lib/chatDockStore';
@@ -51,8 +51,11 @@ function StudioMovieNight() {
   const [fullscreen, setFullscreen] = useState(false);
   const [nativeActive, setNativeActive] = useState(false);
   const [chatMount, setChatMount] = useState(null);
+  const chatParking = useRef(null);
+  const chatFallback = useRef(null);
+  const chatButton = useRef(null);
+  const focusChatOnOpen = useRef(false);
   const [selection, setSelection] = useState(null);
-  const [width, setWidth] = useState(innerWidth);
   const [hostError, setHostError] = useState('');
   const [nativeWindowState, setNativeWindowState] = useState(() => window.__MOVIE_NIGHT_WINDOW_STATE__ || { maximized: false, fullscreen: false, focused: true });
   const dock = useChatDock();
@@ -64,17 +67,12 @@ function StudioMovieNight() {
   materialRef.current = { glass, opacity: appearance.opacity };
 
   bridgeState.current.visible = paneVisible;
-  bridgeState.current.floatingChat = settingsOpen || Boolean(dock.open && !chatMount && (!native || width < 1024));
+  bridgeState.current.floatingChat = settingsOpen || Boolean(dock.open && !chatMount);
   useEffect(() => {
-    const changed = () => setWidth(innerWidth);
-    addEventListener('resize', changed);
-    return () => removeEventListener('resize', changed);
-  }, []);
-  useEffect(() => {
-    const slot = dock.open && dock.binding?.id === TARGET.id && width >= 1024
-      ? document.querySelector(`aside[data-chat-drop-target="${TARGET.id}"]`) : null;
+    const slot = dock.open && dock.binding?.id === TARGET.id
+      ? stage.current?.querySelector(`aside[data-chat-drop-target="${TARGET.id}"]`) : null;
     setChatMount(slot);
-  }, [dock.open, dock.binding?.id, dock.side, paneVisible, width]);
+  }, [dock.open, dock.binding?.id, dock.side, paneVisible]);
 
   function applyAppearance() {
     const material = materialRef.current;
@@ -191,11 +189,16 @@ function StudioMovieNight() {
   }, []);
 
   function openConcierge() {
+    focusChatOnOpen.current = true;
     setPaneVisible(true);
     // An explicit Ask action reveals the existing conversation at this app's
     // right edge. It never creates a new thread or a second docking system.
     if (dock.targets.some(target => target.id === TARGET.id)) snapChat(TARGET.id);
     setChatSide('right'); setChatView('foreground'); setChatOpen(true);
+  }
+  function closeConcierge() {
+    setChatOpen(false);
+    requestAnimationFrame(() => chatButton.current?.focus({ preventScroll: true }));
   }
   function openSettings() {
     setSettingsContext(nativeActive ? 'playback' : dock.open ? 'concierge' : wallContext.current);
@@ -210,29 +213,30 @@ function StudioMovieNight() {
     // Saving a collection only refreshes the catalogue. It never starts a film.
     wall.current?.contentWindow?.postMessage({ type: 'movie-night:library-updated', collectionId }, location.origin);
   }
-  const chat = <Concierge selection={selection} onOpenSettings={() => { setSettingsContext('concierge'); setSettingsOpen(true); }} onClose={() => setChatOpen(false)} onCollectionSaved={reloadWall} />;
+  const chat = <Concierge selection={selection} onOpenSettings={() => { setSettingsContext('concierge'); setSettingsOpen(true); }} onClose={closeConcierge} onCollectionSaved={reloadWall} />;
   const nativeFrame = native ? {
     maximized: nativeWindowState.maximized, fullscreen,
     startDragging: () => nativeWindowAction('drag'),
     startResize: direction => nativeWindowAction('resize', direction),
     toggleMaximize: () => nativeWindowAction('maximize'),
   } : undefined;
-  const titleActions = native ? <><button className="native-title-action native-settings-button" title="Movie Night settings" aria-label="Open Movie Night settings" onClick={openSettings}><Settings size={17} /></button><button className="native-title-action" title="Ask @ibal" aria-label="Ask @ibal" onClick={openConcierge}><Sparkles size={16} /><span>Ask @ibal</span></button><button className="native-title-action native-title-icon" title={fullscreen ? "Exit full screen" : "Full screen"} aria-label={fullscreen ? "Exit full screen" : "Full screen"} onClick={() => bridgeInvoke('toggle_movie_fullscreen').catch(() => setHostError('Full screen is unavailable.'))}><Maximize2 size={17} />{fullscreen && <span>Exit full screen</span>}</button></> : null;
+  const titleActions = native ? <><button className="native-title-action native-title-icon" title={fullscreen ? "Exit full screen" : "Full screen"} aria-label={fullscreen ? "Exit full screen" : "Full screen"} onClick={() => bridgeInvoke('toggle_movie_fullscreen').catch(() => setHostError('Full screen is unavailable.'))}><Maximize2 size={17} />{fullscreen && <span>Exit full screen</span>}</button></> : null;
 
   return <main className={`studio-app ${native ? 'studio-native' : ''} ${fullscreen ? 'studio-fullscreen' : ''}`} data-native-host={native} data-native-player-active={nativeActive}>
     {!native && <header className="studio-heading"><div className="studio-brand"><Film size={22} /><span>Movie Night</span><small>PERSONAL STUDIO</small></div><div className="studio-heading-actions"><span className="aries-status"><i />Aries</span><button className="shell-icon-button" aria-label="Open Movie Night settings" onClick={openSettings}><Settings size={19} /></button><button className="shell-button" onClick={openConcierge}><Sparkles size={18} />Ask @ibal</button></div></header>}
     <div className="studio-stage" ref={stage}>
       {!paneVisible && <div className="studio-empty"><Film size={42} /><h1>Your next movie night</h1><p>The wall is ready whenever you are.</p><button className="shell-primary" onClick={() => setPaneVisible(true)}>Open Movie Night</button></div>}
       <div className="movie-pane-wrap" style={{ display: paneVisible ? 'contents' : 'none' }}>
-        <WindowFrame title="Movie Night" category="Entertainment" icon={Film} theme="amber" appId="personal-movie-night" windowId="personal-movie-night-window" surfaceId="personal:movie-night" chatTarget={TARGET} lane={20} isActive={!native || nativeWindowState.focused !== false} onFocus={() => {}} onClose={closePane} onMinimize={minimizePane} onOpenSettings={openSettings} footerStatus="Aries · Local playback" nativeWindow={nativeFrame} titleBarActions={titleActions} constraintsRef={stage} initialPosition={initial.current.position} initialSize={initial.current.size} onGeometryChange={saveGeometry} tabs={[{ id: 'wall', label: 'Movie wall', icon: Film }]} activeTab="wall">
+        <WindowFrame title="Movie Night" category="Entertainment" icon={Film} theme="amber" appId="personal-movie-night" windowId="personal-movie-night-window" surfaceId="personal:movie-night" chatTarget={TARGET} lane={20} isActive={!native || nativeWindowState.focused !== false} onFocus={() => {}} onClose={closePane} onMinimize={minimizePane} onOpenSettings={openSettings} onOpenChat={openConcierge} chatOpen={dock.open} chatButtonRef={chatButton} chatPanelId="movie-night-concierge" footerStatus="Aries · Local playback" nativeWindow={nativeFrame} titleBarActions={titleActions} constraintsRef={stage} initialPosition={initial.current.position} initialSize={initial.current.size} onGeometryChange={saveGeometry} tabs={[{ id: 'wall', label: 'Movie wall', icon: Film }]} activeTab="wall">
           <div className={`movie-native-content ${native && dock.open && !chatMount ? 'with-concierge' : ''}`}>
             <iframe ref={wall} id="movie-wall" title="Movie Night wall and player controls" src="/?studio=1" allow="fullscreen" onLoad={connectWall} className="movie-wall-frame" />
-            {native && dock.open && !chatMount && <aside className="movie-native-concierge" aria-label="Movie concierge panel">{chat}</aside>}
+            {native && <aside ref={chatFallback} hidden={!dock.open || Boolean(chatMount)} className="movie-native-concierge" aria-label="Movie concierge panel" />}
           </div>
         </WindowFrame>
       </div>
-      {dock.open && chatMount && createPortal(chat, chatMount)}
-      {!native && dock.open && !chatMount && <WindowFrame title="@ibal · Movie concierge" category="Entertainment" icon={Sparkles} theme="teal" appId="movie-night-concierge" windowId="movie-night-concierge-window" lane={30} isActive onFocus={() => {}} onClose={() => setChatOpen(false)} onMinimize={() => setChatOpen(false)} constraintsRef={stage} initialPosition={{ x: Math.max(0, innerWidth - 500), y: 20 }} initialSize={{ width: Math.max(400, Math.min(470, innerWidth - 20)), height: Math.max(380, Math.min(740, innerHeight - 170)) }} tabs={[{ id: 'chat', label: 'Movie concierge', icon: Sparkles }]} activeTab="chat">{chat}</WindowFrame>}
+      <div ref={chatParking} hidden aria-hidden="true" />
+      <PersistentChatPortal panelId="movie-night-concierge" target={chatMount} fallbackRef={chatFallback} parkingRef={chatParking} open={dock.open} focusOnOpenRef={focusChatOnOpen} composerSelector="#concierge-prompt">{chat}</PersistentChatPortal>
+      {!native && <div style={{ display: dock.open && !chatMount ? 'contents' : 'none' }}><WindowFrame title="@ibal · Movie concierge" category="Entertainment" icon={Sparkles} theme="teal" appId="movie-night-concierge" windowId="movie-night-concierge-window" lane={30} isActive onFocus={() => {}} onClose={() => setChatOpen(false)} onMinimize={() => setChatOpen(false)} constraintsRef={stage} initialPosition={{ x: Math.max(0, innerWidth - 500), y: 20 }} initialSize={{ width: Math.max(400, Math.min(470, innerWidth - 20)), height: Math.max(380, Math.min(740, innerHeight - 170)) }} tabs={[{ id: 'chat', label: 'Movie concierge', icon: Sparkles }]} activeTab="chat"><div ref={chatFallback} className="xi-chat-session" /></WindowFrame></div>}
     </div>
     {!native && <footer className="studio-taskbar"><button className={`task-app ${paneVisible ? 'open' : ''}`} onClick={() => setPaneVisible(true)}><Film size={21} /><span>Movie Night</span><i /></button><button className={`task-app ${dock.open ? 'open' : ''}`} onClick={openConcierge}><Sparkles size={21} /><span>@ibal</span><i /></button><p>Choose a film. Make a night of it.</p></footer>}
     {hostError && <div className="host-error" role="status">{hostError}<button onClick={() => setHostError('')} aria-label="Dismiss notice">×</button></div>}
