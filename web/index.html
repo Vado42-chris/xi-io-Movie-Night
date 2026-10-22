@@ -45,7 +45,7 @@
           <div class="library-navigation" aria-label="Choose what to browse">
             <div class="library-tabs">
               <button type="button" data-collection="curated" class="library-tab is-active">My collections</button>
-              <button type="button" data-collection="nuvio-library" class="library-tab">Nuvio library</button>
+              <button type="button" data-collection="library" class="library-tab">Library</button>
               <button type="button" data-collection="personal-favorites" class="library-tab">Favorites <span id="favorite-count">0</span></button>
               <button type="button" data-collection="personal-recent" class="library-tab">Recent</button>
               <button type="button" data-collection="browse-movie" class="library-tab">All movies</button>
@@ -75,6 +75,23 @@
               <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.6"/><path d="m16 16 4.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
               <label class="visually-hidden" for="film-search">Filter loaded titles by name, year, or genre</label>
               <input id="film-search" type="search" placeholder="Filter loaded titles…" autocomplete="off" spellcheck="false" disabled>
+            </div>
+            <div class="select-field provider-field">
+              <label for="provider-filter">Provider</label>
+              <select id="provider-filter" aria-describedby="provider-filter-help" disabled>
+                <option value="">All sources</option>
+                <optgroup label="Available sources">
+                  <option value="nuvio">Nuvio · imported library</option>
+                  <option value="cinemeta">Cinemeta · catalogue</option>
+                </optgroup>
+                <optgroup label="Not connected">
+                  <option value="youtube" disabled>YouTube · not connected</option>
+                  <option value="prime" disabled>Prime Video · not connected</option>
+                  <option value="netflix" disabled>Netflix · not connected</option>
+                  <option value="disney" disabled>Disney+ · not connected</option>
+                </optgroup>
+              </select>
+              <span id="provider-filter-help" class="visually-hidden">Filter by where titles came from. A library entry does not establish subscription or playback access.</span>
             </div>
             <div class="select-field">
               <label for="genre-filter">Genre</label>

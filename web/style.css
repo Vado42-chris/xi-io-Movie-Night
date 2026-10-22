@@ -464,3 +464,10 @@ body.detail-open { overflow: hidden; }
 #carousel-load-more { display: flex; margin: 16px auto; }
 @media(max-width:620px) { .carousel-cards { gap: 8px; grid-template-columns: minmax(0,1fr) minmax(0,1.55fr) minmax(0,1fr); } .carousel-neighbor { transform: scale(.93); } .carousel-card strong { font-size: 10px; } .carousel-direction { font-size: 8px; letter-spacing: 1px; } .detail-filter-controls .browse-toolbar { padding: 0; } .carousel-hint { font-size: 10px; } }
 @media(prefers-reduced-motion:reduce) { .carousel-neighbor { transition: none; } }
+
+/* Provider is an independent facet, shared by wall and selection carousel. */
+.browse-toolbar { flex-wrap:wrap; }
+.browse-toolbar .search-field { flex:1 1 300px; min-width:0; }
+.browse-toolbar .provider-field { flex:1 1 210px; min-width:0; }
+.provider-field select { min-width:0; max-width:260px; text-overflow:ellipsis; }
+@media(max-width:620px) { .browse-toolbar .search-field { flex-basis:100%; } .browse-toolbar .provider-field { flex-basis:100%; } .provider-field select { flex:1; max-width:100%; } }

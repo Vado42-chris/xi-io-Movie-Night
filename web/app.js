@@ -21,8 +21,9 @@
   let favoriteKeys = new Set();
   let watchedKeys = new Set();
   let historyByKey = new Map();
+  let providerMembership = new Map();
   const favoritePending = new Set();
-  const defaultFilters = () => ({ yearFrom: "", yearTo: "", include: [], exclude: [], genreMode: "any", rating: 0, runtime: "", type: "", watch: "" });
+  const defaultFilters = () => ({ yearFrom: "", yearTo: "", include: [], exclude: [], genreMode: "any", rating: 0, runtime: "", type: "", watch: "", provider: "" });
   let filters = defaultFilters();
   const savedViewsKey = "movie-night.filter-views.v1";
   let savedViews = [];
@@ -368,7 +369,7 @@
   }
 
   function setControlsEnabled(enabled) {
-    [elements.search, elements.genre, elements.sort, elements.picker].forEach((element) => {
+    [elements.search, elements.genre, elements.sort, elements.picker, byId("provider-filter")].forEach((element) => {
       element.disabled = !enabled;
     });
   }
@@ -516,7 +517,11 @@
     const imported = personalLibrary.collections.some((item) => item.id === "nuvio-library") ? personalLibrary.collections : [
       ...personalLibrary.collections, { id: "nuvio-library", kind: "imported", name: "Your Nuvio library.", description: "Bring the titles you’ve collected in Nuvio into Movie Night.", movies: [] },
     ];
-    const combined = [...curatedCollections, ...imported,
+    const libraryRows = new Map();
+    for (const item of imported) for (const movie of item.movies) if (!libraryRows.has(movieKey(movie))) libraryRows.set(movieKey(movie), movie);
+    const combined = [...curatedCollections,
+      { id: "library", kind: "library", name: "Your library", description: "Saved titles across your sources. Choose a provider separately from genre, year or title type.", movies: [...libraryRows.values()] },
+      ...imported.filter(item => item.id !== "nuvio-library"),
       { id: "personal-favorites", kind: "personal", name: "The ones you love.", description: "Your favorites, together in one place. Save a heart whenever something catches your eye.", movies: personalLibrary.favorites },
       { id: "personal-recent", kind: "personal", name: "Pick up the story.", description: "Your recently watched titles, imported from Nuvio. Movie playback uses your existing Aries player.", movies: personalLibrary.recent },
       ...Object.values(browseCollections)];
@@ -624,6 +629,8 @@
   }
 
   function selectCollection(target) {
+    // Preserve old saved-view/startup IDs without keeping a provider as a category.
+    if (target === "nuvio-library") { target = "library"; filters.provider = "nuvio"; }
     collection = (typeof target === "number" ? collections[target] : collections.find((item) => item.id === target)) || collections[0];
     if (!collection) return;
     elements.picker.value = collection.id;
@@ -785,6 +792,7 @@
   }
 
   function syncFilterControls() {
+    byId("provider-filter").value = filters.provider;
     for (const [id, key] of [["filter-year-from", "yearFrom"], ["filter-year-to", "yearTo"], ["filter-genre-mode", "genreMode"], ["filter-rating", "rating"], ["filter-runtime", "runtime"], ["filter-type", "type"], ["filter-watch", "watch"]]) byId(id).value = String(filters[key]);
     byId("filter-rating-value").textContent = filters.rating ? `${Number(filters.rating).toFixed(1)}+` : "Any";
     renderGenreOptions();
@@ -805,6 +813,7 @@
   }
 
   function matchesFilters(movie, terms, genre) {
+    if (filters.provider && !providerMembership.get(movieKey(movie))?.has(filters.provider)) return false;
     if (genre && !movie.genres.includes(genre)) return false;
     if (!terms.every((term) => movie.searchText.includes(term))) return false;
     if (filters.yearFrom !== "" && (!movie.year || movie.year < Number(filters.yearFrom))) return false;
@@ -823,6 +832,7 @@
   function filterChips() {
     const chips = [];
     const add = (label, clear) => chips.push({ label, clear });
+    if (filters.provider) add(`Provider: ${filters.provider === 'nuvio' ? 'Nuvio' : 'Cinemeta'}`, () => { filters.provider = ''; });
     if (elements.search.value.trim()) add(`“${elements.search.value.trim()}”`, () => { elements.search.value = ""; });
     if (elements.genre.value) add(elements.genre.value, () => { elements.genre.value = ""; });
     if (filters.yearFrom !== "" || filters.yearTo !== "") add(`${filters.yearFrom || "Any year"} – ${filters.yearTo || "any year"}`, () => { filters.yearFrom = filters.yearTo = ""; });
@@ -869,7 +879,8 @@
       include: genres(value.include), exclude: genres(value.exclude), genreMode: value.genreMode === "all" ? "all" : "any",
       rating: Number(numeric(value.rating, 0, 10)) || 0, runtime: numeric(value.runtime, 1, 1440),
       type: ["movie", "series"].includes(value.type) ? value.type : "",
-      watch: ["favorites", "watching", "watched", "unwatched"].includes(value.watch) ? value.watch : "" };
+      watch: ["favorites", "watching", "watched", "unwatched"].includes(value.watch) ? value.watch : "",
+      provider: ["nuvio", "cinemeta"].includes(value.provider) ? value.provider : "" };
   }
 
   function renderSavedViews() {
@@ -1010,8 +1021,23 @@
     return tile;
   }
 
+  function refreshProviderMembership() {
+    // A view over existing records, not a new provider/entitlement registry.
+    const next = new Map();
+    const add = (movies, id) => movies.forEach(movie => {
+      const key = movieKey(movie);
+      if (!next.has(key)) next.set(key, new Set());
+      next.get(key).add(id);
+    });
+    for (const source of personalLibrary.collections) if (source.id === 'nuvio-library') add(source.movies, 'nuvio');
+    for (const source of Object.values(browseCollections)) add(source.movies, 'cinemeta');
+    providerMembership = next;
+  }
+
   function renderFilms() {
     if (!collection) return;
+    refreshProviderMembership();
+    byId("provider-filter").value = filters.provider;
     const terms = normalize(elements.search.value.trim()).split(/\s+/).filter(Boolean);
     const genre = elements.genre.value;
     const sort = elements.sort.value;
@@ -1045,7 +1071,7 @@
     elements.error.hidden = true;
     elements.grid.setAttribute("aria-busy", String(collection.loading === true));
     byId("empty-title").textContent = filtered ? "Nothing quite fits yet." : collection.id === "personal-favorites" ? "Make room for your favorites." : collection.id === "personal-recent" ? "Your next chapter starts here." : "No titles to show yet.";
-    byId("empty-description").textContent = filtered ? "Try widening the years or removing a filter. You can also load more catalogue results." : collection.id === "personal-favorites" ? "Tap a heart on any poster to keep it here." : collection.kind === "personal" || collection.kind === "imported" ? "Import your Nuvio library to bring your titles and viewing history across." : collection.error || "Try another catalogue search.";
+    byId("empty-description").textContent = filtered ? "Try widening the years or removing a filter. You can also load more catalogue results." : collection.id === "personal-favorites" ? "Tap a heart on any poster to keep it here." : collection.kind === "personal" || collection.kind === "imported" || collection.kind === "library" ? "Import your Nuvio library to bring your titles and viewing history across." : collection.error || "Try another catalogue search.";
     byId("empty-reset").hidden = !filtered;
     byId("browse-more").hidden = collection.kind !== "browse";
     if (collection.kind === "browse") {
@@ -1589,6 +1615,10 @@
 
   elements.search.addEventListener("input", renderFilms);
   elements.genre.addEventListener("change", renderFilms);
+  byId("provider-filter").addEventListener("change", () => {
+    filters.provider = byId("provider-filter").value;
+    renderFilms();
+  });
   elements.sort.addEventListener("change", renderFilms);
   elements.picker.addEventListener("change", () => selectCollection(elements.picker.value));
   document.querySelectorAll("[data-collection]").forEach((button) => button.addEventListener("click", () => {
