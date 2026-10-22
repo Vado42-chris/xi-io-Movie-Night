@@ -21,3 +21,6 @@ Do not touch Nuvio settings/credentials; do not start films during tests; do not
 
 ## Current bounded evidence
 See docs/ops/SELECTION-CONCIERGE-20261022.md. Browser tests use isolated storage and intercepted media routes. Local Ollama inference was real; native host commands in those browser tests were simulated. Settings-declaration consolidation, suite Work/CRM identity and AI Mail return qualification remain separate open obligations, not implied by these passes. No new suite audit or tracker has been created.
+
+## Settings declaration increment, 2026-10-22
+Python, React and the wall now consume xiio/settings.schema.json through the manifest. Scoped reset, import/export permissions and persistence use that declaration without changing movie-night.settings/v1. 32 isolated tests pass, including Python/browser validation parity and a fresh-process catalogue gate effect after save/reset; the shell build passes. These are not independent native restart qualification or shared Studio/DataForge registration. Provider filter and reusable filter-cube home views are the next app slice. Existing suite owners retain shared-frame, settings catalogue and chroma custody.

@@ -1,0 +1,617 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:xiio:movie-night:settings:1",
+  "title": "Movie Night preferences",
+  "description": "One app-owned settings declaration. Shared catalogue admission is separate.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "appearance",
+    "browsing",
+    "playback",
+    "plugins",
+    "concierge"
+  ],
+  "properties": {
+    "appearance": {
+      "title": "Appearance",
+      "description": "Set the window material and the strength of its background.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "opacity"
+      ],
+      "properties": {
+        "mode": {
+          "title": "Window material",
+          "description": "Glass lets the desktop show through the background. Text, posters and video stay solid.",
+          "type": "string",
+          "default": "glass",
+          "enum": [
+            "glass",
+            "solid"
+          ],
+          "x-xiio": {
+            "owner": "xi_io_movie_night",
+            "scope": "application-on-device",
+            "read_binding": "movie-night.settings.read",
+            "write_binding": "movie-night.settings.write",
+            "pointer": "/appearance/mode",
+            "permissions": {
+              "read": "LOCAL_OWNER",
+              "write": "LOCAL_OWNER_SAME_ORIGIN"
+            },
+            "operations": {
+              "import": true,
+              "export": true,
+              "reset": true
+            },
+            "control": {
+              "type": "select",
+              "option_labels": {
+                "glass": "Glass",
+                "solid": "Solid"
+              }
+            },
+            "effect": {
+              "consumer_ref": "studio-shell/src/main.jsx#applyAppearance",
+              "apply_when": "live-preview-and-save",
+              "restart_verification": "NOT_VERIFIED"
+            }
+          }
+        },
+        "opacity": {
+          "title": "Background opacity",
+          "description": "Lower values reveal more of the desktop. Preview changes here before saving.",
+          "type": "integer",
+          "default": 82,
+          "minimum": 60,
+          "maximum": 95,
+          "x-xiio": {
+            "owner": "xi_io_movie_night",
+            "scope": "application-on-device",
+            "read_binding": "movie-night.settings.read",
+            "write_binding": "movie-night.settings.write",
+            "pointer": "/appearance/opacity",
+            "permissions": {
+              "read": "LOCAL_OWNER",
+              "write": "LOCAL_OWNER_SAME_ORIGIN"
+            },
+            "operations": {
+              "import": true,
+              "export": true,
+              "reset": true
+            },
+            "control": {
+              "type": "range",
+              "step": 1,
+              "suffix": "%"
+            },
+            "effect": {
+              "consumer_ref": "studio-shell/src/main.jsx#applyAppearance",
+              "apply_when": "live-preview-and-save",
+              "restart_verification": "NOT_VERIFIED"
+            }
+          }
+        }
+      },
+      "x-xiio": {
+        "icon": "Layers"
+      }
+    },
+    "browsing": {
+      "title": "Browsing",
+      "description": "Choose how your wall opens and how titles are presented.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start_view",
+        "catalog",
+        "card_size",
+        "show_ratings"
+      ],
+      "properties": {
+        "start_view": {
+          "title": "Open Movie Night to",
+          "description": "Applies the next time the wall opens.",
+          "type": "string",
+          "default": "curated",
+          "enum": [
+            "curated",
+            "browse-movie",
+            "browse-series",
+            "nuvio-library",
+            "personal-favorites",
+            "personal-recent"
+          ],
+          "x-xiio": {
+            "owner": "xi_io_movie_night",
+            "scope": "application-on-device",
+            "read_binding": "movie-night.settings.read",
+            "write_binding": "movie-night.settings.write",
+            "pointer": "/browsing/start_view",
+            "permissions": {
+              "read": "LOCAL_OWNER",
+              "write": "LOCAL_OWNER_SAME_ORIGIN"
+            },
+            "operations": {
+              "import": true,
+              "export": true,
+              "reset": true
+            },
+            "control": {
+              "type": "select",
+              "option_labels": {
+                "curated": "My collections",
+                "browse-movie": "All movies",
+                "browse-series": "TV series",
+                "nuvio-library": "Nuvio library",
+                "personal-favorites": "Favorites",
+                "personal-recent": "Recent"
+              }
+            },
+            "effect": {
+              "consumer_ref": "web/app.js#applyWallSettings",
+              "apply_when": "live-or-next-open-as-described",
+              "restart_verification": "NOT_VERIFIED"
+            }
+          }
+        },
+        "catalog": {
+          "title": "Default catalogue",
+          "description": "Used for Movies or TV the next time the wall opens.",
+          "type": "string",
+          "default": "top",
+          "enum": [
+            "top",
+            "imdbRating",
+            "year"
+          ],
+          "x-xiio": {
+            "owner": "xi_io_movie_night",
+            "scope": "application-on-device",
+            "read_binding": "movie-night.settings.read",
+            "write_binding": "movie-night.settings.write",
+            "pointer": "/browsing/catalog",
+            "permissions": {
+              "read": "LOCAL_OWNER",
+              "write": "LOCAL_OWNER_SAME_ORIGIN"
+            },
+            "operations": {
+              "import": true,
+              "export": true,
+              "reset": true
+            },
+            "control": {
+              "type": "select",
+              "option_labels": {
+                "top": "Popular",
+                "imdbRating": "Featured",
+                "year": "By year"
+              }
+            },
+            "effect": {
+              "consumer_ref": "web/app.js#applyWallSettings",
+              "apply_when": "live-or-next-open-as-described",
+              "restart_verification": "NOT_VERIFIED"
+            }
+          }
+        },
+        "card_size": {
+          "title": "Poster size",
+          "description": "Adjust the number of posters that fit across your wall.",
+          "type": "string",
+          "default": "comfortable",
+          "enum": [
+            "compact",
+            "comfortable",
+            "large"
+          ],
+          "x-xiio": {
+            "owner": "xi_io_movie_night",
+            "scope": "application-on-device",
+            "read_binding": "movie-night.settings.read",
+            "write_binding": "movie-night.settings.write",
+            "pointer": "/browsing/card_size",
+            "permissions": {
+              "read": "LOCAL_OWNER",
+              "write": "LOCAL_OWNER_SAME_ORIGIN"
+            },
+            "operations": {
+              "import": true,
+              "export": true,
+              "reset": true
+            },
+            "control": {
+              "type": "select",
+              "option_labels": {
+                "compact": "Compact",
+                "comfortable": "Comfortable",
+                "large": "Large"
+              }
+            },
+            "effect": {
+              "consumer_ref": "web/app.js#applyWallSettings",
+              "apply_when": "live-or-next-open-as-described",
+              "restart_verification": "NOT_VERIFIED"
+            }
+          }
+        },
+        "show_ratings": {
+          "title": "Show ratings",
+          "description": "Display available ratings below the posters.",
+          "type": "boolean",
+          "default": true,
+          "x-xiio": {
+            "owner": "xi_io_movie_night",
+            "scope": "application-on-device",
+            "read_binding": "movie-night.settings.read",
+            "write_binding": "movie-night.settings.write",
+            "pointer": "/browsing/show_ratings",
+            "permissions": {
+              "read": "LOCAL_OWNER",
+              "write": "LOCAL_OWNER_SAME_ORIGIN"
+            },
+            "operations": {
+              "import": true,
+              "export": true,
+              "reset": true
+            },
+            "control": {
+              "type": "toggle"
+            },
+            "effect": {
+              "consumer_ref": "web/app.js#applyWallSettings",
+              "apply_when": "live-or-next-open-as-described",
+              "restart_verification": "NOT_VERIFIED"
+            }
+          }
+        }
+      },
+      "x-xiio": {
+        "icon": "Film"
+      }
+    },
+    "playback": {
+      "title": "Playback",
+      "description": "Choose your source preferences and playback defaults.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "preferred_quality",
+        "prefer_small_encodes",
+        "default_volume",
+        "seek_seconds"
+      ],
+      "properties": {
+        "preferred_quality": {
+          "title": "Preferred source quality",
+          "description": "Applies when choosing a new movie. Other cached qualities remain available as a fallback.",
+          "type": "string",
+          "default": "balanced",
+          "enum": [
+            "balanced",
+            "2160p",
+            "1080p",
+            "720p"
+          ],
+          "x-xiio": {
+            "owner": "xi_io_movie_night",
+            "scope": "application-on-device",
+            "read_binding": "movie-night.settings.read",
+            "write_binding": "movie-night.settings.write",
+            "pointer": "/playback/preferred_quality",
+            "permissions": {
+              "read": "LOCAL_OWNER",
+              "write": "LOCAL_OWNER_SAME_ORIGIN"
+            },
+            "operations": {
+              "import": true,
+              "export": true,
+              "reset": true
+            },
+            "control": {
+              "type": "select",
+              "option_labels": {
+                "balanced": "Balanced",
+                "2160p": "4K · 2160p",
+                "1080p": "Full HD · 1080p",
+                "720p": "HD · 720p"
+              }
+            },
+            "effect": {
+              "consumer_ref": "player/aries_adapter.py#Player.play",
+              "apply_when": "next-explicit-play-or-skip",
+              "restart_verification": "NOT_VERIFIED"
+            }
+          }
+        },
+        "prefer_small_encodes": {
+          "title": "Prefer smaller encodes",
+          "description": "Prefer lighter encodes over large remux files within the source selection order.",
+          "type": "boolean",
+          "default": true,
+          "x-xiio": {
+            "owner": "xi_io_movie_night",
+            "scope": "application-on-device",
+            "read_binding": "movie-night.settings.read",
+            "write_binding": "movie-night.settings.write",
+            "pointer": "/playback/prefer_small_encodes",
+            "permissions": {
+              "read": "LOCAL_OWNER",
+              "write": "LOCAL_OWNER_SAME_ORIGIN"
+            },
+            "operations": {
+              "import": true,
+              "export": true,
+              "reset": true
+            },
+            "control": {
+              "type": "toggle"
+            },
+            "effect": {
+              "consumer_ref": "player/aries_adapter.py#Player.play",
+              "apply_when": "next-explicit-play-or-skip",
+              "restart_verification": "NOT_VERIFIED"
+            }
+          }
+        },
+        "default_volume": {
+          "title": "Starting volume",
+          "description": "Used for the next movie you start. Saving does not change a movie already playing.",
+          "type": "integer",
+          "default": 100,
+          "minimum": 0,
+          "maximum": 100,
+          "x-xiio": {
+            "owner": "xi_io_movie_night",
+            "scope": "application-on-device",
+            "read_binding": "movie-night.settings.read",
+            "write_binding": "movie-night.settings.write",
+            "pointer": "/playback/default_volume",
+            "permissions": {
+              "read": "LOCAL_OWNER",
+              "write": "LOCAL_OWNER_SAME_ORIGIN"
+            },
+            "operations": {
+              "import": true,
+              "export": true,
+              "reset": true
+            },
+            "control": {
+              "type": "range",
+              "step": 5,
+              "suffix": "%"
+            },
+            "effect": {
+              "consumer_ref": "player/aries_adapter.py#Player.play",
+              "apply_when": "next-explicit-play-or-skip",
+              "restart_verification": "NOT_VERIFIED"
+            }
+          }
+        },
+        "seek_seconds": {
+          "title": "Skip interval",
+          "description": "Sets the distance for the player’s back and forward buttons.",
+          "type": "integer",
+          "default": 10,
+          "enum": [
+            5,
+            10,
+            30
+          ],
+          "x-xiio": {
+            "owner": "xi_io_movie_night",
+            "scope": "application-on-device",
+            "read_binding": "movie-night.settings.read",
+            "write_binding": "movie-night.settings.write",
+            "pointer": "/playback/seek_seconds",
+            "permissions": {
+              "read": "LOCAL_OWNER",
+              "write": "LOCAL_OWNER_SAME_ORIGIN"
+            },
+            "operations": {
+              "import": true,
+              "export": true,
+              "reset": true
+            },
+            "control": {
+              "type": "select-number",
+              "option_labels": {
+                "5": "5 seconds",
+                "10": "10 seconds",
+                "30": "30 seconds"
+              }
+            },
+            "effect": {
+              "consumer_ref": "player/aries_adapter.py#Player.play",
+              "apply_when": "next-explicit-play-or-skip",
+              "restart_verification": "NOT_VERIFIED"
+            }
+          }
+        }
+      },
+      "x-xiio": {
+        "icon": "SlidersHorizontal"
+      }
+    },
+    "plugins": {
+      "title": "Plugins & connections",
+      "description": "Manage the services Movie Night uses on Aries.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "torrentio_enabled",
+        "cinemeta_enabled",
+        "ollama_enabled"
+      ],
+      "properties": {
+        "cinemeta_enabled": {
+          "title": "Cinemeta catalogues",
+          "description": "Movie and TV discovery, cover art and title details. No API key is required.",
+          "type": "boolean",
+          "default": true,
+          "x-xiio": {
+            "owner": "xi_io_movie_night",
+            "scope": "application-on-device",
+            "read_binding": "movie-night.settings.read",
+            "write_binding": "movie-night.settings.write",
+            "pointer": "/plugins/cinemeta_enabled",
+            "permissions": {
+              "read": "LOCAL_OWNER",
+              "write": "LOCAL_OWNER_SAME_ORIGIN"
+            },
+            "operations": {
+              "import": true,
+              "export": true,
+              "reset": true
+            },
+            "control": {
+              "type": "toggle"
+            },
+            "effect": {
+              "consumer_ref": "app_settings.py#plugin_status",
+              "apply_when": "next-provider-request",
+              "restart_verification": "NOT_VERIFIED"
+            }
+          }
+        },
+        "torrentio_enabled": {
+          "title": "Torrentio with Real-Debrid",
+          "description": "Use the existing connection to find cached sources when you select a movie.",
+          "type": "boolean",
+          "default": true,
+          "x-xiio": {
+            "owner": "xi_io_movie_night",
+            "scope": "application-on-device",
+            "read_binding": "movie-night.settings.read",
+            "write_binding": "movie-night.settings.write",
+            "pointer": "/plugins/torrentio_enabled",
+            "permissions": {
+              "read": "LOCAL_OWNER",
+              "write": "LOCAL_OWNER_SAME_ORIGIN"
+            },
+            "operations": {
+              "import": true,
+              "export": true,
+              "reset": true
+            },
+            "control": {
+              "type": "toggle"
+            },
+            "effect": {
+              "consumer_ref": "app_settings.py#plugin_status",
+              "apply_when": "next-provider-request",
+              "restart_verification": "NOT_VERIFIED"
+            }
+          }
+        },
+        "ollama_enabled": {
+          "title": "Ollama concierge",
+          "description": "Allow @ibal to use the local Ollama service for list suggestions.",
+          "type": "boolean",
+          "default": true,
+          "x-xiio": {
+            "owner": "xi_io_movie_night",
+            "scope": "application-on-device",
+            "read_binding": "movie-night.settings.read",
+            "write_binding": "movie-night.settings.write",
+            "pointer": "/plugins/ollama_enabled",
+            "permissions": {
+              "read": "LOCAL_OWNER",
+              "write": "LOCAL_OWNER_SAME_ORIGIN"
+            },
+            "operations": {
+              "import": true,
+              "export": true,
+              "reset": true
+            },
+            "control": {
+              "type": "toggle"
+            },
+            "effect": {
+              "consumer_ref": "app_settings.py#plugin_status",
+              "apply_when": "next-provider-request",
+              "restart_verification": "NOT_VERIFIED"
+            }
+          }
+        }
+      },
+      "x-xiio": {
+        "icon": "Plug"
+      }
+    },
+    "concierge": {
+      "title": "@ibal concierge",
+      "description": "Choose the installed local model that helps curate your lists.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model"
+      ],
+      "properties": {
+        "model": {
+          "title": "Ollama model",
+          "description": "Choose an installed model. Changes apply to your next concierge request.",
+          "type": "string",
+          "default": "llama3.1:8b",
+          "minLength": 1,
+          "maxLength": 160,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]*(?:/[A-Za-z0-9][A-Za-z0-9_.-]*)?(?::[A-Za-z0-9][A-Za-z0-9_.-]*)?(?![\\s\\S])",
+          "x-xiio": {
+            "owner": "xi_io_movie_night",
+            "scope": "application-on-device",
+            "read_binding": "movie-night.settings.read",
+            "write_binding": "movie-night.settings.write",
+            "pointer": "/concierge/model",
+            "permissions": {
+              "read": "LOCAL_OWNER",
+              "write": "LOCAL_OWNER_SAME_ORIGIN"
+            },
+            "operations": {
+              "import": true,
+              "export": true,
+              "reset": true
+            },
+            "control": {
+              "type": "model"
+            },
+            "effect": {
+              "consumer_ref": "concierge.py#chat",
+              "apply_when": "next-concierge-request",
+              "restart_verification": "NOT_VERIFIED"
+            }
+          }
+        }
+      },
+      "x-xiio": {
+        "icon": "Sparkles"
+      }
+    }
+  },
+  "x-xiio": {
+    "declaration_version": "1.0.0",
+    "owner": "xi_io_movie_night",
+    "record_schema": "movie-night.settings/v1",
+    "maximum_revision": 9007199254740990,
+    "private_format_changed": false,
+    "scope": "application-on-device",
+    "binding_registry": "app_settings.py#SETTINGS_BINDINGS",
+    "read": "movie-night.settings.read",
+    "write": "movie-night.settings.write",
+    "reset": "movie-night.settings.reset",
+    "import": "movie-night.settings.import",
+    "export": "movie-night.settings.export",
+    "catalogue_registration_state": "UNVERIFIED",
+    "dataforge_registration_state": "UNVERIFIED",
+    "restart_effect_qualification": "REQUIRED_NOT_IMPLIED_BY_SCHEMA",
+    "section_order": [
+      "browsing",
+      "appearance",
+      "playback",
+      "plugins",
+      "concierge"
+    ]
+  }
+}

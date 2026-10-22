@@ -27,6 +27,7 @@ STUDIO_WEB = ROOT / "studio-web"
 SAFE_ID = re.compile(r"^[a-zA-Z0-9_-]+$")
 IMDB_ID = re.compile(r"^tt[0-9]+$")
 ASSETS = {
+    "/settings-contract.mjs": ("settings-contract.mjs", "text/javascript; charset=utf-8"),
     "/": ("index.html", "text/html; charset=utf-8"),
     "/index.html": ("index.html", "text/html; charset=utf-8"),
     "/style.css": ("style.css", "text/css; charset=utf-8"),

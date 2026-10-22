@@ -95,6 +95,11 @@
         "artifact_type": "shared_shell",
         "path": "docs/architecture/shared-shell-foundation.md",
         "status": "generated_draft"
+      },
+      {
+        "artifact_type": "settings_declaration",
+        "path": "xiio/settings.schema.json",
+        "status": "source_evidence_available"
       }
     ],
     "hydration_report_path": "docs/ops/PROJECT-STARTUP-xi_io_movie_night-2026-10-22.md",

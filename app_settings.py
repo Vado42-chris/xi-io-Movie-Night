@@ -16,18 +16,13 @@ from pathlib import Path
 from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_opener
 
+from settings_contract import DECLARATION, accepts, defaults
+
 STORE = Path.home() / "Documents/Personal-Movies/movie-night-runtime/app-settings.json"
-SCHEMA = "movie-night.settings/v1"
+SCHEMA = DECLARATION["x-xiio"]["record_schema"]
 MAX_BYTES = 16384
-MAX_REVISION = 9007199254740990
-MODEL_TAG = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]*(?:/[A-Za-z0-9][A-Za-z0-9_.-]*)?(?::[A-Za-z0-9][A-Za-z0-9_.-]*)?\Z")
-DEFAULTS = {
-    "appearance": {"mode": "glass", "opacity": 82},
-    "browsing": {"start_view": "curated", "catalog": "top", "card_size": "comfortable", "show_ratings": True},
-    "playback": {"preferred_quality": "balanced", "prefer_small_encodes": True, "default_volume": 100, "seek_seconds": 10},
-    "plugins": {"torrentio_enabled": True, "cinemeta_enabled": True, "ollama_enabled": True},
-    "concierge": {"model": "llama3.1:8b"},
-}
+MAX_REVISION = DECLARATION["x-xiio"]["maximum_revision"]
+DEFAULTS = defaults(DECLARATION)
 _lock = threading.RLock()
 
 
@@ -46,7 +41,7 @@ def _unavailable():
 
 
 def valid_model_tag(value):
-    return isinstance(value, str) and 1 <= len(value) <= 160 and MODEL_TAG.fullmatch(value) is not None
+    return accepts(DECLARATION["properties"]["concierge"]["properties"]["model"], value)
 
 
 def _integer(value, minimum, maximum):
@@ -54,24 +49,8 @@ def _integer(value, minimum, maximum):
 
 
 def validate(settings):
-    """Require the complete known schema, with no URLs, secrets or free-form hosts."""
-    if not isinstance(settings, dict) or set(settings) != set(DEFAULTS):
-        raise _invalid()
-    for section, values in DEFAULTS.items():
-        if not isinstance(settings[section], dict) or set(settings[section]) != set(values):
-            raise _invalid()
-    a, b, p, plugins, c = (settings[key] for key in DEFAULTS)
-    if (a["mode"] not in ("glass", "solid") or not _integer(a["opacity"], 60, 95)
-            or b["start_view"] not in ("curated", "browse-movie", "browse-series", "nuvio-library", "personal-favorites", "personal-recent")
-            or b["catalog"] not in ("top", "imdbRating", "year")
-            or b["card_size"] not in ("compact", "comfortable", "large")
-            or type(b["show_ratings"]) is not bool
-            or p["preferred_quality"] not in ("balanced", "2160p", "1080p", "720p")
-            or type(p["prefer_small_encodes"]) is not bool
-            or not _integer(p["default_volume"], 0, 100)
-            or type(p["seek_seconds"]) is not int or p["seek_seconds"] not in (5, 10, 30)
-            or any(type(value) is not bool for value in plugins.values())
-            or not valid_model_tag(c["model"])):
+    """Every entrypoint consumes the manifest-referenced declaration."""
+    if not accepts(DECLARATION, settings):
         raise _invalid()
     return copy.deepcopy(settings)
 
@@ -165,7 +144,10 @@ def update_document(payload, model_validator=None):
                     os.fsync(directory_fd)
                 finally:
                     os.close(directory_fd)
-                return {"revision": document["revision"], "settings": copy.deepcopy(settings)}
+                persisted = read_document()
+                if persisted != {"revision": document["revision"], "settings": settings}:
+                    raise _unavailable()
+                return persisted
     except SettingsError:
         raise
     except (OSError, ValueError, TypeError, RecursionError):
@@ -176,6 +158,54 @@ def update_document(payload, model_validator=None):
                 os.unlink(temporary)
             except OSError:
                 pass
+
+
+def reset_document(payload, model_validator=None):
+    if (not isinstance(payload, dict) or set(payload) != {"revision", "scope"}
+            or not isinstance(payload["scope"], str)
+            or payload["scope"] not in {"application", *DECLARATION["properties"]}):
+        raise _invalid()
+    current = read_document()
+    selected = list(DECLARATION["properties"]) if payload["scope"] == "application" else [payload["scope"]]
+    values = copy.deepcopy(current["settings"])
+    for section in selected:
+        for key, rule in DECLARATION["properties"][section]["properties"].items():
+            if rule["x-xiio"]["operations"]["reset"]:
+                values[section][key] = defaults(rule)
+    return update_document({"revision": payload["revision"], "settings": values}, model_validator)
+
+
+def export_document():
+    # Preferences only. No Nuvio files, credentials, history, files or collections.
+    current = read_document()
+    if not all(rule["x-xiio"]["operations"]["export"] for section in DECLARATION["properties"].values() for rule in section["properties"].values()):
+        raise SettingsError("export_not_supported", "This declaration does not support a complete export.", 409)
+    return {"schema": "movie-night.settings-export/v1", "declaration": DECLARATION["$id"],
+            "version": DECLARATION["x-xiio"]["declaration_version"], "settings": current["settings"]}
+
+
+def import_document(payload, model_validator=None):
+    if not isinstance(payload, dict) or set(payload) != {"revision", "document"}:
+        raise _invalid()
+    imported = payload["document"]
+    if (not isinstance(imported, dict) or set(imported) != {"schema", "declaration", "version", "settings"}
+            or imported["schema"] != "movie-night.settings-export/v1"
+            or imported["declaration"] != DECLARATION["$id"]
+            or imported["version"] != DECLARATION["x-xiio"]["declaration_version"]
+            or not all(rule["x-xiio"]["operations"]["import"] for section in DECLARATION["properties"].values() for rule in section["properties"].values())):
+        raise _invalid()
+    return update_document({"revision": payload["revision"], "settings": imported["settings"]}, model_validator)
+
+
+SETTINGS_BINDINGS = {
+    "movie-night.settings.read": read_document,
+    "movie-night.settings.write": update_document,
+    "movie-night.settings.reset": reset_document,
+    "movie-night.settings.import": import_document,
+    "movie-night.settings.export": export_document,
+}
+if {DECLARATION["x-xiio"][key] for key in ("read", "write", "reset", "import", "export")} != set(SETTINGS_BINDINGS):
+    raise RuntimeError("Settings declaration has unregistered operations")
 
 
 class _NoRedirect(HTTPRedirectHandler):
@@ -264,14 +294,18 @@ def gate_catalogue(handler):
 
 def handle(handler):
     route = urlsplit(handler.path).path
-    if route not in ("/api/settings", "/api/settings/plugins"):
+    if route not in ("/api/settings", "/api/settings/plugins", "/api/settings/declaration", "/api/settings/export", "/api/settings/import", "/api/settings/reset"):
         return False
     try:
         hosts = _local_hosts(handler)
         if handler.command in ("GET", "HEAD"):
-            handler.json_response(200, read_document() if route == "/api/settings" else plugin_status(handler.server))
+            readers = {"/api/settings": read_document, "/api/settings/plugins": lambda: plugin_status(handler.server),
+                       "/api/settings/declaration": lambda: copy.deepcopy(DECLARATION), "/api/settings/export": export_document}
+            if route not in readers:
+                raise SettingsError("method_not_allowed", "Unsupported settings request.", 405)
+            handler.json_response(200, readers[route]())
             return True
-        if handler.command != "POST" or route != "/api/settings":
+        if handler.command != "POST" or route not in ("/api/settings", "/api/settings/import", "/api/settings/reset"):
             raise SettingsError("method_not_allowed", "Unsupported settings request.", 405)
         origin = handler.headers.get("Origin")
         if (handler.headers.get("X-Movie-Night") != "1"
@@ -296,7 +330,8 @@ def handle(handler):
                 return model in concierge.installed_models()
             except concierge.ConciergeError:
                 raise SettingsError("model_unavailable", "Ollama's installed models could not be checked. Try again when Ollama is available.", 503) from None
-        handler.json_response(200, update_document(payload, model_validator=installed))
+        operation = {"/api/settings": update_document, "/api/settings/import": import_document, "/api/settings/reset": reset_document}[route]
+        handler.json_response(200, operation(payload, model_validator=installed))
     except SettingsError as error:
         handler.json_response(error.status, {"error": error.message, "code": error.code})
     return True

@@ -1,6 +1,6 @@
 "use strict";
 
-(() => {
+(async () => {
   document.body.classList.toggle("studio-embedded", new URLSearchParams(location.search).get("studio") === "1");
   const byId = (id) => document.getElementById(id);
   const elements = {
@@ -26,11 +26,19 @@
   let filters = defaultFilters();
   const savedViewsKey = "movie-night.filter-views.v1";
   let savedViews = [];
-  const wallSettings = {
-    browsing: { start_view: "curated", catalog: "top", card_size: "comfortable", show_ratings: true },
-    playback: { default_volume: 100, seek_seconds: 10 },
-    plugins: { cinemeta_enabled: true },
-  };
+  let declared, schema;
+  try {
+    declared = await import('/settings-contract.mjs');
+    const response = await fetch('/api/settings/declaration', { cache: 'no-store' });
+    if (!response.ok) throw new Error('declaration_unavailable');
+    schema = declared.qualify(await response.json());
+  } catch {
+    const notice = document.createElement('p'); notice.setAttribute('role', 'alert');
+    notice.textContent = 'Movie Night could not load its settings declaration. Reload when the local service is available.';
+    document.body.prepend(notice);
+    return;
+  }
+  let wallSettings = declared.defaults(schema);
   let settingsEpoch = 0;
   let settingsLoaded = false;
   let startupApplied = false;
@@ -129,17 +137,9 @@
 
   function applyWallSettings(value) {
     const settings = value?.settings || value;
-    if (!settings || typeof settings !== "object") return;
-    const browsing = settings.browsing || {};
-    const playback = settings.playback || {};
+    if (!declared.accepts(schema, settings)) return false;
     const wasEnabled = wallSettings.plugins.cinemeta_enabled;
-    if (["curated", "browse-movie", "browse-series", "nuvio-library", "personal-favorites", "personal-recent"].includes(browsing.start_view)) wallSettings.browsing.start_view = browsing.start_view;
-    if (Object.prototype.hasOwnProperty.call(sourceLabels, browsing.catalog)) wallSettings.browsing.catalog = browsing.catalog;
-    if (["compact", "comfortable", "large"].includes(browsing.card_size)) wallSettings.browsing.card_size = browsing.card_size;
-    if (typeof browsing.show_ratings === "boolean") wallSettings.browsing.show_ratings = browsing.show_ratings;
-    if ([5, 10, 30].includes(playback.seek_seconds)) wallSettings.playback.seek_seconds = playback.seek_seconds;
-    if (Number.isInteger(playback.default_volume) && playback.default_volume >= 0 && playback.default_volume <= 100) wallSettings.playback.default_volume = playback.default_volume;
-    if (typeof settings.plugins?.cinemeta_enabled === "boolean") wallSettings.plugins.cinemeta_enabled = settings.plugins.cinemeta_enabled;
+    wallSettings = structuredClone(settings);
     document.body.dataset.cardSize = wallSettings.browsing.card_size;
     document.body.dataset.showRatings = String(wallSettings.browsing.show_ratings);
     const seconds = wallSettings.playback.seek_seconds;
@@ -165,12 +165,12 @@
     measureDock();
     // The Aries adapter applies default volume only on an explicit new play.
     // Saving settings must never send a command to a film already playing.
+    return true;
   }
 
   window.movieNightSettings = (settings) => {
     settingsEpoch += 1;
-    applyWallSettings(settings);
-    return true;
+    return applyWallSettings(settings);
   };
 
   function isNativeHost() {
