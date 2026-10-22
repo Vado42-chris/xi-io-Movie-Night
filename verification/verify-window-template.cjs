@@ -39,7 +39,13 @@ async function check(name,fn){try{await fn();report.checks.push({name,pass:true}
    }
    return route.fulfill({status:200,contentType:({'.html':'text/html','.js':'application/javascript','.css':'text/css'})[ext]||'application/octet-stream',body});
   }
-  if(u.pathname.startsWith('/api/player/'))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({state:'idle',imdb_id:null,title:'',position:null,duration:null,volume:50,muted:false,fullscreen:false})});
+  if(u.pathname.startsWith('/api/player/')){
+   if(req.method()!=='GET'){
+    report.writes.push({path:u.pathname,method:req.method(),intercepted:true});
+    return route.fulfill({status:403,contentType:'application/json',body:'{"error":"Test forbids playback mutations"}'});
+   }
+   return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({state:'idle',imdb_id:null,title:'',position:null,duration:null,volume:50,muted:false,fullscreen:false})});
+  }
   if(u.pathname==='/api/concierge/status')return route.fulfill({contentType:'application/json',body:JSON.stringify({available:true,enabled:true,model:'test-fixture-only'})});
   if(req.method()!=='GET'){
    report.writes.push({path:u.pathname,method:req.method(),intercepted:true});
@@ -125,7 +131,7 @@ async function check(name,fn){try{await fn();report.checks.push({name,pass:true}
   });
   await page.screenshot({path:path.join(out,'window-template.png')});
   if(fallback)await check('fallback truly removes container query rules',async()=>assert.ok(report.removedContainerRules>0));
-  await check('no unhandled errors or unexpected domain writes',async()=>{assert.deepEqual(report.errors,[]);assert.ok(report.writes.every(x=>x.path==='/api/concierge/chat'));});
+  await check('no unhandled errors or unexpected domain writes',async()=>{assert.deepEqual(report.errors,[]);assert.ok(report.writes.every(x=>x.path==='/api/concierge/chat'));assert.equal(await page.evaluate(()=>window.__nativeCalls.some(x=>x.command!=='set_movie_viewport'&&!(x.command==='native_movie_window'&&x.args?.action==='state'))),false,'layout or chat issued a native action');});
  }catch(e){report.fatal=e.stack;releaseReply();await page.screenshot({path:path.join(out,'failure.png')}).catch(()=>{});}
  finally{releaseReply();report.pass=!report.fatal&&report.failures.length===0;fs.writeFileSync(path.join(out,'report.json'),JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));await browser.close();}
  process.exitCode=report.pass?0:1;
