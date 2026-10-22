@@ -33,3 +33,6 @@ The owned idle Movie Night service was restarted, and /api/settings/declaration 
 
 ## Live filter-cube home increment
 The cube increment consumes accepted settings and provider-filter main 6bbb760. It adds saved live queries, home carousel rows, one wall/carousel filter path, centred cached navigation and reversible layout editing. Source/browser checks and the clean shell build pass; exact installed acceptance is pending deployment readback. See docs/ops/FILTER-CUBES-20261022.md. Existing shared-services/OS/TV obligations remain open.
+
+## Installed filter-cube home
+541e572 is on GitHub main and Aries. The wall service and owned native app were reopened idle. Actual served assets match that source, and the native home/carousel/filter editor/right-side concierge are visually observed. The user's saved cube and active edits were preserved, with no seeded replacement and no media start. Full native saved-cube restart testing is deferred while the owner is editing; isolated fresh-process storage and browser reopen tests pass. See docs/ops/FILTER-CUBES-20261022.md. Next app work should start from this installed baseline, not rebuild the three-card canary.

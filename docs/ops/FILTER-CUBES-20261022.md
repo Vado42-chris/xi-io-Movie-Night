@@ -27,3 +27,10 @@ The final combined source passed:
 An initial legacy regression used an earlier test layout, and one rebase test run read the old service port before its restart completed. Both test-fixture defects were corrected; all final checks above executed successfully against the current service and combined source. Detailed logs/screenshots stay in private runtime custody.
 
 Source/browser checks are not native touchscreen or independent-review proof. Installed exact-build readback is recorded after deployment. Advanced online filters apply to loaded metadata; no full-catalogue completeness claim is made.
+
+## Installed readback, 2026-10-22
+Source 541e572b8042754e609f3e943859ea0b2c684ce1 was pushed, independently read from the GitHub API, and fast-forwarded into the real Aries checkout. The existing owned wall service was restarted only while playback was idle. Health, settings declaration and filter-cube routes responded successfully. Served JavaScript/CSS SHA-256 matched the accepted source.
+
+The exact owned native app was gracefully closed and reopened with its unsent concierge draft preserved privately. An app-only screenshot confirms the actual filter-cube home, centred carousel, Wall/Carousels controls, existing filter editor, and right-side local Ollama/chat context. A user-created cube was already present, so no sample rows replaced it. Active user filter edits were left untouched. Playback remained idle; no Nuvio account/configuration mutation or media start occurred.
+
+Native visibility is verified. The new user-created layout was not interrupted for another native restart while it was being edited. Persistence across a new backend process and browser reopen is verified in the isolated tests; native touchscreen dragging and full-suite shared-services qualification remain separate. Private receipt: filter-cubes-20261022/native-verification.json.
