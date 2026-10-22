@@ -1,0 +1,55 @@
+[
+  {
+    "command": [
+      "python3",
+      "server.py",
+      "--check"
+    ],
+    "exit": 0,
+    "tail": "{\"valid\": true, \"collections\": [{\"id\": \"top100-1980-1995\", \"movies\": 100}]}\n"
+  },
+  {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "test_settings",
+      "test_settings_contract",
+      "test_filter_cubes"
+    ],
+    "exit": 0,
+    "tail": ".............................\n----------------------------------------------------------------------\nRan 29 tests in 0.840s\n\nOK\n"
+  },
+  {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "player",
+      "-p",
+      "test_*.py"
+    ],
+    "exit": 0,
+    "tail": "................\n----------------------------------------------------------------------\nRan 16 tests in 0.033s\n\nOK\n"
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/filter-cubes.mjs"
+    ],
+    "exit": 0,
+    "tail": ""
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exit": 0,
+    "tail": ""
+  }
+]

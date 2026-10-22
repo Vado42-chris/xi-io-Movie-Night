@@ -27,3 +27,8 @@ Append evidence-linked changes, do not silently erase failures.
 ## 2026-10-22 title-detail specimen and width repair
 - MN-002: obsolete 600px carousel / 1040px detail caps removed; existing related-film recommendations exposed outside collapsed credits. Exact padded width, centred selection, keyboard and no-overflow source checks pass at 1920/1280/768/390. Native current-window refresh not performed.
 - MN-010 TV sub-slice: source-reproduced failure, not a credentials diagnosis. UI blocks series; metadata omits episodes; source resolver and player payload accept movies only. Season/episode/specials and loading/empty/error states are available for review in the reusable title specimen. Actual episode playback remains OPEN. No second backend or tracking programme.
+
+## 2026-10-22 container candidate challenged, promotion held
+- MN-002 / framework #1347: same two-file container repair qualified further; original live caption defect reproduced and corrected with an explicit non-live selected-label association. Full-module nested-container, fallback, hostile-title and actual reflow checks pass.
+- Actual browser WindowFrame/Concierge tests fail on both base and candidate: draft loss below 1024px, draft loss on close/reopen, and narrow virtual-window overflow. These remain with existing shared-frame/chat owners; no competing chat implementation.
+- Loki read-only access works, but no current Movie Night service/root/origin binding was recovered from inspected serving roots. Release, native acceptance, chroma, independent review and parent return remain OPEN. Source candidate publication is not accepted main or deployment. Evidence and commands: docs/ops/container-review-20261022/README.md. Episode issue #1 is unchanged.

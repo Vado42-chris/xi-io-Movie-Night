@@ -1,0 +1,38 @@
+{
+  "repository": "Vado42-chris/xi-io-Movie-Night",
+  "base_commit": "816b15233c90f7a846e919fb94e8c0316a14eec5",
+  "original_zip_sha256": "2b0ff98490de31e3d9848796854f21bd0d7e762565870556fd68cf790ef794e8",
+  "submitted_patch_sha256": "c8fa4dd796049e65141e54aeec98d41acbcbe38fd76c0a8b0a874a1733d0327d",
+  "reviewed_patch_sha256": "e0c1037aef70de092441d2f8668daff155d409a32596b76b806a7cc65096bb4a",
+  "production_files": {
+    "web/filter-cubes.css": "5eb6522646ae9181bd50a99a6e406db3e361b4b1ecc15b6af4844c5b3fd0b59e",
+    "web/filter-cubes.mjs": "8fc5d8ff4ef636e04bffd903882efc4bab571773c10977ed368aeead8a0bb704"
+  },
+  "parent_intake": "Vado42-chris/xi-io.net#1347",
+  "existing_app_obligation": "MN-002",
+  "parent_work_reference": "settings-sdk-publisher-audit-2026-09-26",
+  "parent_docket_reference": "6ab80fd3e24554366e3cf618",
+  "parent_reference_basis": "existing intake comment 6344892598; not a recovered worker assignment",
+  "assignment_bound_admission": "UNRESOLVED",
+  "evidence_kind": "WRITER_REPLAY_NOT_INDEPENDENT_REVIEW",
+  "browser": "Google Chrome 152.0.7961.0 canary",
+  "test_dependency_versions": {
+    "vite": "6.4.5",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "framer-motion": "11.18.2",
+    "lucide-react": "0.475.0",
+    "@vitejs/plugin-react": "4.7.0"
+  },
+  "clean_clone_lockfile_qualification": false,
+  "generated_shell_assets": "Built in isolated source/studio-web, hashes recorded in host reports, not copied to production",
+  "loki_access": "READ_ONLY_SSH_SUCCEEDED",
+  "loki_movie_night_binding": "NOT_FOUND_IN_INSPECTED_SERVING_ROOTS_AND_APP_DELIVERY_DOCS",
+  "loki_deployed": false,
+  "aries_installed_acceptance": false,
+  "native_user_window_changed": false,
+  "host_acceptance": "FAIL_THREE_EXISTING_CONDITIONS_ON_BASE_AND_CANDIDATE",
+  "shared_palette_or_chat_modified": false,
+  "bugzilla_written": false,
+  "return_applied": false
+}

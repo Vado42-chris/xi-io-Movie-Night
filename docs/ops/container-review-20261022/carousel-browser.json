@@ -1,0 +1,373 @@
+{
+  "source": "816b15233c90f7a846e919fb94e8c0316a14eec5 plus reviewed candidate",
+  "method": "Real Chromium layout and input on production class; synthetic data and isolated storage",
+  "cases": [
+    {
+      "name": "unchanged source reproduces wide-viewport narrow-container defect",
+      "status": "PASS",
+      "observed": {
+        "outcome": "DEFECT_REPRODUCED",
+        "viewport": 1920,
+        "allocated": 390,
+        "containerName": "none",
+        "containerType": "normal",
+        "cardWidth": 190,
+        "centreError": 0,
+        "pageOverflow": 0,
+        "selected": "movie:record-3",
+        "captionFits": false,
+        "trackBottom": 1010.5,
+        "captionOverlap": false
+      }
+    },
+    {
+      "name": "submitted candidate reproduces repeated unassociated live caption",
+      "status": "PASS",
+      "observed": {
+        "outcome": "DEFECT_REPRODUCED",
+        "live": "polite",
+        "captionId": "",
+        "label": null,
+        "sameRecordMutations": 1
+      }
+    },
+    {
+      "name": "candidate: exact allocation boundaries and nested independent carousel",
+      "status": "PASS",
+      "observed": [
+        {
+          "viewport": 1920,
+          "allocated": 320,
+          "containerName": "movie-night-cube",
+          "containerType": "inline-size",
+          "cardWidth": 142,
+          "centreError": 0,
+          "pageOverflow": 0,
+          "selected": "movie:record-3",
+          "caption": "Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Lo",
+          "captionFits": true,
+          "captionBottom": 668.984375,
+          "trackBottom": 668.984375,
+          "captionOverlap": false
+        },
+        {
+          "viewport": 1920,
+          "allocated": 390,
+          "containerName": "movie-night-cube",
+          "containerType": "inline-size",
+          "cardWidth": 142,
+          "centreError": 0,
+          "pageOverflow": 0,
+          "selected": "movie:record-3",
+          "caption": "Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Lo",
+          "captionFits": true,
+          "captionBottom": 568.984375,
+          "trackBottom": 568.984375,
+          "captionOverlap": false
+        },
+        {
+          "viewport": 1920,
+          "allocated": 540,
+          "containerName": "movie-night-cube",
+          "containerType": "inline-size",
+          "cardWidth": 142,
+          "centreError": 0,
+          "pageOverflow": 0,
+          "selected": "movie:record-3",
+          "caption": "Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Lo",
+          "captionFits": true,
+          "captionBottom": 468.984375,
+          "trackBottom": 468.984375,
+          "captionOverlap": false
+        },
+        {
+          "viewport": 1920,
+          "allocated": 541,
+          "containerName": "movie-night-cube",
+          "containerType": "inline-size",
+          "cardWidth": 165,
+          "centreError": 0,
+          "pageOverflow": 0,
+          "selected": "movie:record-3",
+          "caption": "Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Lo",
+          "captionFits": true,
+          "captionBottom": 513.296875,
+          "trackBottom": 513.296875,
+          "captionOverlap": false
+        },
+        {
+          "viewport": 1920,
+          "allocated": 542,
+          "containerName": "movie-night-cube",
+          "containerType": "inline-size",
+          "cardWidth": 165,
+          "centreError": 0,
+          "pageOverflow": 0,
+          "selected": "movie:record-3",
+          "caption": "Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Lo",
+          "captionFits": true,
+          "captionBottom": 513.296875,
+          "trackBottom": 513.296875,
+          "captionOverlap": false
+        },
+        {
+          "viewport": 1920,
+          "allocated": 768,
+          "containerName": "movie-night-cube",
+          "containerType": "inline-size",
+          "cardWidth": 165,
+          "centreError": 0,
+          "pageOverflow": 0,
+          "selected": "movie:record-3",
+          "caption": "Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Lo",
+          "captionFits": true,
+          "captionBottom": 513.296875,
+          "trackBottom": 513.296875,
+          "captionOverlap": false
+        },
+        {
+          "viewport": 1920,
+          "allocated": 850,
+          "containerName": "movie-night-cube",
+          "containerType": "inline-size",
+          "cardWidth": 165,
+          "centreError": 0,
+          "pageOverflow": 0,
+          "selected": "movie:record-3",
+          "caption": "Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Lo",
+          "captionFits": true,
+          "captionBottom": 489.296875,
+          "trackBottom": 489.296875,
+          "captionOverlap": false
+        },
+        {
+          "viewport": 1920,
+          "allocated": 851,
+          "containerName": "movie-night-cube",
+          "containerType": "inline-size",
+          "cardWidth": 190,
+          "centreError": 0,
+          "pageOverflow": 0,
+          "selected": "movie:record-3",
+          "caption": "Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Lo",
+          "captionFits": true,
+          "captionBottom": 535.390625,
+          "trackBottom": 535.390625,
+          "captionOverlap": false
+        },
+        {
+          "viewport": 1920,
+          "allocated": 852,
+          "containerName": "movie-night-cube",
+          "containerType": "inline-size",
+          "cardWidth": 190,
+          "centreError": 0,
+          "pageOverflow": 0,
+          "selected": "movie:record-3",
+          "caption": "Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Lo",
+          "captionFits": true,
+          "captionBottom": 535.390625,
+          "trackBottom": 535.390625,
+          "captionOverlap": false
+        },
+        {
+          "viewport": 1920,
+          "allocated": 1280,
+          "containerName": "movie-night-cube",
+          "containerType": "inline-size",
+          "cardWidth": 190,
+          "centreError": 0,
+          "pageOverflow": 0,
+          "selected": "movie:record-3",
+          "caption": "Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Lo",
+          "captionFits": true,
+          "captionBottom": 535.390625,
+          "trackBottom": 535.390625,
+          "captionOverlap": false
+        },
+        {
+          "viewport": 1920,
+          "allocated": 1800,
+          "containerName": "movie-night-cube",
+          "containerType": "inline-size",
+          "cardWidth": 190,
+          "centreError": 0,
+          "pageOverflow": 0,
+          "selected": "movie:record-3",
+          "caption": "Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Lo",
+          "captionFits": true,
+          "captionBottom": 511.390625,
+          "trackBottom": 511.390625,
+          "captionOverlap": false
+        }
+      ]
+    },
+    {
+      "name": "candidate: 59 real shrink/grow reflows preserve nodes, focus, ID and scroll",
+      "status": "PASS",
+      "observed": {
+        "resizeSteps": 59,
+        "draft": "Unsent draft stays",
+        "menu": true,
+        "pending": {
+          "id": "movie:record-3",
+          "state": "pending"
+        },
+        "counts": {
+          "selection": 1,
+          "action": 0
+        },
+        "scrollBefore": 70,
+        "scrollAfter": 70,
+        "selectionThenAction": "one each, no duplicate listener effect"
+      }
+    },
+    {
+      "name": "candidate: fallback with zero container rules and normal containment",
+      "status": "PASS",
+      "observed": {
+        "method": "Remove entire enhancement including containment via CSSOM; actual no-query style path, not legacy-engine emulation",
+        "removed": 1,
+        "remaining": 0,
+        "sizes": [
+          {
+            "viewport": 1920,
+            "allocated": 320,
+            "containerName": "none",
+            "containerType": "normal",
+            "cardWidth": 142,
+            "centreError": 0,
+            "pageOverflow": 0,
+            "selected": "movie:record-3",
+            "caption": "Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Lo",
+            "captionFits": true,
+            "captionBottom": 668.984375,
+            "trackBottom": 668.984375,
+            "captionOverlap": false
+          },
+          {
+            "viewport": 1920,
+            "allocated": 390,
+            "containerName": "none",
+            "containerType": "normal",
+            "cardWidth": 142,
+            "centreError": 0,
+            "pageOverflow": 0,
+            "selected": "movie:record-3",
+            "caption": "Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Lo",
+            "captionFits": true,
+            "captionBottom": 568.984375,
+            "trackBottom": 568.984375,
+            "captionOverlap": false
+          },
+          {
+            "viewport": 1920,
+            "allocated": 768,
+            "containerName": "none",
+            "containerType": "normal",
+            "cardWidth": 142,
+            "centreError": 0,
+            "pageOverflow": 0,
+            "selected": "movie:record-3",
+            "caption": "Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Lo",
+            "captionFits": true,
+            "captionBottom": 468.984375,
+            "trackBottom": 468.984375,
+            "captionOverlap": false
+          },
+          {
+            "viewport": 1920,
+            "allocated": 1280,
+            "containerName": "none",
+            "containerType": "normal",
+            "cardWidth": 142,
+            "centreError": 0,
+            "pageOverflow": 0,
+            "selected": "movie:record-3",
+            "caption": "Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Long title Lo",
+            "captionFits": true,
+            "captionBottom": 444.984375,
+            "trackBottom": 444.984375,
+            "captionOverlap": false
+          }
+        ]
+      }
+    },
+    {
+      "name": "candidate: safe long/RTL/emoji/duplicate captions and accessible association",
+      "status": "PASS",
+      "observed": {
+        "titles": [
+          {
+            "title": "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+            "name": "movie-night-carousel-caption-1-action movie-night-carousel-caption-1",
+            "captionFits": true
+          },
+          {
+            "title": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+            "name": "movie-night-carousel-caption-1-action movie-night-carousel-caption-1",
+            "captionFits": true
+          },
+          {
+            "title": "שלום עולם • العربية 👩🏽‍🚀 🎬",
+            "name": "movie-night-carousel-caption-1-action movie-night-carousel-caption-1",
+            "captionFits": true
+          },
+          {
+            "title": "<img src=x onerror=\"window.executed=true\"> & <script>alert(1)</script>",
+            "name": "movie-night-carousel-caption-1-action movie-night-carousel-caption-1",
+            "captionFits": true
+          }
+        ],
+        "sameTitleCaptionMutations": 0,
+        "duplicateTitlesUseDistinctIDs": true
+      }
+    },
+    {
+      "name": "candidate: enlarged text, short scroll regions and reduced-motion effect",
+      "status": "PASS",
+      "observed": {
+        "rootTextScale": 2,
+        "browserChromeZoom": "NOT_TESTED",
+        "states": [
+          {
+            "height": 320,
+            "finalTop": 365.6875,
+            "finalBottom": 409.6875,
+            "viewportTop": 90,
+            "viewportBottom": 410,
+            "focus": "final",
+            "captionFont": "32px"
+          },
+          {
+            "height": 480,
+            "finalTop": 525.6875,
+            "finalBottom": 569.6875,
+            "viewportTop": 90,
+            "viewportBottom": 570,
+            "focus": "final",
+            "captionFont": "32px"
+          }
+        ],
+        "motionBefore": "0.28s, 0.24s",
+        "motionAfter": "0s"
+      }
+    }
+  ],
+  "not_tested": [
+    "installed Tauri",
+    "physical touch",
+    "assistive-technology speech",
+    "browser chrome zoom",
+    "Loki deployment",
+    "chroma/contrast",
+    "independent reviewer admission"
+  ],
+  "files": {
+    "web/filter-cubes.css": "5eb6522646ae9181bd50a99a6e406db3e361b4b1ecc15b6af4844c5b3fd0b59e",
+    "web/filter-cubes.mjs": "8fc5d8ff4ef636e04bffd903882efc4bab571773c10977ed368aeead8a0bb704",
+    "verification/verify-container-peer-review.cjs": "a78bf8d5c77671f09e5f34b2bf4f6de33e098e33b89e8097bd3ec4959a5007d2"
+  },
+  "browser": "152.0.7961.0",
+  "pass": true
+}

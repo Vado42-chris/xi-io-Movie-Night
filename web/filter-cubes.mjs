@@ -6,6 +6,8 @@ function button(label, action, cls = 'small-button') { const b = el('button', cl
 const keyOf = movie => `${movie.type}:${movie.id || movie.imdbId}`;
 const wrap = (n, length) => ((n % length) + length) % length;
 
+let captionSequence = 0;
+
 export class CenteredCarousel {
   constructor(root, { poster, onSelect = () => {}, onOpen = () => {}, legacyIds = false }) {
     this.root = root; this.poster = poster; this.onSelect = onSelect; this.onOpen = onOpen;
@@ -74,6 +76,21 @@ export class CenteredCarousel {
     const count = this.items.length;
     this.root.dataset.count = String(count); this.root.dataset.index = String(this.index);
     this.root.dataset.selected = count ? keyOf(this.items[this.index]) : '';
+    // Ordinary visible label, not another live announcer beside the row status.
+    if (!this.caption) {
+      this.caption = el('p', 'cube-selected-caption');
+      this.caption.dir = 'auto';
+      do { this.caption.id = `movie-night-carousel-caption-${++captionSequence}`; }
+      while (document.getElementById(this.caption.id));
+      this.captionAction = el('span', '', 'Details:');
+      this.captionAction.id = `${this.caption.id}-action`;
+      this.captionAction.hidden = true;
+    }
+    const title = count ? String(this.items[this.index].title ?? '') : '';
+    if (this.caption.textContent !== title) this.caption.textContent = title;
+    this.caption.dataset.record = this.root.dataset.selected;
+    this.caption.hidden = !count;
+    if (!this.root.contains(this.caption)) this.root.append(this.captionAction, this.caption);
     const needed = new Set();
     const left = Math.min(4, Math.floor((count - 1) / 2));
     const right = Math.min(4, Math.ceil((count - 1) / 2));
@@ -92,7 +109,13 @@ export class CenteredCarousel {
       card.style.setProperty('--cube-scale', String(offset === 0 ? 1 : Math.max(.48, .84 - Math.abs(offset) * .08)));
       card.style.zIndex = String(10 - Math.abs(offset));
       card.style.opacity = String(offset === 0 ? 1 : Math.max(.32, .92 - Math.abs(offset) * .13));
-      card.setAttribute('aria-label', `${offset === 0 ? 'Details' : 'Select'}: ${movie.title}`);
+      if (offset === 0) {
+        card.removeAttribute('aria-label');
+        card.setAttribute('aria-labelledby', `${this.captionAction.id} ${this.caption.id}`);
+      } else {
+        card.removeAttribute('aria-labelledby');
+        card.setAttribute('aria-label', `Select: ${movie.title}`);
+      }
       card.setAttribute('aria-current', String(offset === 0)); card.tabIndex = offset === 0 ? 0 : -1;
       if (this.legacyIds && Math.abs(offset) <= 1) card.id = offset === 0 ? 'dialog-poster' : offset < 0 ? 'carousel-previous-card' : 'carousel-next-card';
     }

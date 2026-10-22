@@ -1,0 +1,141 @@
+{
+  "method": "Real built browser host and production wall; synthetic API records and isolated browser storage",
+  "source_variant": "CANDIDATE",
+  "installed_native": false,
+  "Loki_origin": false,
+  "checks": [
+    {
+      "name": "same carousel nodes, record identity and centring through real host reflow",
+      "status": "PASS",
+      "observed": [
+        {
+          "width": 1600,
+          "allocated": 752,
+          "trackWidth": 704,
+          "cardWidth": 165,
+          "selected": "movie:tt0111161",
+          "sameTrack": true,
+          "sameCard": true,
+          "sameSelected": true,
+          "centreError": 0,
+          "overflow": 0,
+          "draft": "Unsent browser fixture draft",
+          "wallRight": 850
+        },
+        {
+          "width": 1280,
+          "allocated": 752,
+          "trackWidth": 704,
+          "cardWidth": 165,
+          "selected": "movie:tt0111161",
+          "sameTrack": true,
+          "sameCard": true,
+          "sameSelected": true,
+          "centreError": 0,
+          "overflow": 0,
+          "draft": "Unsent browser fixture draft",
+          "wallRight": 825.6190185546875
+        },
+        {
+          "width": 1024,
+          "allocated": 752,
+          "trackWidth": 704,
+          "cardWidth": 165,
+          "selected": "movie:tt0111161",
+          "sameTrack": true,
+          "sameCard": true,
+          "sameSelected": true,
+          "centreError": 0,
+          "overflow": 0,
+          "draft": "Unsent browser fixture draft",
+          "wallRight": 673.8857421875
+        },
+        {
+          "width": 1023,
+          "allocated": 1112,
+          "trackWidth": 1036,
+          "cardWidth": 190,
+          "selected": "movie:tt0111161",
+          "sameTrack": true,
+          "sameCard": true,
+          "sameSelected": true,
+          "centreError": 0,
+          "overflow": 0,
+          "draft": "",
+          "wallRight": 1032.9619140625
+        },
+        {
+          "width": 768,
+          "allocated": 1112,
+          "trackWidth": 1036,
+          "cardWidth": 190,
+          "selected": "movie:tt0111161",
+          "sameTrack": true,
+          "sameCard": true,
+          "sameSelected": true,
+          "centreError": 0,
+          "overflow": 0,
+          "draft": "",
+          "wallRight": 797.3905029296875
+        },
+        {
+          "width": 390,
+          "allocated": 1112,
+          "trackWidth": 1036,
+          "cardWidth": 190,
+          "selected": "movie:tt0111161",
+          "sameTrack": true,
+          "sameCard": true,
+          "sameSelected": true,
+          "centreError": 0,
+          "overflow": 0,
+          "draft": "",
+          "wallRight": 448.19049072265625
+        },
+        {
+          "width": 1600,
+          "allocated": 752,
+          "trackWidth": 704,
+          "cardWidth": 165,
+          "selected": "movie:tt0111161",
+          "sameTrack": true,
+          "sameCard": true,
+          "sameSelected": true,
+          "centreError": 0,
+          "overflow": 0,
+          "draft": "",
+          "wallRight": 850
+        }
+      ]
+    },
+    {
+      "name": "real chat unsent draft survives breakpoint/dock reflow",
+      "status": "FAIL"
+    },
+    {
+      "name": "host content stays within browser allocation with chat visible",
+      "status": "FAIL"
+    },
+    {
+      "name": "real chat close/reopen retains unsent draft",
+      "status": "FAIL",
+      "expected": "Unsent close-reopen fixture draft",
+      "observed": ""
+    },
+    {
+      "name": "zero source, playback, inference or user-state API writes",
+      "status": "PASS",
+      "observed": []
+    }
+  ],
+  "writes": [],
+  "unknownReads": [],
+  "pageErrors": [],
+  "assets": {
+    "index.html": "6029487f71cc9f9c52b9f428b42e845a499f08f5c471e4988b4168c299c4c4df",
+    "assets/index-CbQOpVww.css": "bdbacbdfed7414e1523d88de0ab37c0a5ed0ed3f87cb267a235bfc01a74a0a60",
+    "assets/index-DjhHrnlq.js": "23571b5276c98cca6635d68a41312980407e520989f06958d7433004616d93e7"
+  },
+  "browser": "152.0.7961.0",
+  "pass": false
+}
