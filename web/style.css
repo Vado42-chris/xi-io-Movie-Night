@@ -505,9 +505,25 @@ body.native-player-mini .player-artwork, body.native-player-mini .player-locatio
 .episode-heading h2 { margin:0; font-size:22px; }
 .episode-heading label { display:flex; gap:8px; align-items:center; }
 .episode-heading select { min-height:44px; max-width:100%; }
-.episode-rows { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr)); gap:10px; max-height:380px; overflow-y:auto; padding:4px; }
-.episode-option { display:grid; align-content:start; gap:8px; text-align:left; padding:14px; min-width:0; border:1px solid var(--line); border-radius:8px; color:var(--text); background:var(--surface, #171914); overflow-wrap:anywhere; }
-.episode-option span { font-size:12px; line-height:1.6; color:var(--muted); }
-.episode-option[aria-pressed="true"] { border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); }
-.episode-option:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.episode-rows { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr)); align-items:start; gap:14px; padding:4px; }
+.episode-card { min-width:0; border:1px solid var(--line); border-radius:8px; background:var(--surface); overflow-wrap:anywhere; }
+.episode-card.is-selected { border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); }
+.episode-option { display:grid; width:100%; padding:0; border:0; border-radius:8px; text-align:left; color:var(--text); background:transparent; min-width:0; }
+.episode-option:focus-visible, .episode-spoilers summary:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+.episode-art { display:grid; position:relative; width:100%; aspect-ratio:16/9; border-radius:7px 7px 0 0; overflow:hidden; background:var(--bg); }
+.episode-art img { width:100%; height:100%; object-fit:cover; grid-area:1/1; }
+.episode-art-fallback { grid-area:1/1; display:grid; place-items:center; padding:16px; color:var(--muted); font-size:12px; }
+.episode-art-fallback[hidden], .episode-art-hidden .episode-art { display:none; }
+.episode-card-copy { display:grid; gap:8px; padding:14px; min-width:0; }
+.episode-card-facts { font-size:12px; line-height:1.6; color:var(--muted); }
+.episode-history { font-size:12px; color:var(--accent); }
+.episode-spoilers { margin:0 14px 12px; border-top:1px solid var(--line); }
+.episode-spoilers summary { min-height:44px; padding:12px 0; cursor:pointer; font-size:12px; color:var(--muted); }
+.episode-spoiler-body { font-size:13px; line-height:1.65; color:var(--text); }
+.episode-spoiler-body p { margin:0 0 12px; }
+.episode-credits { display:grid; gap:10px; margin:12px 0; }
+.episode-credits dt { font-size:11px; color:var(--muted); }
+.episode-credits dd { margin:2px 0 0; }
+.episode-art-control { font-size:12px; min-height:44px; }
+.episode-art-control input { width:18px; height:18px; accent-color:var(--accent); }
 #episode-selection, #episode-metadata-status { font-size:13px; line-height:1.6; }

@@ -62,6 +62,10 @@
   let loadController;
   let selectedMovie = null;
   let selectedEpisode = null, selectedSeason = null;
+  // Presentation only, scoped by canonical episode identity in this mounted
+  // window. No new library/settings store or watched-state write.
+  const revealedEpisodeDetails = new Set();
+  let hideEpisodeArt = false;
   let visibleMovies = [];
   let carouselIndex = 0;
   let detailsExpanded = false;
@@ -419,7 +423,10 @@
       isCompleted: movie.isCompleted === true,
       season: Number.isInteger(Number(movie.season)) && movie.season !== null ? Number(movie.season) : null,
       episode: Number.isInteger(Number(movie.episode)) && movie.episode !== null ? Number(movie.episode) : null,
-      episodes: Array.isArray(movie.episodes) ? movie.episodes.filter(ep => ep && Number.isInteger(ep.season) && ep.season >= 0 && Number.isInteger(ep.episode) && ep.episode >= 1 && ep.id === `${movie.imdb_id || movie.imdbId || movie.id}:${ep.season}:${ep.episode}`).map(ep => ({ id: ep.id, season: ep.season, episode: ep.episode, title: text(ep.title), overview: text(ep.overview), released: text(ep.released) })) : [],
+      episodes: Array.isArray(movie.episodes) ? movie.episodes.filter(ep => ep && Number.isInteger(ep.season) && ep.season >= 0 && Number.isInteger(ep.episode) && ep.episode >= 1 && ep.id === `${movie.imdb_id || movie.imdbId || movie.id}:${ep.season}:${ep.episode}`).map(ep => ({ id: ep.id, season: ep.season, episode: ep.episode, title: text(ep.title), overview: text(ep.overview), released: text(ep.released),
+        thumbnail: imageUrl(ep.thumbnail), rating: parseRating(ep.rating),
+        runtimeMinutes: typeof ep.runtime_minutes === "number" && Number.isFinite(ep.runtime_minutes) && ep.runtime_minutes > 0 && ep.runtime_minutes <= 1440 ? ep.runtime_minutes : null,
+        ...Object.fromEntries(["cast", "guest_stars", "director", "writer"].map(key => [key, Array.isArray(ep[key]) ? ep[key].filter(x => typeof x === "string").slice(0,40) : []])) })) : [],
       episodesLoaded: Array.isArray(movie.episodes),
       description: text(movie.description),
       background: imageUrl(movie.background),
@@ -1210,11 +1217,21 @@
   }
   function updateEpisodeSelection() {
     for (const button of byId("episode-list").querySelectorAll('button[data-episode-id]')) {
-      button.setAttribute("aria-pressed", String(button.dataset.episodeId === selectedEpisode?.id));
+      const selected = button.dataset.episodeId === selectedEpisode?.id;
+      button.setAttribute("aria-pressed", String(selected));
+      button.closest(".episode-card")?.classList.toggle("is-selected", selected);
       button.disabled = launchPending;
     }
     byId("episode-selection").textContent = selectedEpisode ? `Selected: ${mediaLabel()}` : "Select an episode to choose its streams. Nothing plays on selection.";
     updatePlayerControls();
+  }
+  function episodeHistoryLabel(movie, ep) {
+    const rows = personalLibrary.recent.filter(row => row.type === "series"
+      && (row.imdbId === movie.imdbId || row.id?.split(":")[0] === movie.imdbId)
+      && ((row.season === ep.season && row.episode === ep.episode) || row.id === ep.id));
+    const recent = rows.reduce((latest,row) => !latest || row.lastUpdatedEpochMs > latest.lastUpdatedEpochMs ? row : latest, null);
+    if (recent?.isCompleted || watchedKeys.has(ep.id) || watchedKeys.has(`series|${ep.id}`)) return "Watched";
+    return recent?.lastPositionMs > 0 ? `Resume at ${clock(recent.lastPositionMs / 1000)}` : "";
   }
   function renderEpisodes(movie) {
     const section = byId("detail-episodes"); section.hidden = movie.type !== "series";
@@ -1234,16 +1251,60 @@
         : movie.episodeError || (!movie.episodesLoaded ? "Loading seasons and episodes…"
           : rows.length ? `${count} ${count === 1 ? "episode" : "episodes"} in this season`
           : "The catalogue returned no episodes for this series. We will check again when you reopen it.");
-    const list = byId("episode-list"); list.replaceChildren();
+    const list = byId("episode-list"), focused = list.contains(document.activeElement) ? document.activeElement : null;
+    const focusEpisode = focused?.closest(".episode-card")?.dataset.episodeId;
+    const focusKind = focused?.tagName;
+    list.replaceChildren();
+    list.classList.toggle("episode-art-hidden", hideEpisodeArt);
     for (const ep of rows.filter(ep => ep.season === selectedSeason)) {
+      const card = node("article", "episode-card"); card.dataset.episodeId = ep.id;
+      const titleId = `episode-title-${ep.id.replaceAll(":","-")}`;
+      card.setAttribute("aria-labelledby", titleId);
       const button = node("button", "episode-option"); button.type = "button"; button.dataset.episodeId = ep.id;
-      button.append(node("strong", "", `E${String(ep.episode).padStart(2,"0")} · ${ep.title || `Episode ${ep.episode}`}`));
-      if (ep.released) button.append(node("span", "", `Release date: ${ep.released.slice(0,10)}`));
-      if (ep.overview) button.append(node("span", "", ep.overview));
+      const label = `E${String(ep.episode).padStart(2,"0")} · ${ep.title || `Episode ${ep.episode}`}`;
+      button.setAttribute("aria-label", `Select S${String(ep.season).padStart(2,"0")} ${label}`);
+      const art = node("span", "episode-art"); art.setAttribute("aria-hidden","true");
+      const fallback = node("span", "episode-art-fallback", "Episode artwork unavailable"); art.append(fallback);
+      if (ep.thumbnail) {
+        const image = document.createElement("img"); image.alt = ""; image.loading = "lazy"; image.decoding = "async"; image.referrerPolicy = "no-referrer";
+        image.addEventListener("load", () => { fallback.hidden = true; }, {once:true});
+        image.addEventListener("error", () => { image.remove(); fallback.hidden = false; }, {once:true});
+        image.src = ep.thumbnail; art.append(image);
+      }
+      const copy = node("span", "episode-card-copy"), heading = node("strong", "", label); heading.id = titleId;
+      copy.append(heading);
+      const facts = [ep.released ? `Aired ${ep.released.slice(0,10)}` : "Air date unavailable", ep.runtimeMinutes ? `${ep.runtimeMinutes} min` : ""];
+      copy.append(node("span", "episode-card-facts", facts.filter(Boolean).join(" · ")));
+      const history = episodeHistoryLabel(movie,ep);
+      if (history) {
+        const historyNode = node("span", "episode-history", history); historyNode.id = `${titleId}-history`;
+        copy.append(historyNode); button.setAttribute("aria-describedby", historyNode.id);
+      }
+      button.append(art,copy);
       button.addEventListener("click", () => { if (launchPending) return; resetSources(); selectedEpisode = ep; updateEpisodeSelection(); });
-      list.append(button);
+      card.append(button);
+      // Plot, episode ratings and guests can spoil. Keep them outside the
+      // selection button and absent from accessibility exposure when closed.
+      const details = node("details", "episode-spoilers"); details.dataset.episodeId = ep.id;
+      const summary = node("summary", "", "Episode details · spoilers");
+      const body = node("div", "episode-spoiler-body");
+      body.append(node("p", "", ep.overview || "An episode summary was not supplied."));
+      const credits = node("dl", "episode-credits");
+      if (ep.rating !== null) { const fact = node("div"); fact.append(node("dt","","Provider rating"),node("dd","",`${ep.rating.toFixed(1)} / 10`)); credits.append(fact); }
+      for (const [key,label] of [["cast","Episode cast"],["guest_stars","Guest appearances"],["director","Directed by"],["writer","Written by"]]) {
+        if (!ep[key]?.length) continue;
+        const fact = node("div"); fact.append(node("dt","",label),node("dd","",ep[key].join(" · ")));credits.append(fact);
+      }
+      if (credits.children.length) body.append(credits);
+      details.append(summary,body); details.open = revealedEpisodeDetails.has(ep.id);
+      details.addEventListener("toggle", () => { if (!details.isConnected) return; if (details.open) revealedEpisodeDetails.add(ep.id); else revealedEpisodeDetails.delete(ep.id); });
+      card.append(details); list.append(card);
     }
     updateEpisodeSelection();
+    if (focusEpisode) {
+      const card = [...list.children].find(card => card.dataset.episodeId === focusEpisode);
+      card?.querySelector(focusKind === "SUMMARY" ? "summary" : "button")?.focus({preventScroll:true});
+    }
   }
 
   function renderFilmDetails(movie) {
@@ -1305,6 +1366,7 @@
     const status = byId("dialog-metadata-status");
     status.hidden = false;
     status.textContent = "Getting the full details…";
+    updatePlayerControls();
     try {
       const params = new URLSearchParams({ type: movie.type, id: movie.imdbId });
       const result = await requestJSON(`/api/browse/meta?${params}`, undefined, controller.signal);
@@ -1901,6 +1963,10 @@
     onOpen() { expandTitleDetails(true); },
   });
   byId("close-dialog").addEventListener("click", closeFilm);
+  byId("episode-hide-art").addEventListener("change", event => {
+    hideEpisodeArt = event.target.checked;
+    byId("episode-list").classList.toggle("episode-art-hidden", hideEpisodeArt);
+  });
   byId("episode-season").addEventListener("change", () => {
     if (launchPending || !selectedMovie) return;
     resetSources(); selectedEpisode = null; selectedSeason = Number(byId("episode-season").value); renderEpisodes(selectedMovie);

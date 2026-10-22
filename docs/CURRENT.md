@@ -2,6 +2,18 @@
 
 Date: 2026-10-22. State: active prototype; settings and provider-filter source on main; provider UI visually read back in the reopened native app. Broader native and suite qualification remains open.
 
+## Episode-card details, 2026-10-22
+
+Continue the same app writer, Work `settings-sdk-publisher-audit-2026-09-26`, #1/#3 and draft PR #8. No replacement player, metadata provider, BINS library or window component.
+
+The existing metadata adapter already retained episode thumbnails, but the frontend discarded them. Actual Cinemeta episode names use `name` in the observed response, while our parser read only `title`; the fallback hid available episode names. The same allowlisted adapter now preserves names, art, finite episode ratings/runtime and explicit episode credits when supplied. Series cast is never asserted to be episode cast or guest appearances. The live Frankenstein Chronicles sample supplied 12 named episodes, 12 artwork URLs and 12 ratings, but no episode-specific cast/guests. Optional credits support is source-tested, not a newly connected credit provider.
+
+Episode cards use an image/selection surface and a separate native disclosure for plot, rating and credits. Closed details are not part of the selection name and remain outside the exposed accessibility tree. Episode-scoped disclosure state and the optional Hide episode images control last in the mounted window, not a claimed cross-device settings save. The page owns vertical scrolling. Selection still cannot resolve a stream or play. Watched/resume labels project the existing library's exact episode history, never a parent series flag or a new store.
+
+A paired server regression confirms missing/null/malformed `videos` was converted to an authoritative `episodes:[]`, then cached. Missing or entirely rejected data now stays incomplete and is not cached as success; an explicit empty array remains a real empty response. The same existing cache is retained. Reopening remains the normal retry route.
+
+The existing browser runner now tests artwork/fallback, keyboard disclosure, accessible-name/tree leakage, selection separation, same-card/focus preservation under resize, 320px allocated width, episode-only history and spoiler state across refresh/reopen. Provider/player fixtures remain distinct from real served browser acceptance. No main merge, independent review, native player proof, BINS binding or Loki release follows from these checks.
+
 ## Universal series-card binding, 2026-10-22
 
 Current owner correction: episode linkage is a product-wide card contract, not a list of individual shows to repair. Continue existing #1 / #3 / PR #8 and Work `settings-sdk-publisher-audit-2026-09-26`.

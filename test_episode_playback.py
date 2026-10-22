@@ -34,6 +34,50 @@ class MetadataTest(unittest.TestCase):
         with patch.object(catalogue,'_cached',side_effect=lambda _,convert:convert({'meta':raw})):
             self.assertEqual(catalogue.meta({'id':SERIES,'type':'series'})['movie']['episodes'][0]['id'],SERIES+':1:1')
 
+class EpisodeCardMetadataTest(unittest.TestCase):
+    def raw(self, **extra):
+        return {'id':SERIES,'type':'series','name':'Test series',**extra}
+    def projection(self, raw):
+        with patch.object(catalogue,'_cached',side_effect=lambda _,convert:convert({'meta':raw})):
+            return catalogue.meta({'type':'series','id':SERIES})['movie']
+    def test_episode_name_art_and_rating_are_retained_without_stream_data(self):
+        ep={'id':SERIES+':1:1','season':1,'episode':1,'name':'A real episode name',
+            'thumbnail':'https://images.example.com/episode.jpg','rating':7.5,'runtime':42,
+            'overview':'Plot detail','streams':[{'url':'PRIVATE_STREAM'}], 'headers':{'Authorization':'PRIVATE'}}
+        row=catalogue.episode_records([ep],SERIES)[0]
+        self.assertEqual(row['title'],'A real episode name')
+        self.assertEqual(row['thumbnail'],'https://images.example.com/episode.jpg')
+        self.assertEqual(row['rating'],7.5);self.assertEqual(row['runtime_minutes'],42)
+        self.assertNotIn('PRIVATE',json.dumps(row));self.assertNotIn('headers',row)
+    def test_episode_credits_are_scoped_to_episode_not_series(self):
+        ep={'id':SERIES+':1:1','season':1,'episode':1,'cast':['Episode Actor'],
+            'guest_stars':[{'name':'Guest Actor','character':'Character','secret':'PRIVATE'},'Second Guest'],
+            'director':['Director'], 'writer':['Writer']}
+        row=self.projection(self.raw(cast=['Series Actor'],videos=[ep]))['episodes'][0]
+        self.assertEqual(row['cast'],['Episode Actor']);self.assertEqual(row['guest_stars'],['Guest Actor','Second Guest'])
+        self.assertNotIn('Series Actor',json.dumps(row));self.assertNotIn('PRIVATE',json.dumps(row))
+    def test_missing_or_malformed_videos_is_not_a_successful_empty_hierarchy(self):
+        for raw in [self.raw(),self.raw(videos=None),self.raw(videos={}),self.raw(videos='invalid')]:
+            with self.subTest(raw=raw):self.assertNotIn('episodes',self.projection(raw))
+    def test_explicit_empty_videos_is_a_successful_empty_hierarchy(self):
+        self.assertEqual(self.projection(self.raw(videos=[]))['episodes'],[])
+    def test_all_invalid_rows_are_not_reported_as_no_episodes(self):
+        self.assertNotIn('episodes',self.projection(self.raw(videos=[{'id':'wrong','season':1,'episode':1}])))
+    def test_incomplete_response_is_not_cached_as_authoritative_empty(self):
+        valid={'id':SERIES+':1:1','season':1,'episode':1,'name':'Recovered'}
+        with patch.object(catalogue,'_cache',catalogue.OrderedDict()),patch.object(catalogue,'_fetch_document',side_effect=[{'meta':self.raw()},{'meta':self.raw(videos=[valid])}]) as fetch:
+            first=catalogue.meta({'type':'series','id':SERIES})['movie']
+            second=catalogue.meta({'type':'series','id':SERIES})['movie']
+            third=catalogue.meta({'type':'series','id':SERIES})['movie']
+            self.assertNotIn('episodes',first);self.assertEqual(second['episodes'][0]['id'],valid['id'])
+            self.assertEqual(second,third);self.assertEqual(fetch.call_count,2)
+    def test_unknown_or_unsafe_optional_values_remain_unknown(self):
+        ep={'id':SERIES+':1:1','season':1,'episode':1,'thumbnail':'https://user:SECRET@public.example/img',
+            'rating':True,'runtime':-1,'cast':[None,{'wrong':'PRIVATE'}], 'guest_stars':None}
+        row=catalogue.episode_records([ep],SERIES)[0]
+        self.assertEqual(row['thumbnail'],'');self.assertIsNone(row.get('rating'))
+        self.assertIsNone(row.get('runtime_minutes'));self.assertEqual(row.get('cast'),[])
+
 class EpisodeTest(support.SettingsFixture):
     def resolver(self):
         manifest='https://torrentio.strem.fun/realdebrid=SYNTHETIC_SECRET/manifest.json'
