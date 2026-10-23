@@ -487,7 +487,15 @@ export async function mountFilterCubes(host) {
     if(!data().rows.length){const welcome=el('section','cube-welcome');welcome.append(el('p','eyebrow','Your home, your filters'),el('h2','','Build your first filter cube'),el('p','','Choose a source and filters above, then save them as a cube. Add more cubes for different moods, decades or watch status. Each becomes a live carousel row.'),button('Create a filter cube',()=>openNaming()));rows.append(welcome);}
     updateControls();
   }
-  try{const response=await fetch('/api/filter-cubes/declaration',{cache:'no-store'});if(!response.ok)throw Error('Cube controls could not load their existing declaration.');cubeContract=await response.json();initializeBuilder(cubeContract);record=await request();mode=record.view;activeId=record.selected_id;if(activeId){const row=record.rows.find(r=>r.id===activeId);if(row)activate(row);}renderRows();if(mode==='carousel')notice('Your live filter cubes. Create another cube or edit any row without chat.');}
+  try{const response=await fetch('/api/filter-cubes/declaration',{cache:'no-store'});if(!response.ok)throw Error('Cube controls could not load their existing declaration.');cubeContract=await response.json();initializeBuilder(cubeContract);record=await request();const starter=record.rows.find(row=>row.id==='starter-all-movies-20261023')
+      || record.rows.find(row=>row.collectionId==='browse-movie'&&!row.genre&&!row.search
+        && !row.filters?.rating&&!row.filters?.yearFrom&&!row.filters?.yearTo
+        && !(row.filters?.include||[]).length&&!(row.filters?.exclude||[]).length
+        && !row.filters?.watch&&!row.filters?.provider);
+      mode='carousel';activeId=starter?.id||null;
+      host.startupHome?.();
+      renderRows();
+      notice('Your Bins are ready. Choose a Bin to apply its saved filters.');}
   catch(error){notice(error.message+' The existing wall remains available.');updateControls();}
   async function reviewOperation(operation) {
     // Draft ingress only. No filesystem/native dispatch or permission assertion.

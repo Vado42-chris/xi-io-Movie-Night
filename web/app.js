@@ -2187,6 +2187,16 @@
       player.dock.hidden = dockDismissed || (mode === "carousel" && playerStatus.state === "idle");
       measureDock();
     },
+    startupHome() {
+      filters=defaultFilters();
+      activeCubeLabel='';
+      elements.search.value='';
+      elements.sort.value='rank';
+      elements.genre.value='';
+      selectCollection('browse-movie');
+      syncFilterControls();
+      renderFilms();
+    },
     evaluate: filterMovieQuery, catalogueEnabled: () => wallSettings.plugins.cinemeta_enabled,
     sourceDefaults(id) { const item = collections.find(c => c.id === id); return savedBrowseSettings(item); },
     summary(query) {
