@@ -2,6 +2,25 @@
 
 Date: 2026-10-22. State: active prototype; settings and provider-filter source on main; provider UI visually read back in the reopened native app. Broader native and suite qualification remains open.
 
+## Independent concierge replay and build prerequisites, 2026-10-22
+
+The owner relayed Claude's independent replay of exact `e099a15`: 82 application
+and 16 player tests, plus the two exact request journeys at 390/1440, with real
+disposable writes, fresh-process readback and cold page reopen. This is reported
+independent source evidence, not Claude verification of Aries, real inference or
+native input. The external scratchpad was not retrieved or represented as ingressed.
+
+The reported build gap is confirmed: `studio-web/` is generated and the source
+branch omitted the retained shell lockfile. The bounded follow-up recovers that
+existing lockfile without upgrading dependencies, adds a pre-server missing-build
+check to the existing browser runner, and documents all clean-checkout prerequisites.
+Six new prerequisite tests are environment coverage, not six new product capabilities.
+Fresh dependency installation and build were performed only in a disposable review
+checkout. Their HTML/JS/CSS match the installed `e099a15` build byte-for-byte on the
+observed toolchain. No running service, private library, native window or installed
+node_modules tree was changed. PR #8 remains the integration owner; accepted main,
+physical native acceptance, BINS/worker return and public hosting remain separate.
+
 ## Approved concierge delivery, 2026-10-22
 
 Owner approved finishing/testing the existing chat-to-cube change, publishing through PR #8 and patching Aries. Continue Work `settings-sdk-publisher-audit-2026-09-26`, #5 and the existing writer branch. No new store, provider account, shell or autonomous-worker authority.
