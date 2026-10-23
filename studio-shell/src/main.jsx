@@ -10,6 +10,7 @@ import { SnapGuideProvider } from '@/lib/snapGuide';
 import { useChatDock, setChatOpen, snapChat, setChatSide, setChatView } from '@/lib/chatDockStore';
 import Concierge from './Concierge';
 import MovieSettings, { useMovieSettings } from './Settings';
+import PhoneRemote from './PhoneRemote';
 import '../vendor/src/index.css';
 import './style.css';
 import './settings.css';
@@ -232,7 +233,7 @@ function StudioMovieNight() {
     startResize: direction => nativeWindowAction('resize', direction),
     toggleMaximize: () => nativeWindowAction('maximize'),
   } : undefined;
-  const titleActions = native ? <><button className="native-title-action native-title-icon" title={fullscreen ? "Exit full screen" : "Full screen"} aria-label={fullscreen ? "Exit full screen" : "Full screen"} onClick={() => bridgeInvoke('toggle_movie_fullscreen').catch(() => setHostError('Full screen is unavailable.'))}><Maximize2 size={17} />{fullscreen && <span>Exit full screen</span>}</button></> : null;
+  const titleActions = native ? <><PhoneRemote native={native} /><button className="native-title-action native-title-icon" title={fullscreen ? "Exit full screen" : "Full screen"} aria-label={fullscreen ? "Exit full screen" : "Full screen"} onClick={() => bridgeInvoke('toggle_movie_fullscreen').catch(() => setHostError('Full screen is unavailable.'))}><Maximize2 size={17} />{fullscreen && <span>Exit full screen</span>}</button></> : null;
 
   return <main className={`studio-app ${native ? 'studio-native' : ''} ${fullscreen ? 'studio-fullscreen' : ''}`} data-native-host={native} data-native-player-active={nativeActive}>
     {!native && <header className="studio-heading"><div className="studio-brand"><Film size={22} /><span>Movie Night</span><small>PERSONAL STUDIO</small></div><div className="studio-heading-actions"><span className="aries-status"><i />Aries</span></div></header>}
