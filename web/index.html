@@ -94,7 +94,7 @@
               </select>
               <span id="provider-filter-help" class="visually-hidden">Filter by where titles came from. A library entry does not establish subscription or playback access.</span>
             </div>
-            <div class="select-field">
+            <div class="select-field loaded-genre-field">
               <label for="genre-filter">Genre</label>
               <select id="genre-filter" disabled><option value="">All genres</option></select>
             </div>
@@ -140,7 +140,7 @@
 
     <dialog id="filter-dialog" class="filter-dialog" aria-labelledby="filter-title">
       <form id="filter-form" class="filter-panel">
-        <header class="filter-header"><div><p class="eyebrow">Find your kind of evening</p><h2 id="filter-title">Fine-tune the selection</h2><p>Combine a few details. Discover something that fits.</p></div><button id="close-filters" class="dialog-close" type="button" aria-label="Close filters">×</button></header>
+        <header class="filter-header"><div><p class="eyebrow">Find your kind of evening</p><h2 id="filter-title">Filter titles</h2><p>Combine a few details. Discover something that fits.</p></div><button id="close-filters" class="dialog-close" type="button" aria-label="Close filters">×</button></header>
         <div class="filter-scroll">
           <section class="filter-section"><div class="filter-section-heading"><h3>Release years</h3><span>Both years included</span></div><div class="filter-range-fields"><label>From<input id="filter-year-from" type="number" min="1800" max="2999" step="1" placeholder="Any year" inputmode="numeric"></label><span class="range-divider" aria-hidden="true">—</span><label>Through<input id="filter-year-to" type="text" pattern="(?:present|(?:18|19|2[0-9])[0-9]{2})?" placeholder="Any year or present" list="cube-current-year"></label></div><p id="filter-year-error" class="field-error" role="status" hidden>Choose a start year no later than the end year.</p></section>
           <section class="filter-section"><div class="filter-section-heading"><h3>Genres to include</h3><label class="genre-mode-label">Match<select id="filter-genre-mode"><option value="any">Any selected</option><option value="all">All selected</option></select></label></div><div id="include-genres" class="genre-options"></div><details class="exclude-genres"><summary>Leave out a genre</summary><p>Titles with any excluded genre will be hidden.</p><div id="exclude-genres" class="genre-options"></div></details></section>
@@ -148,14 +148,14 @@
           <section class="filter-section filter-two-columns"><label class="filter-label">Title type<select id="filter-type"><option value="">Movies &amp; TV</option><option value="movie">Movies</option><option value="series">TV series</option></select></label><label class="filter-label">In your library<select id="filter-watch"><option value="">Any status</option><option value="favorites">Favorites</option><option value="watching">Watching</option><option value="watched">Watched</option><option value="unwatched">Unwatched</option></select></label></section>
           <section class="filter-section saved-views"><div class="filter-section-heading"><h3>Save this view</h3><span>On this device</span></div><div class="saved-view-create"><label class="visually-hidden" for="saved-view-name">Name this filter view</label><input id="saved-view-name" type="text" maxlength="60" placeholder="e.g. 80s comedies under two hours"><button id="save-view" class="small-button" type="button">Save view</button></div><div class="saved-view-select"><label class="visually-hidden" for="saved-views">Saved filter views</label><select id="saved-views"><option value="">Choose a saved view…</option></select><button id="delete-view" class="text-button" type="button" disabled>Delete</button></div><p id="saved-view-feedback" class="filter-hint" role="status" aria-live="polite"></p></section>
         </div>
-        <footer class="filter-footer"><button id="reset-advanced-filters" class="text-button" type="button">Reset all filters</button><button id="apply-filters" class="primary-button" type="submit">Show titles</button><p id="drawer-filter-scope">Filters apply to loaded titles only.</p></footer>
+        <footer class="filter-footer"><button id="reset-advanced-filters" class="text-button" type="button">Clear these filters</button><button id="apply-filters" class="primary-button" type="submit">Show titles</button><p id="drawer-filter-scope">Filters apply to loaded titles only.</p></footer>
       </form>
     </dialog>
 
     <section id="film-dialog" class="film-detail" aria-labelledby="dialog-title" hidden>
       <div id="detail-backdrop" class="detail-backdrop" aria-hidden="true"></div>
       <div class="detail-content">
-        <nav class="detail-navigation" aria-label="Movie detail navigation"><button id="close-dialog" class="small-button detail-back" type="button"><span aria-hidden="true">←</span> Back to wall</button><span id="detail-collection-label" class="detail-provider">Movie Night · Your collection</span></nav>
+        <nav class="detail-navigation" aria-label="Movie detail navigation"><button id="close-dialog" class="small-button detail-back" type="button"><span aria-hidden="true">←</span> Back to browsing</button><span id="detail-collection-label" class="detail-provider">Movie Night · Your collection</span></nav>
         <div id="detail-filter-controls" class="detail-filter-controls" aria-label="Filter this selection"></div>
         <section id="title-carousel" class="title-carousel" role="region" aria-roledescription="carousel" aria-label="Filtered title selection" tabindex="0">
           <div class="carousel-heading"><div><p class="eyebrow">Find your next watch</p><p id="carousel-counter" role="status" aria-live="polite"></p></div><div class="carousel-buttons"><button id="carousel-previous" type="button" class="small-button" aria-label="Previous title">←</button><button id="carousel-next" type="button" class="small-button" aria-label="Next title">→</button></div></div>
@@ -173,14 +173,14 @@
             <p id="dialog-description" class="detail-synopsis"></p>
             <p id="dialog-metadata-status" class="dialog-metadata-status" role="status" aria-live="polite" hidden></p>
             <section id="detail-episodes" class="detail-episodes" aria-labelledby="episodes-heading" hidden>
-              <div class="episode-heading"><h2 id="episodes-heading">Seasons and episodes</h2><label>Season <select id="episode-season" aria-label="Season"></select></label><button id="refresh-episodes" type="button" class="small-button">Refresh episodes</button><label class="episode-art-control"><input id="episode-hide-art" type="checkbox"> Hide episode images</label></div>
+              <div class="episode-heading"><h2 id="episodes-heading">Seasons and episodes</h2><label>Season <select id="episode-season" aria-label="Season"></select></label><button id="refresh-episodes" type="button" class="small-button">Check for episodes</button><label class="episode-art-control"><input id="episode-hide-art" type="checkbox"> Hide episode images</label></div>
               <p id="episode-metadata-status" role="status"></p><div id="episode-list" class="episode-rows" aria-label="Episodes"></div><p id="episode-selection" role="status"></p>
             </section>
             <div class="detail-actions">
-              <button id="play-on-aries" class="primary-button" type="button"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="m8 5 11 7-11 7V5Z"/></svg><span id="play-on-aries-label">Choose a stream</span></button>
-              <button id="quick-play" class="primary-button" type="button" aria-describedby="quick-play-help">Quick Play</button>
-              <span id="quick-play-help" class="visually-hidden">Choose a cached source using your saved quality and smaller-encode preferences. Connection speed has not been measured.</span>
-              <button id="choose-sources" class="small-button" type="button">Choose source</button>
+              <button id="play-on-aries" class="primary-button" type="button"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="m8 5 11 7-11 7V5Z"/></svg><span id="play-on-aries-label">Watch</span></button>
+              <details class="playback-options"><summary>Playback options</summary><button id="quick-play" class="small-button" type="button" aria-describedby="quick-play-help">Use preferred source</button>
+              <span id="quick-play-help" class="visually-hidden">Choose a cached source using your saved quality and smaller-encode preferences. Connection speed has not been measured.</span></details>
+              <button id="choose-sources" class="small-button" type="button">Change source</button>
               <button id="expand-details" class="small-button" type="button" aria-expanded="false" aria-controls="detail-expanded">More details</button>
               <button id="favorite-detail" class="detail-favorite small-button" type="button" aria-pressed="false">Add to favorites</button>
             </div>

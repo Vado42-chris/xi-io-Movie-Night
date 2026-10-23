@@ -239,13 +239,58 @@ def register_catalogue(records):
     return sum(row is not None for row in normalized)
 
 
+_PRESENTATION_FIELDS = ("title", "name", "poster", "description", "releaseInfo", "genres", "imdbRating")
+
+
+def _presentation_key(row):
+    """Title metadata may enrich episodes, never their identity or progress."""
+    item_id = row["id"]
+    if row["type"] == "series":
+        parent = row.get("imdbId")
+        if parent and (item_id == parent or re.fullmatch(re.escape(parent) + r":[0-9]+:[0-9]+", item_id)):
+            item_id = parent
+    return row["type"] + "|" + item_id
+
+
+def _has_presentation(row, key):
+    value = row.get(key)
+    if key in ("title", "name"):
+        return bool(value and str(value).casefold() != "untitled" and not re.fullmatch(r"tt[0-9]+(?::[0-9]+:[0-9]+)?", str(value)))
+    return value is not None and value != "" and value != []
+
+
+def _enrich_presentation(row, known):
+    result = copy.deepcopy(row)
+    if not known or _presentation_key(row) != _presentation_key(known):
+        return result
+    for key in _PRESENTATION_FIELDS:
+        if not _has_presentation(result, key) and _has_presentation(known, key):
+            result[key] = copy.deepcopy(known[key])
+    if _has_presentation(result, "title") and not _has_presentation(result, "name"):
+        result["name"] = result["title"]
+    return result
+
+
 def _registry(state):
     imported = state["imported"]
-    rows = imported["watched"] + imported["recent"] + imported["library"]
-    rows += list(state["local_history"].values())
-    rows += [item["record"] for item in state["favorite_overrides"].values()]
+    # Existing explicit presentation first. Sparse catalogue/progress records can
+    # fill missing metadata, never erase it or transfer a sibling's watch state.
+    rows = [item["record"] for item in state["favorite_overrides"].values()]
     rows += [movie for collection in state["collections"] for movie in collection["movies"]]
-    return {_key(row): row for row in rows} | _catalogue
+    rows += imported["library"] + imported["watched"] + imported["recent"]
+    rows += list(state["local_history"].values()) + list(_catalogue.values())
+    registry = {}
+    for row in rows:
+        key = _presentation_key(row)
+        if key not in registry:
+            registry[key] = copy.deepcopy(row)
+            registry[key]["id"] = key.split("|", 1)[1]
+            if row["type"] == "series":
+                for field in ("season", "episode", "lastPositionMs", "durationMs", "lastUpdatedEpochMs", "isCompleted"):
+                    registry[key].pop(field, None)
+        else:
+            registry[key] = _enrich_presentation(registry[key], row)
+    return registry
 
 
 def _view(state):
@@ -257,12 +302,14 @@ def _view(state):
         else:
             favorite_keys.pop(key, None)
     recent = _unique(state["imported"]["recent"] + list(state["local_history"].values()), episodes=True)
+    recent = [_enrich_presentation(row, registry.get(_presentation_key(row))) for row in recent]
     recent.sort(key=lambda row: row.get("lastUpdatedEpochMs", 0), reverse=True)
     watched = state["imported"]["watched"] + [r for r in state["local_history"].values() if r.get("isCompleted")]
     return copy.deepcopy({"favorites": [registry[key] for key in favorite_keys if key in registry],
                           "recent": recent[:500], "watched": list(dict.fromkeys(_watch_id(r) for r in watched)),
                           "imported_at": state["imported_at"],
-                          "collections": state["imported"]["collections"] + state["collections"]})
+                          "collections": [{**collection, "movies": [_enrich_presentation(row, registry.get(_presentation_key(row))) for row in collection["movies"]]}
+                                          for collection in state["imported"]["collections"] + state["collections"]]})
 
 
 def known_titles():

@@ -1,0 +1,120 @@
+'use strict';
+// User actions against the actual HTTP writer. Model/provider/player are disabled or fixture-only.
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+const {chromium}=require(process.env.MOVIE_NIGHT_PLAYWRIGHT||'/media/chrishallberg/Storage 22/999_Work/003_Projects/017_xi-io_inbox/node_modules/playwright');
+const base=process.env.MOVIE_NIGHT_URL,out=path.resolve(process.argv[2]);
+const reports=[];
+(async()=>{
+ const browser=await chromium.launch({executablePath:process.env.MOVIE_NIGHT_CHROME||'/usr/bin/google-chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
+ try{
+ for(const width of [390,768,1280]){
+  const report={width,checks:[],errors:[],pass:false,ai:false,realPlayback:false};reports.push(report);
+  const context=await browser.newContext({viewport:{width,height:900},reducedMotion:'reduce',serviceWorkers:'block'});
+  await context.route('**/*',route=>new URL(route.request().url()).origin===base?route.continue():route.abort());
+  let page=await context.newPage();page.setDefaultTimeout(10000);page.on('pageerror',e=>report.errors.push(e.message));
+  const state=async()=>{const r=await context.request.get(base+'/__test/state');return r.json()};
+  const mode=async v=>{await context.request.post(base+'/__test/mode',{data:{mode:v}})};
+  const tab=async name=>{await page.locator('[data-experience-tab='+name+']').click();await page.waitForFunction(v=>document.body.dataset.movieExperienceView===v,name)};
+  const row=id=>page.locator('.cube-row[data-cube-id="'+id+'"]');
+  const noOverflow=async()=>assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2),false,'horizontal page overflow');
+  async function keyboardTo(id){for(let n=0;n<65;n++){if(await page.evaluate(id=>document.activeElement?.id===id,id)){await page.keyboard.press('Enter');return n;}await page.keyboard.press('Tab');}throw Error('Keyboard cannot reach '+id);}
+  async function rename(id,value){await row(id).locator('.bin-management summary').click();await row(id).getByRole('button',{name:'Rename',exact:true}).click();await page.locator('#cube-name').fill(value);}
+  try{
+   await page.goto(base+'/',{waitUntil:'domcontentloaded'});await page.waitForFunction(()=>typeof window.movieNightCubeContext==='function'&&document.querySelector('[data-experience-tab]'));
+   assert.equal(await page.locator('#experience-original-toggle').count(),0,'no alternate workspace mode');
+   assert.equal(await page.locator('#ai-suggestions-preview').getAttribute('open'),null);
+   const initial=await state();assert.equal(initial.calls.ai,0,'manual startup does not call AI');const initialPlays=initial.calls.player.filter(r=>r.path.endsWith('/play')).length;
+   await noOverflow();await page.screenshot({path:path.join(out,'home-'+width+'.png')});
+   report.checks.push('one navigation, no alternate workspace, no startup AI call, no overflow');
+   await tab('bins');assert.equal(await page.locator('#cube-add').isVisible(),true);assert.equal(await page.locator('#cube-add').innerText(),'New Bin');
+   assert.equal(await page.locator('.cube-view-switch').isVisible(),false);
+   report.keyboardTabsToNewBin=await keyboardTo('cube-add');
+   await page.locator('#cube-naming').waitFor({state:'visible'});
+   assert.equal(await page.locator('#cube-source').inputValue(),'browse-movie');
+   await page.locator('#cube-builder-next').click();
+   await page.locator('#cube-rule-genre').selectOption('Western');
+   await page.locator('#cube-rule-yearFrom').fill('1985');await page.locator('#cube-rule-yearTo').fill('present');
+   await page.locator('#cube-builder-next').click();await page.locator('#cube-name').fill('Westerns '+width);
+   await page.locator('#cube-confirm').click();await page.locator('#cube-naming').waitFor({state:'hidden'});
+   let saved=await state(),bin=saved.document.rows.find(r=>r.name==='Westerns '+width);assert.ok(bin,'saved Bin missing');const id=bin.id;
+   assert.equal(bin.filters.yearFrom,'1985');assert.equal(bin.filters.yearTo,'present');assert.equal(bin.genre,'Western');
+   assert.equal(await row(id).isVisible(),true);assert.equal(await page.locator('body').getAttribute('data-movie-experience-view'),'bins');
+   assert.equal(saved.document.rows.length,initial.document.rows.length+1);report.checks.push('keyboard-reachable New Bin, manual Western query, actual POST/GET, saved Bin visible');
+   await row(id).getByRole('button',{name:'Edit Bin',exact:true}).click();await page.locator('#cube-builder-next').click();
+   await page.locator('#cube-rule-yearFrom').fill('1995');await page.locator('#cube-builder-next').click();await page.locator('#cube-confirm').click();await page.locator('#cube-naming').waitFor({state:'hidden'});
+   assert.equal((await state()).document.rows.find(r=>r.id===id).filters.yearFrom,'1995');
+   await rename(id,'Modern Westerns '+width);await page.locator('#cube-confirm').click();await page.locator('#cube-naming').waitFor({state:'hidden'});
+   assert.equal((await state()).document.rows.find(r=>r.id===id).name,'Modern Westerns '+width);
+   report.checks.push('Edit and Rename keep original ID and saved filter fields');
+   const beforeView=await state();await row(id).getByRole('button',{name:'View all',exact:true}).click();
+   await page.waitForFunction(()=>document.body.dataset.binDetail==='true');
+   assert.equal(await page.locator('#bin-detail-back').isVisible(),true);await page.locator('#film-grid .movie-card').first().waitFor();
+   assert.deepEqual(await page.locator('#film-grid .movie-title').allTextContents(),['Frontier Two']);
+   const catalogRequests=(await state()).calls.catalogue.length;
+   await page.locator('#film-search').fill('Castle');await page.waitForTimeout(400);assert.equal(await page.locator('#film-grid .movie-card').count(),0);
+   assert.equal((await state()).calls.catalogue.length,catalogRequests,'Bin search escaped into global catalogue');
+   await page.locator('#film-search').fill('');await page.waitForTimeout(100);
+   await page.locator('#bin-detail-back').click();assert.equal((await state()).document.revision,beforeView.document.revision,'View all wrote layout');
+   report.checks.push('View all and return do not write; Bin search stays within exact saved query');
+   await page.locator('#cube-edit').click();await row(id).getByRole('button',{name:'Move up',exact:true}).click();
+   await page.locator('[data-experience-tab=home]').click();assert.equal(await page.locator('body').getAttribute('data-movie-experience-view'),'bins');
+   assert.match(await page.locator('#cube-status').innerText(),/Save order|Cancel arrangement/);
+   await page.locator('#cube-save-layout').click();await page.waitForFunction(()=>!document.body.classList.contains('cube-layout-editing'));
+   const ordered=await state();assert.equal(ordered.document.rows[1].id,id);report.checks.push('Arrange uses one draft; navigation refuses silent loss; Save order persists');
+   await page.screenshot({path:path.join(out,'my-bins-'+width+'.png')});
+   await page.close();page=await context.newPage();page.setDefaultTimeout(10000);page.on('pageerror',e=>report.errors.push(e.message));
+   await page.goto(base+'/',{waitUntil:'domcontentloaded'});await page.waitForFunction(()=>typeof window.movieNightCubeContext==='function'&&document.querySelector('[data-experience-tab]'));
+   await tab('bins');assert.equal(await row(id).locator('h2').innerText(),'Modern Westerns '+width);
+   const reopened=await state();assert.deepEqual(reopened.document,ordered.document);report.checks.push('cold page reopen restores ID, name, order, query and revision with no startup write');
+   await rename(id,'Refused rename '+width);await mode('refuse');await page.locator('#cube-confirm').click();
+   await page.waitForFunction(()=>document.querySelector('#cube-builder-feedback')?.textContent.includes('refusal'));
+   assert.equal(await page.locator('#cube-name').inputValue(),'Refused rename '+width);assert.equal(await page.locator('#cube-naming').isVisible(),true);
+   assert.deepEqual((await state()).document,reopened.document);await mode('normal');await page.locator('#cube-naming').getByRole('button',{name:'Cancel',exact:true}).click();
+   report.checks.push('refused write retains input and confirmed store; no false saved state');
+   await rename(id,'Recovered Westerns '+width);await mode('deny-readback');await page.locator('#cube-confirm').click();
+   await page.locator('#cube-reconcile').waitFor({state:'visible'});assert.equal(await page.locator('#cube-confirm').isDisabled(),true);
+   const uncertain=await state();assert.equal(uncertain.document.rows.find(r=>r.id===id).name,'Recovered Westerns '+width);
+   await mode('normal');await page.locator('#cube-reconcile').click();await page.locator('#cube-naming').waitFor({state:'hidden'});
+   const recovered=await state();assert.equal(recovered.calls.writes,uncertain.calls.writes);assert.equal(recovered.document.revision,uncertain.document.revision);
+   report.checks.push('write landed/readback failed stays unconfirmed; Check saved layout reconciles without another write');
+   await row(id).locator('.bin-management summary').click();await row(id).getByRole('button',{name:'Remove Bin',exact:true}).click();
+   await page.locator('#cube-delete').getByRole('button',{name:'Keep Bin',exact:true}).click();assert.ok((await state()).document.rows.some(r=>r.id===id));
+   await row(id).getByRole('button',{name:'Remove Bin',exact:true}).click();await page.locator('#cube-delete').getByRole('button',{name:'Remove Bin',exact:true}).click();
+   await row(id).waitFor({state:'detached'});assert.equal((await state()).document.rows.length,initial.document.rows.length);
+   report.checks.push('Remove has explicit confirmation; Cancel preserves; confirmed removal preserves sibling Bins');
+   await tab('library');const catalogueBefore=(await state()).calls.catalogue.length;
+   await page.locator('#film-search').fill('Castle');await page.waitForTimeout(400);
+   assert.deepEqual(await page.locator('#film-grid .movie-title').allTextContents(),['Castle in the Clouds']);
+   assert.equal((await state()).calls.catalogue.length,catalogueBefore);assert.equal(await page.locator('body').getAttribute('data-movie-experience-view'),'library');
+   await page.locator('#film-search').fill('');
+   await page.locator('[data-collection=personal-favorites]').click();assert.equal(await page.locator('#film-grid .movie-card').count(),1);
+   await page.locator('[data-collection=personal-recent]').click();await page.locator('#film-grid .movie-card').first().click();
+   await page.waitForFunction(()=>document.querySelector('#episode-selection')?.textContent.includes('S01 E02'));
+   assert.equal(await page.locator('#episode-season').inputValue(),'1');
+   await page.locator('#play-on-aries').click();await page.locator('.source-row-play').first().waitFor();
+   const episodeLookup=(await state()).calls.player.filter(r=>r.path.endsWith('/sources')).at(-1).body;
+   assert.equal(episodeLookup.imdb_id,'tt8400005');assert.equal(episodeLookup.season,1);assert.equal(episodeLookup.episode,2);
+   await page.locator('#cancel-sources').click();await page.locator('#close-dialog').click();
+   report.checks.push('Recent opens exact saved episode; stream lookup retains series/season/episode without autoplay');
+   await tab('discover');assert.equal(await page.locator('#open-filters').isVisible(),true);
+   assert.equal(await page.locator('[data-collection=browse-movie]').isVisible(),true);assert.equal(await page.locator('[data-collection=library]').isVisible(),false);
+   await page.locator('#open-filters').focus();await page.keyboard.press('Enter');await page.locator('#filter-dialog').waitFor({state:'visible'});
+   await page.keyboard.press('Escape');await page.locator('#filter-dialog').waitFor({state:'hidden'});
+   report.checks.push('Library search is local; Favorites/Movies/TV contextual navigation; keyboard filter open and Escape');
+   await tab('library');await page.locator('#film-grid .movie-card').first().click();
+   await page.locator('#play-on-aries').waitFor({state:'visible'});assert.equal(await page.locator('#play-on-aries-label').innerText(),'Watch');
+   assert.equal(await page.locator('#quick-play').isVisible(),false);assert.equal(await page.locator('#choose-sources').isVisible(),false);
+   const beforePlay=await state();assert.equal(beforePlay.calls.player.filter(r=>r.path.endsWith('/play')).length,initialPlays);
+   await page.locator('#play-on-aries').click();await page.locator('.source-row-play').first().waitFor();await page.locator('.source-row-play').first().click();
+   await page.waitForTimeout(300);const played=await state();assert.equal(played.calls.player.filter(r=>r.path.endsWith('/play')).length,initialPlays+1);
+   assert.equal(played.calls.player.filter(r=>r.path.endsWith('/play')).at(-1).body.imdb_id,'tt8400001');
+   if(await page.locator('#player-stop').isVisible())await page.locator('#player-stop').click();
+   report.checks.push('one primary Watch, optional preferred-source disclosure, explicit matching-source request only (fixture playback)');
+   assert.equal((await state()).calls.ai,0);assert.deepEqual(report.errors,[]);await noOverflow();report.pass=true;
+  }catch(e){report.error=e.stack;await page.screenshot({path:path.join(out,'failure-'+width+'.png'),fullPage:false}).catch(()=>{});}
+  finally{console.log(JSON.stringify(report));await context.close();}
+  if(!report.pass)break;
+ }
+ }finally{await browser.close();fs.writeFileSync(path.join(out,'report.json'),JSON.stringify(reports,null,2));}
+ assert(reports.length===3&&reports.every(r=>r.pass),'manual journeys incomplete or failed');
+})().catch(e=>{console.error(e.stack);process.exitCode=1});

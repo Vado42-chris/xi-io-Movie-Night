@@ -17,6 +17,7 @@ from urllib.parse import parse_qs, unquote, urlsplit
 import player_gateway
 import concierge
 import catalogue_browse
+import ai_suggestions
 import personal_library
 import app_settings
 import filter_cubes
@@ -28,9 +29,9 @@ STUDIO_WEB = ROOT / "studio-web"
 SAFE_ID = re.compile(r"^[a-zA-Z0-9_-]+$")
 IMDB_ID = re.compile(r"^tt[0-9]+$")
 ASSETS = {
+    "/player-mini.mjs": ("player-mini.mjs", "text/javascript; charset=utf-8"),
     "/settings-contract.mjs": ("settings-contract.mjs", "text/javascript; charset=utf-8"),
     "/filter-cubes.mjs": ("filter-cubes.mjs", "text/javascript; charset=utf-8"),
-    "/player-mini.mjs": ("player-mini.mjs", "text/javascript; charset=utf-8"),
     "/episode-autonext.mjs": ("episode-autonext.mjs", "text/javascript; charset=utf-8"),
     "/episode-auto-ui.mjs": ("episode-auto-ui.mjs", "text/javascript; charset=utf-8"),
     "/filter-cubes.css": ("filter-cubes.css", "text/css; charset=utf-8"),
@@ -143,6 +144,8 @@ class Handler(BaseHTTPRequestHandler):
         self.send_body(status, json.dumps(payload, ensure_ascii=False).encode("utf-8"), "application/json; charset=utf-8")
 
     def do_OPTIONS(self):
+        if ai_suggestions.handle(self):
+            return
         if filter_cubes.handle(self) or app_settings.handle(self) or app_settings.gate_catalogue(self):
             return
         if personal_library.handle(self) or catalogue_browse.handle(self):
@@ -155,6 +158,8 @@ class Handler(BaseHTTPRequestHandler):
         self.send_body(204, b"", "text/plain")
 
     def do_POST(self):
+        if ai_suggestions.handle(self):
+            return
         if filter_cubes.handle(self) or app_settings.handle(self) or app_settings.gate_catalogue(self):
             return
         if personal_library.handle(self) or catalogue_browse.handle(self):
@@ -170,6 +175,8 @@ class Handler(BaseHTTPRequestHandler):
         self.do_GET()
 
     def do_GET(self):
+        if ai_suggestions.handle(self):
+            return
         if filter_cubes.handle(self) or app_settings.handle(self) or app_settings.gate_catalogue(self):
             return
         if personal_library.handle(self) or catalogue_browse.handle(self, personal_library.register_catalogue):

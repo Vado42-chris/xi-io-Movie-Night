@@ -13,12 +13,19 @@
     dialogTitle: byId("dialog-title"), dialogMeta: byId("dialog-meta"), dialogGenres: byId("dialog-genres"),
     dialogDescription: byId("dialog-description"),
   };
-  const { CenteredCarousel, mountFilterCubes } = await import("/filter-cubes.mjs");
+  const { CenteredCarousel, mountFilterCubes, mediaCardKey, episodeCoordinates, episodeCardLabel } = await import("/filter-cubes.mjs");
   const { mountMiniPlayerGeometry, shouldHideControls, trackLabel, trackNotice } = await import("/player-mini.mjs");
   const { mountEpisodeAutoContinue } = await import("/episode-auto-ui.mjs");
   let cubeHome = null, detailCarousel = null, activeCubeLabel = "";
   let episodeAuto = null;
+  let navigateMedia=null, mediaView='home', openedBin=null;
   let collections = [];
+  const searchView={id:'global-results',kind:'search',name:'Search all movies & TV',
+    description:'Search movies and TV across the available catalogue.',
+    movies:[],loading:false,error:'',pages:0,query:'',generation:0,controller:null,
+    hasMore:false,cursors:{movie:0,series:0},more:{movie:true,series:true},failed:[]};
+  let searchDelay,searchReturn=null;
+
   let curatedCollections = [];
   let collection = null;
   let personalLibrary = { favorites: [], recent: [], watched: [], collections: [], imported_at: null };
@@ -64,7 +71,7 @@
   }]));
   let loadController;
   let selectedMovie = null;
-  let selectedEpisode = null, selectedSeason = null;
+  let selectedEpisode = null, selectedSeason = null, requestedEpisodeId = null;
   // Presentation only, scoped by canonical episode identity in this mounted
   // window. No new library/settings store or watched-state write.
   const revealedEpisodeDetails = new Set();
@@ -123,7 +130,7 @@
   const collator = new Intl.Collator(undefined, { sensitivity: "base", numeric: true });
   const filmCount = (count) => `${count} ${count === 1 ? "film" : "films"}`;
   const titleCount = (count) => `${count} ${count === 1 ? "title" : "titles"}`;
-  const movieKey = (movie) => `${movie.type}:${movie.id || movie.imdbId}`;
+  const movieKey = (movie) => `${movie.type}:${movie.type === "series" ? movie.imdbId || String(movie.id).split(":")[0] : movie.id || movie.imdbId}`;
 
   function publishContext() {
     if (parent === window) return;
@@ -471,8 +478,8 @@
       durationMs: Math.max(0, Number(movie.durationMs) || 0),
       lastUpdatedEpochMs: Math.max(0, Number(movie.lastUpdatedEpochMs) || 0),
       isCompleted: movie.isCompleted === true,
-      season: Number.isInteger(Number(movie.season)) && movie.season !== null ? Number(movie.season) : null,
-      episode: Number.isInteger(Number(movie.episode)) && movie.episode !== null ? Number(movie.episode) : null,
+      season: episodeCoordinates(movie)?.season ?? null,
+      episode: episodeCoordinates(movie)?.episode ?? null,
       episodes: Array.isArray(movie.episodes) ? movie.episodes.filter(ep => ep && Number.isInteger(ep.season) && ep.season >= 0 && Number.isInteger(ep.episode) && ep.episode >= 1 && ep.id === `${movie.imdb_id || movie.imdbId || movie.id}:${ep.season}:${ep.episode}`).map(ep => ({ id: ep.id, season: ep.season, episode: ep.episode, title: text(ep.title), overview: text(ep.overview), released: text(ep.released),
         thumbnail: imageUrl(ep.thumbnail), rating: parseRating(ep.rating),
         runtimeMinutes: typeof ep.runtime_minutes === "number" && Number.isFinite(ep.runtime_minutes) && ep.runtime_minutes > 0 && ep.runtime_minutes <= 1440 ? ep.runtime_minutes : null,
@@ -638,7 +645,7 @@
   }
 
   function updatePickerLabels() {
-    const labels = { "personal-favorites": "Favorites", "personal-recent": "Recently watched", "browse-movie": "All movies", "browse-series": "TV series" };
+    const labels = { "personal-favorites": "Favorites", "personal-recent": "Recently watched", "browse-movie": "All movies", "browse-series": "TV series", "global-results": "Search results" };
     for (const option of elements.picker.options) {
       const item = collections.find((entry) => entry.id === option.value);
       if (!item) continue;
@@ -651,7 +658,11 @@
   function rebuildCollections() {
     favoriteKeys = new Set(personalLibrary.favorites.map(movieKey));
     watchedKeys = new Set(personalLibrary.watched.filter((id) => typeof id === "string"));
-    historyByKey = new Map(personalLibrary.recent.map((movie) => [movieKey(movie), movie]));
+    historyByKey = new Map();
+    for (const movie of [...personalLibrary.recent].sort((a,b) => b.lastUpdatedEpochMs - a.lastUpdatedEpochMs)) {
+      const key = mediaCardKey(movie);
+      if (!historyByKey.has(key)) historyByKey.set(key, movie);
+    }
     const imported = personalLibrary.collections.some((item) => item.id === "nuvio-library") ? personalLibrary.collections : [
       ...personalLibrary.collections, { id: "nuvio-library", kind: "imported", name: "Your Nuvio library.", description: "Bring the titles you’ve collected in Nuvio into Movie Night.", movies: [] },
     ];
@@ -662,12 +673,12 @@
       ...imported.filter(item => item.id !== "nuvio-library"),
       { id: "personal-favorites", kind: "personal", name: "The ones you love.", description: "Your favorites, together in one place. Save a heart whenever something catches your eye.", movies: personalLibrary.favorites },
       { id: "personal-recent", kind: "personal", name: "Pick up the story.", description: "Your recently watched titles, imported from Nuvio. Movie playback uses your existing Aries player.", movies: personalLibrary.recent },
-      ...Object.values(browseCollections)];
+      ...Object.values(browseCollections),searchView];
     // Private saved lists appear in both library endpoints. Keep one identity,
     // preferring the canonical/private catalogue record encountered first.
     const seen = new Set();
     collections = combined.filter((item) => { if (seen.has(item.id)) return false; seen.add(item.id); return true; });
-    const labels = { "personal-favorites": "Favorites", "personal-recent": "Recently watched", "browse-movie": "All movies", "browse-series": "TV series" };
+    const labels = { "personal-favorites": "Favorites", "personal-recent": "Recently watched", "browse-movie": "All movies", "browse-series": "TV series", "global-results": "Search results" };
     elements.picker.replaceChildren(...collections.map((item) => {
       const option = node("option", "", labels[item.id] || item.name);
       option.value = item.id;
@@ -853,6 +864,61 @@
     }
   }
 
+  async function loadEverywhere(query,more=false) {
+    const q=String(query||'').trim().slice(0,160),view=searchView;
+    if(q.length<2||!wallSettings.plugins.cinemeta_enabled)return;
+    if(more&&view.loading)return;
+    if(!more||q!==view.query){
+      view.controller?.abort();view.generation++;view.movies=[];view.pages=0;
+      view.more={movie:true,series:true};view.cursors={movie:0,series:0};view.failed=[];view.query=q;
+    }
+    view.controller?.abort();
+    const ctl=new AbortController(),version=view.generation;view.controller=ctl;
+    view.loading=true;view.error='';view.name='Results for “'+q+'”';
+    if(collection!==view){collection=view;elements.picker.value=view.id;renderFilms();}
+    const types=['movie','series'].filter(type=>view.more[type]);
+    const outcomes=await Promise.allSettled(types.map(async type=>{
+      const skip=view.cursors[type];
+      const result=await requestJSON('/api/browse?'+new URLSearchParams({
+        type,catalog:'top',search:q,skip:String(skip)}),undefined,ctl.signal);
+      if(!Array.isArray(result.movies)||typeof result.has_more!=='boolean'||
+        result.has_more&&(!Number.isInteger(result.next_skip)||result.next_skip<=skip))throw Error('invalid_page');
+      return {type,skip,result};
+    }));
+    if(view.controller!==ctl||view.generation!==version||ctl.signal.aborted)return;
+    const keys=new Set(view.movies.map(movieKey)),failed=[];
+    for(let i=0;i<outcomes.length;i++){
+      const event=outcomes[i],type=types[i];
+      if(event.status!=='fulfilled'){failed.push(type);continue;}
+      const {result,skip}=event.value;
+      for(let pos=0;pos<result.movies.length;pos++){
+        const raw=result.movies[pos],movie=normalizeMovie({...raw,type:raw.type||type},skip+pos);
+        if(movie&&!keys.has(movieKey(movie))){keys.add(movieKey(movie));view.movies.push(movie);}
+      }
+      view.more[type]=result.has_more;
+      view.cursors[type]=result.has_more?result.next_skip:skip;view.pages++;
+    }
+    view.failed=failed;view.hasMore=Object.values(view.more).some(Boolean);
+    view.error=failed.length?'Some catalogue results are temporarily unavailable: '+failed.join(', ')+'. Retry for those results.':'';
+    view.loading=false;view.controller=null;
+    if(collection===view)selectCollection(view.id);
+  }
+  function searchEverywhere(){
+    clearTimeout(searchDelay);
+    const q=elements.search.value.trim();
+    // Personal-library and Bin searches stay in their selected source.
+    if(mediaView==='library'||openedBin){renderFilms();return;}
+    if(q.length<2){
+      searchView.controller?.abort();searchView.generation++;searchView.loading=false;
+      if(collection===searchView){const id=searchReturn?.id||'browse-movie';collection=null;selectCollection(id);}
+      else renderFilms();
+      return;
+    }
+    if(collection!==searchView){
+      searchReturn=collection;filters=defaultFilters();elements.genre.value='';elements.sort.value='rank';
+    }
+    searchDelay=setTimeout(()=>{void loadEverywhere(q);},275);
+  }
   async function importPersonalLibrary() {
     const button = byId("import-library");
     if (button.disabled) return;
@@ -873,8 +939,10 @@
   function isFavorite(movie) { return favoriteKeys.has(movieKey(movie)); }
 
   function watchState(movie) {
-    const recent = historyByKey.get(movieKey(movie)) || movie;
-    if (movie.isCompleted || recent.isCompleted || watchedKeys.has(movie.id) || watchedKeys.has(movie.imdbId) || watchedKeys.has(movieKey(movie))) return "watched";
+    const recent = historyByKey.get(mediaCardKey(movie)) || movie;
+    const ep = episodeCoordinates(movie);
+    const exactId = ep ? `${movie.imdbId || String(movie.id).split(":")[0]}:${ep.season}:${ep.episode}` : movie.id;
+    if (movie.isCompleted || recent.isCompleted || watchedKeys.has(exactId) || watchedKeys.has(mediaCardKey(movie)) || watchedKeys.has(`${movie.type}|${exactId}`) || (!ep && watchedKeys.has(movie.imdbId))) return "watched";
     return recent.lastPositionMs > 0 ? "watching" : "unwatched";
   }
 
@@ -894,7 +962,7 @@
     updateFavoriteDetail();
     renderFilms();
     try {
-      const updated = await requestJSON("/api/personal-library/favorite", { id: movie.id, type: movie.type, favorite });
+      const updated = await requestJSON("/api/personal-library/favorite", { id: movie.type === "series" ? movie.imdbId || movie.id : movie.id, type: movie.type, favorite });
       if (Array.isArray(updated.favorites)) personalLibrary.favorites = updated.favorites.map(normalizeMovie).filter(Boolean);
       else {
         personalLibrary.favorites = personalLibrary.favorites.filter((item) => movieKey(item) !== key);
@@ -1001,7 +1069,7 @@
     byId("filter-year-to").setCustomValidity(invalidYears ? "Choose an end year on or after the start year." : "");
     byId("apply-filters").disabled = invalidYears;
     byId("apply-filters").textContent = `Show ${titleCount(visibleCount)}`;
-    const scope = collection?.kind === "browse"
+    const scope = (collection?.kind === "browse" || collection?.kind === "search")
       ? `Filters apply to the ${collection.movies.length} loaded titles, not the entire catalogue. Load more to explore further.`
       : `Filters apply to the ${collection?.movies.length || 0} titles in this collection.`;
     byId("filter-scope").textContent = scope;
@@ -1120,14 +1188,15 @@
     const tile = node("article", "movie-tile");
     const card = node("button", "movie-card");
     card.type = "button";
-    card.setAttribute("aria-label", `View details: ${movie.title}${movie.year ? ` (${movie.year})` : ""}, ${movie.type === "series" ? "TV series" : "movie"}`);
+    card.dataset.mediaIdentity = movieKey(movie);
+    card.setAttribute("aria-label", `View details: ${episodeCardLabel(movie)}${movie.year ? ` (${movie.year})` : ""}, ${movie.type === "series" ? "TV series" : "movie"}`);
     card.setAttribute("aria-controls", "film-dialog");
     const cover = poster(movie, index < 6);
     cover.append(node("span", "poster-rank", collection?.kind === "curated" ? `#${String(movie.rank).padStart(2, "0")}` : movie.type === "series" ? "TV" : "Film"));
     const hint = node("span", "poster-hint", movie.type === "series" ? "View series" : "View film");
     hint.setAttribute("aria-hidden", "true");
     cover.append(hint);
-    const recent = historyByKey.get(movieKey(movie)) || movie;
+    const recent = historyByKey.get(mediaCardKey(movie)) || movie;
     if (watchState(movie) === "watched") cover.append(node("span", "poster-watched", "Watched"));
     else if (recent.lastPositionMs > 0 && recent.durationMs > 0) {
       const progress = node("span", "poster-progress");
@@ -1137,7 +1206,7 @@
       progress.append(fill);
       cover.append(progress);
     }
-    card.append(cover, node("span", "movie-title", movie.title));
+    card.append(cover, node("span", "movie-title", episodeCardLabel(movie)));
     const meta = node("span", "movie-meta");
     if (movie.year) meta.append(node("span", "movie-year", String(movie.year)));
     if (movie.genres.length) meta.append(document.createTextNode(`${movie.year ? " · " : ""}${movie.genres[0]}`));
@@ -1183,7 +1252,7 @@
     const terms = normalize(query.search.trim()).split(/\s+/).filter(Boolean);
     const genre = query.genre;
     const sort = query.sort;
-    const visible = movies.filter((movie) => matchesFilters(movie, terms, genre, query.filters, sourceProvider));
+    const visible = movies.filter((movie) => matchesFilters(movie, collection===searchView?[]:terms, genre, query.filters, sourceProvider));
     visible.sort((left, right) => {
       if (sort === "title") return collator.compare(left.title, right.title) || left.rank - right.rank;
       if (sort === "year-desc") return (right.year || 0) - (left.year || 0) || left.rank - right.rank;
@@ -1223,12 +1292,12 @@
     byId("empty-title").textContent = filtered ? "Nothing quite fits yet." : collection.id === "personal-favorites" ? "Make room for your favorites." : collection.id === "personal-recent" ? "Your next chapter starts here." : "No titles to show yet.";
     byId("empty-description").textContent = filtered ? "Try widening the years or removing a filter. You can also load more catalogue results." : collection.id === "personal-favorites" ? "Tap a heart on any poster to keep it here." : collection.kind === "personal" || collection.kind === "imported" || collection.kind === "library" ? "Import your Nuvio library to bring your titles and viewing history across." : collection.error || "Try another catalogue search.";
     byId("empty-reset").hidden = !filtered;
-    byId("browse-more").hidden = collection.kind !== "browse";
-    if (collection.kind === "browse") {
+    byId("browse-more").hidden = collection.kind !== "browse" && collection.kind !== "search";
+    if (collection.kind === "browse" || collection.kind === "search") {
       const catalogueEnabled = wallSettings.plugins.cinemeta_enabled;
       byId("load-more").disabled = collection.loading || !catalogueEnabled;
       byId("load-more").hidden = !catalogueEnabled || (!collection.hasMore && !collection.error);
-      byId("load-more").textContent = collection.loading ? "Loading titles…" : collection.error ? "Try again" : "Load more titles";
+      byId("load-more").textContent = collection.loading ? "Searching…" : collection.error ? "Retry missing provider" : "Find more titles";
       const pageLabel = collection.pages ? `${collection.pages} ${collection.pages === 1 ? "page" : "pages"} explored · ` : "";
       byId("browse-feedback").textContent = collection.error || (!collection.hasMore && !collection.loading ? `${pageLabel}You’ve reached the end of these catalogue results.` : `${pageLabel}Keep loading to explore the full list. Filters apply to loaded titles.`);
       if (!catalogueEnabled) {
@@ -1331,7 +1400,7 @@
         copy.append(historyNode); button.setAttribute("aria-describedby", historyNode.id);
       }
       button.append(art,copy);
-      button.addEventListener("click", () => { if (launchPending) return; resetSources(); selectedEpisode = ep; updateEpisodeSelection(); });
+      button.addEventListener("click", () => { if (launchPending) return; resetSources(); requestedEpisodeId = null; selectedEpisode = ep; updateEpisodeSelection(); });
       card.append(button);
       // Plot, episode ratings and guests can spoil. Keep them outside the
       // selection button and absent from accessibility exposure when closed.
@@ -1348,7 +1417,21 @@
       if (credits.children.length) body.append(credits);
       details.append(summary,body); details.open = revealedEpisodeDetails.has(ep.id);
       details.addEventListener("toggle", () => { if (!details.isConnected) return; if (details.open) revealedEpisodeDetails.add(ep.id); else revealedEpisodeDetails.delete(ep.id); });
-      card.append(details); list.append(card);
+      // One direct episode action. Preserve the existing source-selection and
+      // Ward-owned player path: choosing an episode alone never starts playback.
+      const watch = node("button", "episode-watch", "▶ Watch this episode");
+      watch.type = "button";
+      watch.dataset.watchEpisode = ep.id;
+      watch.setAttribute("aria-label", `Watch ${movie.title} S${String(ep.season).padStart(2,"0")} E${String(ep.episode).padStart(2,"0")} ${ep.title || ""}`);
+      watch.addEventListener("click", () => {
+        if (launchPending || sourceBusy || commandPending || nativeActionPending) return;
+        resetSources();
+        selectedEpisode = ep;
+        selectedSeason = ep.season;
+        updateEpisodeSelection();
+        void quickPlay().catch(error => playerMessage(safePlayerError(error?.message)));
+      });
+      card.append(details, watch); list.append(card);
     }
     updateEpisodeSelection();
     if (focusEpisode) {
@@ -1361,7 +1444,7 @@
     // The shared centred carousel owns the poster nodes.
     elements.dialogRank.textContent = movie.type === "series" ? "TV series · Your next story" : collection?.kind === "curated" ? `No. ${String(movie.rank).padStart(2, "0")} in the collection` : "Movie Night · Film";
     elements.dialogTitle.textContent = movie.title;
-    elements.dialogMeta.textContent = [movie.year, movie.runtime, wallSettings.browsing.show_ratings && movie.rating !== null ? `★ ${movie.rating.toFixed(1)} / 10` : "", movie.type === "series" && movie.season && movie.episode ? `Last watched: S${movie.season} · E${movie.episode}` : ""].filter(Boolean).join(" · ");
+    elements.dialogMeta.textContent = [movie.year, movie.runtime, wallSettings.browsing.show_ratings && movie.rating !== null ? `★ ${movie.rating.toFixed(1)} / 10` : "", episodeCoordinates(movie) ? `Selected record: S${String(movie.season).padStart(2,"0")} E${String(movie.episode).padStart(2,"0")}` : ""].filter(Boolean).join(" · ");
     elements.dialogGenres.replaceChildren(...movie.genres.map((genre) => node("span", "genre-tag", genre)));
     elements.dialogDescription.textContent = movie.description || "More details are not available for this title yet.";
     player.feedback.textContent = launchPending ? "Getting your selection ready on Aries…" : "";
@@ -1425,6 +1508,7 @@
       if (!extra || extra.imdbId !== movie.imdbId || extra.type !== movie.type) throw new Error("metadata_mismatch");
       if (movie.type === "series" && !extra.episodesLoaded) throw new Error("episode_metadata_incomplete");
       // Hydrate display fields only. Keep list identity, rank and watch progress.
+      if (extra.title && (movie.title === movie.id || movie.title === movie.imdbId || /^tt\d+(?::\d+:\d+)?$/.test(movie.title))) movie.title = extra.title;
       if (extra.description) movie.description = extra.description;
       if (extra.genres.length) movie.genres = extra.genres;
       if (extra.runtime) { movie.runtime = extra.runtime; movie.runtimeMinutes = extra.runtimeMinutes; }
@@ -1435,11 +1519,16 @@
       movie.searchText = normalize([movie.title, movie.year || "", ...movie.genres].join(" "));
       movie.episodes = extra.episodes;
       movie.episodesLoaded = extra.episodesLoaded;
-      if (movie.type === "series" && selectedEpisode) {
-        selectedEpisode = movie.episodes.find(ep => ep.id === selectedEpisode.id) || null;
+      if (movie.type === "series") {
+        const requested = selectedEpisode?.id || requestedEpisodeId;
+        selectedEpisode = requested ? movie.episodes.find(ep => ep.id === requested) || null : null;
+        if (selectedEpisode) selectedSeason = selectedEpisode.season;
+        requestedEpisodeId = null;
       }
       movie.detailsLoaded = true;
       renderFilmDetails(movie);
+      renderCarousel();
+      cubeHome?.detailSourceChanged();
       status.textContent = "";
       status.hidden = true;
     } catch {
@@ -1471,6 +1560,7 @@
     placeBrowseControls(false);
     document.querySelector(".page-shell").hidden = false;
     document.body.classList.remove("detail-open");
+    renderFilms();
     window.scrollTo(0, wallReturn.scroll);
     if (wallReturn.focus?.isConnected) wallReturn.focus.focus({ preventScroll: true });
     publishContext();
@@ -1480,7 +1570,11 @@
     if (launchPending) return;
     if (elements.dialog.hidden) wallReturn = { scroll: window.scrollY, focus: document.activeElement };
     detailController?.abort(); detailController = null; detailGeneration += 1;
-    resetSources(); selectedMovie = movie; selectedEpisode = null; selectedSeason = null;
+    resetSources(); selectedMovie = movie;
+    const requested = episodeCoordinates(movie);
+    requestedEpisodeId = requested ? `${movie.imdbId}:${requested.season}:${requested.episode}` : null;
+    selectedEpisode = requestedEpisodeId ? movie.episodes?.find(ep => ep.id === requestedEpisodeId) || null : null;
+    selectedSeason = requested?.season ?? null;
     const status = byId("dialog-metadata-status"); status.textContent = ""; status.hidden = true;
     renderFilmDetails(movie);
     placeBrowseControls(true);
@@ -1490,7 +1584,7 @@
     document.body.classList.add("detail-open");
     if (resetScroll) elements.dialog.scrollTop = 0;
     if (focus) elements.dialogTitle.focus({ preventScroll: true });
-    carouselIndex = Math.max(0, visibleMovies.findIndex(item => movieKey(item) === movieKey(movie)));
+    carouselIndex = Math.max(0, visibleMovies.findIndex(item => mediaCardKey(item) === mediaCardKey(movie)));
     renderCarousel();
     publishContext();
     // Every series entry uses the existing server metadata cache. Reopening
@@ -1507,7 +1601,7 @@
   }
 
   function renderCarousel() {
-    const index = selectedMovie ? visibleMovies.findIndex(item => movieKey(item) === movieKey(selectedMovie)) : -1;
+    const index = selectedMovie ? visibleMovies.findIndex(item => mediaCardKey(item) === mediaCardKey(selectedMovie)) : -1;
     const count = visibleMovies.length;
     byId("detail-collection-label").textContent = collection?.name || "Movie Night";
     byId("carousel-counter").textContent = count ? `${index + 1} of ${count} matching titles${collection?.kind === "browse" ? " loaded" : ""}` : "0 matching titles";
@@ -1517,7 +1611,7 @@
     byId("detail-expanded").hidden = !count || !detailsExpanded;
     byId("expand-details").setAttribute("aria-expanded", String(detailsExpanded));
     byId("expand-details").textContent = detailsExpanded ? "Less detail" : "More details";
-    detailCarousel?.setItems(visibleMovies, selectedMovie ? movieKey(selectedMovie) : null);
+    detailCarousel?.setItems(visibleMovies, selectedMovie ? mediaCardKey(selectedMovie) : null);
     byId("carousel-previous").disabled = byId("carousel-next").disabled = count < 2 || launchPending;
     const more = byId("carousel-load-more");
     more.hidden = collection?.kind !== "browse" || !collection.hasMore || !wallSettings.plugins.cinemeta_enabled;
@@ -1535,7 +1629,7 @@
       byId("detail-related").hidden = true;
       renderCarousel(); publishContext(); return;
     }
-    const retained = selectedMovie && visibleMovies.find(item => movieKey(item) === movieKey(selectedMovie));
+    const retained = selectedMovie && visibleMovies.find(item => mediaCardKey(item) === mediaCardKey(selectedMovie));
     if (!retained) {
       showFilm(visibleMovies[Math.min(carouselIndex, visibleMovies.length - 1)], { focus: false, resetScroll: false });
     } else {
@@ -1546,7 +1640,7 @@
 
   function stepCarousel(delta) {
     if (launchPending || elements.dialog.hidden || !selectedMovie || !byId("source-picker").hidden) return false;
-    const index = visibleMovies.findIndex(item => movieKey(item) === movieKey(selectedMovie));
+    const index = visibleMovies.findIndex(item => mediaCardKey(item) === mediaCardKey(selectedMovie));
     const next = visibleMovies.length ? visibleMovies[(index + delta + visibleMovies.length) % visibleMovies.length] : null;
     if (index < 0 || !next) return false;
     showFilm(next, { focus: false, resetScroll: false });
@@ -1730,10 +1824,11 @@
     const sameMovie = sameMedia(target, playerStatus);
     const isSeries = selectedMovie?.type === "series";
     player.play.disabled = !target || busy || (sameMovie && state === "loading");
-    const playLabel = sameMovie && state === "paused" ? "Resume on Aries" : sameMovie && state === "playing" ? "Watch on Aries" : sameMovie && state === "loading" ? "Getting your film ready…" : "Choose a stream";
+    const playLabel = sameMovie && state === "paused" ? "Resume" : sameMovie && state === "playing" ? "Back to player" : sameMovie && state === "loading" ? "Getting ready…" : "Watch";
     setText(player.playLabel, isSeries && !target ? "Select an episode" : launchPending ? "Getting your selection ready…" : playLabel);
     player.play.setAttribute("aria-busy", String(launchPending));
     byId("choose-sources").disabled = busy || !target;
+    byId("choose-sources").hidden = !(sameMovie && active);
     byId("episode-season").disabled = launchPending || !selectedMovie?.episodes?.length;
     byId("refresh-episodes").disabled = launchPending || Boolean(detailController) || !wallSettings.plugins.cinemeta_enabled || !/^tt\d{5,12}$/.test(selectedMovie?.imdbId || "");
     for (const button of byId("episode-list").querySelectorAll("button")) button.disabled = launchPending;
@@ -1937,14 +2032,18 @@
     measureDock();
   }
 
-  elements.search.addEventListener("input", renderFilms);
+  elements.search.addEventListener("input", searchEverywhere);
   elements.genre.addEventListener("change", renderFilms);
   byId("provider-filter").addEventListener("change", () => {
     filters.provider = byId("provider-filter").value;
     renderFilms();
   });
   elements.sort.addEventListener("change", renderFilms);
-  elements.picker.addEventListener("change", () => { activeCubeLabel = ""; selectCollection(elements.picker.value); });
+  elements.picker.addEventListener("change",()=>{
+    activeCubeLabel="";
+    if(elements.picker.value!=="global-results"){clearTimeout(searchDelay);elements.search.value="";}
+    selectCollection(elements.picker.value);
+  });
   document.querySelectorAll("[data-collection]").forEach((button) => button.addEventListener("click", () => {
     activeCubeLabel = "";
     const id = button.dataset.collection === "curated" ? curatedCollections[0]?.id : button.dataset.collection;
@@ -1984,7 +2083,10 @@
   });
   byId("import-library").addEventListener("click", importPersonalLibrary);
   byId("favorite-detail").addEventListener("click", () => toggleFavorite(selectedMovie));
-  byId("load-more").addEventListener("click", () => { if (collection?.kind === "browse") void loadBrowse(collection.type, true); });
+  byId("load-more").addEventListener("click",()=>{
+    if(collection===searchView){for(const type of searchView.failed)searchView.more[type]=true;void loadEverywhere(searchView.query,true);}
+    else if(collection?.kind==="browse")void loadBrowse(collection.type,true);
+  });
   byId("catalog-source").addEventListener("change", () => {
     if (collection?.kind !== "browse") return;
     changeBrowseSettings({ catalog: byId("catalog-source").value, genre: collection.catalogGenre, year: collection.catalogYear, search: "" });
@@ -2068,7 +2170,7 @@
   });
   byId("episode-season").addEventListener("change", () => {
     if (launchPending || !selectedMovie) return;
-    resetSources(); selectedEpisode = null; selectedSeason = Number(byId("episode-season").value); renderEpisodes(selectedMovie);
+    resetSources(); requestedEpisodeId = null; selectedEpisode = null; selectedSeason = Number(byId("episode-season").value); renderEpisodes(selectedMovie);
   });
   byId("refresh-episodes").addEventListener("click", () => {
     if (!selectedMovie || launchPending || detailController || !wallSettings.plugins.cinemeta_enabled || !/^tt\d{5,12}$/.test(selectedMovie.imdbId)) return;
@@ -2181,13 +2283,15 @@
     poster, current: currentFilterView, collections: () => collections,
     presentation(mode, count) {
       if (mode === "carousel") {
-        elements.title.textContent = "Your filter cubes";
-        elements.description.textContent = "A home built from your interests. Each row is a live query, never a fixed playlist.";
+        elements.title.textContent = "Your Bins";
+        elements.description.textContent = "Discover from your Bins. Add, edit or remove them whenever you want.";
       } else if (collection) { elements.title.textContent=collection.name; elements.description.textContent=collection.description; }
       player.dock.hidden = dockDismissed || (mode === "carousel" && playerStatus.state === "idle");
       measureDock();
     },
     startupHome() {
+      // Start without inherited criteria. A saved Bin is applied only through
+      // the user's explicit choice, never just because it was selected last time.
       filters=defaultFilters();
       activeCubeLabel='';
       elements.search.value='';
@@ -2202,7 +2306,7 @@
     summary(query) {
       const f = query.filters;
       return [collections.find(c => c.id === query.collectionId)?.name || "Source unavailable",
-        query.search ? `Matching “${query.search}”` : "", f.provider ? `Provider: ${f.provider}` : "", query.genre, f.include.join(" + "),
+        query.search ? `Matching “${query.search}”` : "", f.provider ? `Metadata: ${f.provider}` : "", query.genre, f.include.join(" + "),
         f.exclude.length ? `Without ${f.exclude.join(", ")}` : "", f.yearFrom || f.yearTo ? `${f.yearFrom || "Any year"}–${f.yearTo === "present" ? "current year" : f.yearTo || "any year"}` : "",
         f.type === "series" ? "TV" : f.type === "movie" ? "Films" : "", f.rating ? `Rating ${f.rating}+` : "",
         f.runtime ? `Under ${f.runtime} min` : "", f.watch].filter(Boolean).join(" · ");
@@ -2211,7 +2315,12 @@
       const type = row.collectionId === "browse-series" ? "series" : "movie";
       const view = row.browse || { catalog: "top", genre: "", year: String(currentYear), search: "" };
       const params = new URLSearchParams({ type, catalog: view.catalog, skip: String(skip) });
-      if (view.catalog === "year") params.set("genre", view.year); else if (view.genre) params.set("genre", view.genre);
+      if (view.catalog === "year") params.set("genre", view.year);
+      else {
+        const genre=row.genre || row.filters?.include?.[0] || view.genre || "";
+        if(genre)params.set("genre",genre);
+      }
+      if(row.search && view.catalog === "top")params.set("search",row.search);
       if (view.search) params.set("search", view.search);
       const result = await requestJSON(`/api/browse?${params}`);
       return {...result, movies: Array.isArray(result.movies) ? result.movies.map((m,i) => normalizeMovie({...m,type:m.type||type},skip+i)).filter(Boolean) : null};
@@ -2229,11 +2338,203 @@
       elements.genre.value = row.genre; selectCollection(target.id); syncFilterControls();
       if (movie) selectedMovie = movie; publishContext();
     },
+    openBin(row){navigateMedia?.('bins',{bin:row});},
+    binSaved(){navigateMedia?.('bins');},
     open(movie) { showFilm(movie); },
     openFilters() { byId("open-filters").click(); },
   });
   // Same-origin shell exposes ONLY review entry and current query, never a generic executor.
   window.movieNightCubeContext = () => cubeHome?.context() || null;
   window.movieNightReviewCube = operation => cubeHome.reviewOperation(operation);
+  // One media navigation controller over the retained collection and Bin owners.
+  // Destination changes are presentation-only; saved queries still use the CAS writer.
+  function mountMovieExperience() {
+    const host=document.querySelector('.browse-section');
+    if(!host || document.getElementById('movie-experience-trial'))return;
+    const pane=node('section','media-navigation');pane.id='movie-experience-trial';
+    pane.setAttribute('aria-label','Movie Night');
+    const nav=node('nav','experience-nav');nav.setAttribute('aria-label','Movie Night navigation');
+    const labels={home:'Home',discover:'Discover',bins:'My Bins',library:'Library'};
+    const copy={home:['What would you like to watch?','Pick a title below, or search movies and TV.'],
+      discover:['Find movies and shows','Browse available catalogue titles. Choose a title to check its playback sources.'],
+      bins:['My Bins','Your saved collections. Create one, change its rules, or arrange it here.'],
+      library:['My library','Saved titles, favorites and viewing history.']};
+    const tabs={};
+    for(const [key,label] of Object.entries(labels)){
+      const b=node('button','',label);b.type='button';b.dataset.experienceTab=key;
+      b.addEventListener('click',()=>choose(key));tabs[key]=b;nav.append(b);
+    }
+    const heading=node('h1');heading.id='experience-title';
+    const description=node('p');description.id='experience-description';
+    const titleGroup=node('div','experience-copy');titleGroup.append(heading,description);
+    const actions=node('div','experience-actions');
+    // Move the original New Bin control. No duplicate button or writer.
+    const newBin=byId('cube-add');if(newBin)actions.append(newBin);
+    const back=node('button','small-button','Back to My Bins');back.type='button';back.id='bin-detail-back';
+    back.addEventListener('click',()=>choose('bins'));actions.append(back);
+    const header=node('div','experience-heading');header.append(titleGroup,actions);pane.append(nav,header);
+    host.querySelector('.browse-intro')?.after(pane);
+    const childNav=document.querySelector('.library-navigation');
+    const subTabs=[...childNav.querySelectorAll('[data-collection]')];
+    const names={curated:'Imported collections',library:'All saved titles','personal-favorites':'Favorites','personal-recent':'Recent','browse-movie':'Movies','browse-series':'TV shows'};
+    for(const b of subTabs){
+      const span=b.querySelector('span');b.replaceChildren(document.createTextNode(names[b.dataset.collection]||b.textContent));
+      if(span)b.append(span);
+    }
+    // Import/provider provenance stays available without masquerading as streaming entitlement.
+    const sourceTools=node('details','library-source-tools');sourceTools.append(node('summary','','Library sources'));
+    const importButton=byId('import-library');sourceTools.append(importButton);
+    const sourceSelect=byId('provider-filter')?.closest('.provider-field');
+    if(sourceSelect){sourceSelect.querySelector('label').textContent='Metadata source';sourceTools.append(sourceSelect);}
+    sourceTools.append(node('p','','This filters imported metadata. It does not connect a streaming subscription.'));
+    host.append(sourceTools);
+    const collectionPicker=byId('collection-picker-wrap');
+    if(collectionPicker){collectionPicker.querySelector('label').textContent='Imported collection';childNav.append(collectionPicker);}
+    // Existing filter presets are preserved, but no longer compete with the primary Bin save.
+    const presets=document.querySelector('.saved-views');
+    if(presets){const legacy=node('details','device-filter-presets');legacy.append(node('summary','','Filter presets on this device'));presets.before(legacy);legacy.append(presets);}
+    const saveAsBin=node('button','small-button','Save these filters as a Bin');saveAsBin.type='button';saveAsBin.id='save-filters-as-bin';
+    saveAsBin.addEventListener('click',()=>{filterDialog.close();cubeHome.createFromCurrent();});
+    document.querySelector('.filter-footer').prepend(saveAsBin);
+    const featured=()=>{
+      for(const row of document.querySelectorAll('.cube-row')){
+        // Select by saved source identity, never by the user's editable title.
+        const context=row.dataset.cubeId;
+        const isDefault=['starter-all-movies-20261023','starter-all-tv-20261023'].includes(context);
+        row.classList.toggle('experience-featured',isDefault);
+      }
+      const rows=[...document.querySelectorAll('.cube-row')];
+      if(!rows.some(r=>r.classList.contains('experience-featured')))rows.slice(0,2).forEach(r=>r.classList.add('experience-featured'));
+    };
+    function render(){
+      document.body.dataset.movieExperience='watch';
+      document.body.dataset.movieExperienceView=mediaView;
+      document.body.dataset.binDetail=openedBin?'true':'false';
+      for(const [key,b] of Object.entries(tabs))b.setAttribute('aria-current',key===mediaView?'page':'false');
+      heading.textContent=openedBin?openedBin.name:copy[mediaView][0];
+      description.textContent=openedBin?'Search and filter this Bin. Its saved rules are unchanged until you edit and save them.':copy[mediaView][1];
+      if(newBin)newBin.hidden=mediaView!=='bins'||Boolean(openedBin);
+      back.hidden=!openedBin;
+      for(const b of subTabs)b.hidden=mediaView==='discover'?!['browse-movie','browse-series'].includes(b.dataset.collection):mediaView==='library'?['browse-movie','browse-series'].includes(b.dataset.collection):true;
+      childNav.hidden=!['discover','library'].includes(mediaView)||Boolean(openedBin);
+      sourceTools.hidden=mediaView!=='library';
+      if(collectionPicker)collectionPicker.hidden=mediaView!=='library'||collection?.kind!=='curated';
+      elements.search.placeholder=openedBin?'Search this Bin…':mediaView==='library'?'Search your library…':'Search movies and TV…';
+      document.querySelector('label[for="film-search"]').textContent=openedBin?'Search this Bin':mediaView==='library'?'Search your library':'Search movies and TV';
+      // Clear scope language before renderFilms supplies current counts.
+      featured();
+    }
+    function cancelSearch(){clearTimeout(searchDelay);searchView.controller?.abort();searchView.generation++;searchView.loading=false;}
+    function choose(view,{bin=null}={}){
+      if(!Object.hasOwn(labels,view)||!cubeHome?.canNavigate())return false;
+      const mode=view==='bins'&&!bin||view==='home'?'carousel':'wall';
+      if(!cubeHome.previewPresentation(mode))return false;
+      cancelSearch();mediaView=view;openedBin=bin;
+      if(!bin){
+        filters=defaultFilters();activeCubeLabel='';elements.search.value='';elements.genre.value='';elements.sort.value='rank';syncFilterControls();
+        if(view==='library')selectCollection('library');
+        else if(view==='discover'||view==='home')selectCollection('browse-movie');
+      }
+      render();renderFilms();
+      pane.scrollIntoView({block:'start',behavior:'instant'});return true;
+    }
+    navigateMedia=choose;
+    elements.search.addEventListener('input',()=>{
+      if(mediaView==='library'||openedBin||elements.search.value.trim().length<2)return;
+      if(!cubeHome.previewPresentation('wall'))return;
+      mediaView='discover';render();
+    });
+    for(const b of subTabs)b.addEventListener('click',()=>{
+      cancelSearch();elements.search.value='';filters=defaultFilters();elements.genre.value='';syncFilterControls();
+      // The existing handler has already selected the collection. Only align the view.
+      openedBin=null;mediaView=b.dataset.collection.startsWith('browse-')?'discover':'library';
+      if(cubeHome.previewPresentation('wall')){render();renderFilms();}
+    });
+    const rows=byId('cube-home');if(rows)new MutationObserver(featured).observe(rows,{childList:true});
+    render();
+  }
+  mountMovieExperience();
+  // PASS 1 READ-ONLY: real installed BingeCat AI Suggestions, not AI-filled Bins.
+  // No recommendation response may mutate saved BINS, filters or player state.
+  async function mountExistingAiPicksPreview(){
+    const section=node('details','ai-picks-preview');section.append(node('summary','','Recommendations from your connected assistant'));
+    section.id='ai-suggestions-preview';
+    section.setAttribute('aria-labelledby','ai-picks-title');
+    const heading=node('div','ai-picks-heading');
+    const group=node('div','');
+    const title=node('h2','', 'AI Suggestions for you');
+    title.id='ai-picks-title';
+    const explanation=node('p','','From your connected BingeCat AI Assistant. Preview only — nothing is added to your Bins.');
+    group.append(title,explanation);
+    const refresh=node('button','small-button','Refresh preview');
+    refresh.type='button';
+    refresh.title='Load your connected AI recommendations. Does not change saved Bins.';
+    const provenance=node('p','ai-picks-source');
+    provenance.setAttribute('role','status');
+    heading.append(group,refresh);
+    section.append(heading,provenance);
+    const target=document.querySelector('#cube-home');
+    if(!target)return;
+    target.before(section);
+    let running=false;
+    async function retrieve(){
+      if(running)return;
+      running=true;refresh.disabled=true;
+      provenance.textContent='Checking your connected AI recommendation feed…';
+      const controller=new AbortController();
+      const timeout=setTimeout(()=>controller.abort(),16000);
+      try{
+        const [films,series]=await Promise.all(['movie','series'].map(async type=>{
+          const res=await fetch('/api/ai-suggestions-preview?type='+type,
+            {cache:'no-store',credentials:'same-origin',signal:controller.signal});
+          if(!res.ok)throw Error('provider_unavailable');
+          const value=await res.json();
+          if(!value||value.media_type!==type||value.source!=='BingeCat AI Recommendations'
+              ||!['ready','cached','unavailable'].includes(value.state)
+              ||!Array.isArray(value.movies))throw Error('invalid_response');
+          return value;
+        }));
+        section.querySelectorAll('.ai-picks-row').forEach(row=>row.remove());
+        let total=0;
+        for(const response of [films,series]){
+          const items=response.movies.slice(0,20)
+            .map((raw,i)=>normalizeMovie(raw,i)).filter(movie=>movie&&/^tt\d{5,12}$/.test(movie.imdbId));
+          if(!items.length)continue;
+          total+=items.length;
+          const block=node('section','ai-picks-row');
+          block.setAttribute('aria-label',response.media_type==='series'?'AI-suggested TV':'AI-suggested movies');
+          block.append(node('h3','',response.media_type==='series'?'Recommended Series':'Recommended Movies'));
+          const track=node('div','ai-picks-grid');
+          const seen=new Set();
+          for(const [index,movie] of items.entries()){
+            const key=movieKey(movie);
+            if(seen.has(key))continue;seen.add(key);
+            const card=node('button','ai-pick-card');
+            card.type='button';card.dataset.mediaIdentity=key;
+            card.setAttribute('aria-label','View '+movie.title+' from AI suggestions');
+            card.append(poster(movie,index<5),node('span','ai-pick-title',movie.title),
+              node('span','ai-pick-meta',
+                [movie.year,movie.type==='series'?'TV series':'Film'].filter(Boolean).join(' · ')));
+            card.addEventListener('click',()=>showFilm(movie));
+            track.append(card);
+          }
+          block.append(track);section.append(block);
+        }
+        provenance.textContent=total
+          ? total+' recommendations from your configured AI addon · read-only preview · your Bins are unchanged.'
+          : 'The connected AI feed has no available suggestions. Your existing Bins remain available.';
+        if(films.state==='cached'||series.state==='cached'){
+          provenance.textContent+=' Cached provider results are being shown.';
+        }
+      }catch{
+        provenance.textContent='AI recommendations are temporarily unavailable. Your existing Bins still work.';
+      }finally{
+        clearTimeout(timeout);running=false;refresh.disabled=false;
+      }
+    }
+    refresh.addEventListener('click',()=>{void retrieve();});
+    section.addEventListener('toggle',()=>{if(section.open&&!section.dataset.requested){section.dataset.requested='1';void retrieve();}});
+  }
+  void mountExistingAiPicksPreview();
   void pollPlayer();
 })();

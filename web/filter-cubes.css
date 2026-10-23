@@ -15,7 +15,7 @@
 .cube-row-heading h2 {font-family:ui-serif,Georgia,serif;font-size:1.375rem;font-weight:400;line-height:1.2;margin:0;overflow-wrap:anywhere;}
 .cube-row-summary {color:var(--muted);font-size:11px;line-height:1.6;margin:6px 0 0;overflow-wrap:anywhere;}
 .cube-row-controls {display:flex;flex-wrap:wrap;gap:5px;align-items:center;min-width:0;max-width:100%;margin-left:auto;}
-.cube-row-controls button:not(:first-child) {min-width:44px;font-size:20px;}
+.cube-row-controls button {min-width:44px;font-size:13px;}
 .cube-drag-handle {display:none;border:1px solid var(--line);border-radius:8px;min-width:44px;min-height:52px;background:var(--surface-raised);color:var(--text);font-size:26px;cursor:grab;touch-action:none;}
 .cube-layout-editing .cube-drag-handle {display:block;}
 .cube-layout-editing .cube-row {border-style:dashed;}
@@ -85,3 +85,30 @@
 
 /* Keep the shared focus outline clear of its visible field label. */
 .cube-builder-fields label>input,.cube-builder-fields label>select{display:block;margin-top:8px;}
+
+/* BINS full-width controls and visible titles. */
+.cube-toolbar .cube-view-switch{display:inline-flex;flex:0 0 auto;flex-wrap:wrap;max-width:100%;}
+.cube-toolbar .cube-view-switch>button{flex:1 0 max-content;min-width:max-content;white-space:nowrap;overflow-wrap:normal;word-break:normal;}
+.cube-row-controls button,.cube-row-edit button,.cube-toolbar>button{min-width:max-content;max-width:100%;overflow-wrap:normal;word-break:normal;}
+.cube-cover-title{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:break-word;}
+
+/* Standard Bin catalogue: multi-select, scannable, no clipped labels. */
+.bin-presets-dialog{width:min(720px,calc(100vw - 24px));}
+.bin-presets-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:8px;max-height:48dvh;overflow-y:auto;padding:8px 0;}
+.bin-presets-option{display:flex!important;align-items:center;gap:8px;min-width:0;min-height:44px;margin:0!important;padding:8px 10px;border:1px solid var(--line);border-radius:9px;cursor:pointer;}
+.bin-presets-option input{width:20px!important;height:20px;min-height:20px;flex:0 0 20px;accent-color:var(--accent);}
+.bin-presets-option span{overflow-wrap:break-word;}
+.bin-presets-option:has(input:disabled){opacity:.55;cursor:default;}
+
+/* Direct, reversible Bin search/filtering inside the existing row component. */
+.bin-quick-filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%;padding:10px 2px 5px;}
+.bin-quick-filters select,.bin-quick-filters input{min-width:0;min-height:44px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);}
+.bin-quick-filters select{flex:0 1 190px;}
+.bin-quick-filters input{flex:1 1 220px;}
+.bin-quick-filters button{flex:0 0 auto;min-height:44px;white-space:normal;}
+.bin-quick-filters button[hidden]{display:none!important;}
+
+.bin-filter-disclosure>summary{font-size:13px}
+.bin-filter-disclosure[open]{padding-bottom:12px}
+.cube-builder-actions{z-index:2}
+.cube-builder-feedback:not(:empty){padding:10px;border:1px solid var(--accent);border-radius:8px}
