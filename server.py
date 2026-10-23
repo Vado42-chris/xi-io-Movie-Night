@@ -30,6 +30,7 @@ IMDB_ID = re.compile(r"^tt[0-9]+$")
 ASSETS = {
     "/settings-contract.mjs": ("settings-contract.mjs", "text/javascript; charset=utf-8"),
     "/filter-cubes.mjs": ("filter-cubes.mjs", "text/javascript; charset=utf-8"),
+    "/player-mini.mjs": ("player-mini.mjs", "text/javascript; charset=utf-8"),
     "/filter-cubes.css": ("filter-cubes.css", "text/css; charset=utf-8"),
     "/": ("index.html", "text/html; charset=utf-8"),
     "/index.html": ("index.html", "text/html; charset=utf-8"),

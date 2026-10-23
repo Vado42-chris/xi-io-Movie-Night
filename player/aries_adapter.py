@@ -815,11 +815,14 @@ class Player:
     def number(value):
         return round(float(value), 3) if isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value) else None
 
-    def tracks(self):
-        """Expose only bounded labels/IDs from this player's real track list."""
-        raw = self.ipc(["get_property", "track-list"], optional=True)
+    def tracks(self, include_probe=False):
+        """Expose bounded mpv track labels, plus explicit read success for status."""
+        try:
+            raw = self.ipc(["get_property", "track-list"], optional=True)
+        except (SafeError, KeyError):
+            raw = None
         if not isinstance(raw, list):
-            return []
+            return ([], False) if include_probe else []
         rows = []
         for track in raw[:128]:
             if not isinstance(track, dict) or track.get("type") not in ("audio", "sub"):
@@ -835,7 +838,7 @@ class Player:
             rows.append({"id": track_id, "type": track["type"], "language": label("lang", 32),
                          "title": label("title", 160), "codec": label("codec", 40),
                          "selected": track.get("selected") is True})
-        return rows
+        return (rows, True) if include_probe else rows
 
     def status(self):
         with self.lock:
@@ -852,7 +855,10 @@ class Player:
                     return result
                 idle = self.ipc(["get_property", "idle-active"])
                 paused = self.ipc(["get_property", "pause"], optional=True)
-                result["tracks"] = [] if idle else self.tracks()
+                if idle:
+                    result["tracks"], result["tracks_available"] = [], False
+                else:
+                    result["tracks"], result["tracks_available"] = self.tracks(include_probe=True)
                 for target, prop in (("position", "time-pos"), ("duration", "duration"), ("volume", "volume")):
                     result[target] = self.number(self.ipc(["get_property", prop], optional=True))
                 for target, prop in (("muted", "mute"), ("fullscreen", "fullscreen")):

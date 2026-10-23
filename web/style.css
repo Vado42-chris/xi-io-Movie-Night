@@ -527,3 +527,78 @@ body.native-player-mini .player-artwork, body.native-player-mini .player-locatio
 .episode-art-control { font-size:12px; min-height:44px; }
 .episode-art-control input { width:18px; height:18px; accent-color:var(--accent); }
 #episode-selection, #episode-metadata-status { font-size:13px; line-height:1.6; }
+
+/* Playback viewport owns the full client allocation when controls are idle.
+   The native GTK mpv child is ABOVE the WebView. Reserve a hit-testable inset
+   for the WebView controls only WHILE they are shown; otherwise video fills it. */
+body.native-player-mode {position:relative;height:100dvh;min-height:0;overflow:hidden;}
+body.native-player-mode #native-video-placeholder {
+  display:block;position:fixed;inset:0 0 var(--player-dock-height,122px) 0;
+  width:auto;height:auto;min-height:0;flex:none;background:#000;
+}
+body.native-player-mode .player-dock {
+  box-sizing:border-box;position:fixed;inset:auto 0 0 0;left:0;right:0;top:auto;
+  width:100%;transform:none;margin:0;z-index:30;
+  max-height:min(45dvh,320px);overflow-y:auto;
+  border:1px solid #615542;border-width:1px 0 0;border-radius:0;
+  background:#181814eF;box-shadow:0 -10px 30px #0006;
+}
+body.native-player-mode.player-controls-hidden #native-video-placeholder {inset:0;}
+body.native-player-mode.player-controls-hidden .player-dock {display:none;}
+body.native-player-mode:not(.player-controls-hidden) .player-dock {display:block;}
+.player-reveal[hidden],.player-mini-handle[hidden],.player-change-stream[hidden] {display:none!important;}
+.player-reveal {min-width:44px;min-height:44px;white-space:normal;max-width:min(240px,calc(100vw - 24px));}
+.player-change-stream {flex:0 1 auto;min-height:44px;}
+.player-options .player-change-stream {align-self:end;}
+body.native-player-mini #native-video-placeholder {
+  position:fixed;display:block;z-index:12;inset:auto;
+  left:var(--movie-mini-left,12px);top:var(--movie-mini-top,12px);
+  width:var(--movie-mini-width,340px);
+  height:var(--movie-mini-video-height,191px);
+  min-height:0;aspect-ratio:16/9;border:1px solid #746044;
+  border-radius:9px 9px 0 0;box-sizing:border-box;background:#000;
+}
+/* One movable/resizable frame; buttons live outside the GTK video rectangle,
+   so native player hit-testing cannot hide their pointer or keyboard actions. */
+body.native-player-mini .player-dock {
+  display:block;box-sizing:border-box;position:fixed;z-index:12;
+  left:var(--movie-mini-left,12px);
+  top:calc(var(--movie-mini-top,12px) + var(--movie-mini-video-height,191px));
+  bottom:auto;right:auto;width:var(--movie-mini-width,340px);
+  max-width:calc(100vw - 24px);max-height:122px;
+  min-height:0;margin:0;transform:none;
+  padding:6px 9px;overflow:hidden;box-shadow:0 12px 30px #000a;
+  background:#191a16ef;border:1px solid #746044;
+  border-radius:0 0 9px 9px;
+}
+body.native-player-mini .player-main {display:flex;flex-wrap:nowrap;gap:8px;}
+body.native-player-mini .player-details {flex:1 1 auto;min-width:0;}
+body.native-player-mini .player-title {font-size:12px;line-height:1.2;white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:normal;}
+body.native-player-mini .player-state {font-size:10px;line-height:1.2;margin:2px 0 0;}
+body.native-player-mini .player-artwork,
+body.native-player-mini .player-location,
+body.native-player-mini .player-timeline,
+body.native-player-mini .player-close,
+body.native-player-mini #player-back,
+body.native-player-mini #player-forward,
+body.native-player-mini #player-stop,
+body.native-player-mini #player-view-actions,
+body.native-player-mini #player-details-open,
+body.native-player-mini #player-options-toggle,
+body.native-player-mini #player-volume-group,
+body.native-player-mini #player-fullscreen,
+body.native-player-mini #player-options,
+body.native-player-mini #player-message-wrap {display:none!important;}
+body.native-player-mini .player-controls {display:flex;flex:0 0 auto;width:auto;gap:4px;}
+body.native-player-mini .player-control {min-width:0;min-height:40px;padding:7px 9px;font-size:11px;white-space:nowrap;}
+body.native-player-mini .player-toggle {min-width:48px;}
+body.native-player-mini .player-secondary {display:flex;flex-wrap:nowrap;align-items:center;justify-content:space-between;
+ gap:5px;margin:5px 0 0;padding:5px 0 0;border-top:1px solid #ffffff15;}
+body.native-player-mini #player-mini,
+body.native-player-mini .player-mini-handle {display:inline-flex;}
+body.native-player-mini .player-mini-handle {touch-action:none;cursor:grab;white-space:nowrap;min-width:46px;}
+body.native-player-mini .player-mini-handle:active {cursor:grabbing;}
+body.native-player-mini .player-mini-handle:focus-visible {outline:2px solid var(--accent);outline-offset:2px;}
+@media(prefers-reduced-motion:reduce) {
+  body.native-player-mode .player-dock,body.native-player-mini .player-dock {transition:none;}
+}

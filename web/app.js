@@ -14,6 +14,7 @@
     dialogDescription: byId("dialog-description"),
   };
   const { CenteredCarousel, mountFilterCubes } = await import("/filter-cubes.mjs");
+  const { mountMiniPlayerGeometry, shouldHideControls, trackLabel, trackNotice } = await import("/player-mini.mjs");
   let cubeHome = null, detailCarousel = null, activeCubeLabel = "";
   let collections = [];
   let curatedCollections = [];
@@ -89,6 +90,8 @@
   let nativePlayerMode = false;
   let nativeFullscreen = false;
   let miniPlayer = false;
+  let miniLayout = null;
+  let pointerInteracting = false;
   let controlsTimer;
   let lastTrackSignature = "";
   let nativeActionPending = false;
@@ -226,9 +229,16 @@
     if (next && !elements.dialog.hidden) closeFilm();
     if (next && byId("filter-dialog").open) byId("filter-dialog").close();
     if (next) document.body.classList.remove("dialog-open");
+    miniLayout?.deactivate();
+    clearTimeout(controlsTimer);
+    controlsTimer = null;
+    byId("player-reveal").hidden = true;
     updatePlayerControls();
     measureDock();
-    if (changed && next) player.dock.focus({ preventScroll: true });
+    if (changed && next) {
+      player.dock.focus({ preventScroll: true });
+      revealPlayerControls();
+    }
     publishContext();
     return next;
   };
@@ -242,12 +252,23 @@
 
   function revealPlayerControls() {
     clearTimeout(controlsTimer);
+    controlsTimer = null;
     document.body.classList.remove("player-controls-hidden");
-    byId("player-reveal").hidden = !nativePlayerMode;
+    byId("player-reveal").hidden = true;
+    measureDock();
     if (!nativePlayerMode || miniPlayer || playerStatus.state !== "playing") return;
     controlsTimer = setTimeout(() => {
-      if (playerStatus.state === "playing" && !miniPlayer && !player.dock.matches(":hover, :focus-within") && byId("player-options").hidden) {
+      controlsTimer = null;
+      const keyboardFocus = player.dock.contains(document.activeElement)
+        && document.activeElement?.matches?.(":focus-visible");
+      const modalOpen = Boolean(document.querySelector("dialog[open]"));
+      if (shouldHideControls({
+        native:nativePlayerMode, playing:playerStatus.state === "playing", mini:miniPlayer,
+        menuOpen:!byId("player-options").hidden || modalOpen,
+        keyboardFocus, pointerDown:pointerInteracting
+      })) {
         document.body.classList.add("player-controls-hidden");
+        byId("player-reveal").hidden = false;
         measureDock();
       }
     }, 2800);
@@ -259,6 +280,12 @@
     if (value && nativeFullscreen) await togglePlayerFullscreen();
     if (!nativePlayerMode && await showNativePlayer() === false) return;
     miniPlayer = value;
+    if (value) {
+      byId("player-options").hidden = true;
+      byId("player-options-toggle").setAttribute("aria-expanded", "false");
+    }
+    if (value) miniLayout?.activate();
+    else miniLayout?.deactivate();
     document.body.classList.toggle("native-player-mini", value);
     document.body.classList.toggle("native-player-mode", !value);
     document.body.classList.remove("player-controls-hidden");
@@ -269,7 +296,7 @@
 
   function updateTrackControls() {
     const tracks = playerStatus.tracks || [];
-    const signature = JSON.stringify([playerStatus.imdb_id, playerStatus.type, playerStatus.season, playerStatus.episode, tracks]);
+    const signature = JSON.stringify([playerStatus.imdb_id, playerStatus.type, playerStatus.season, playerStatus.episode, playerStatus.tracks_available, playerStatus.state, tracks]);
     if (signature === lastTrackSignature) return;
     lastTrackSignature = signature;
     for (const [kind, id] of [["audio", "player-audio-track"], ["sub", "player-subtitle-track"]]) {
@@ -277,12 +304,33 @@
       select.replaceChildren();
       if (kind === "sub") { const off = node("option", "", "Off"); off.value = "off"; select.append(off); }
       for (const track of rows) {
-        const option = node("option", "", [track.language || "Language not tagged", track.title, track.codec].filter(Boolean).join(" · "));
+        const option = node("option", "", trackLabel(track));
         option.value = String(track.id); option.selected = track.selected === true; select.append(option);
       }
       if (!rows.length && kind === "audio") select.append(node("option", "", "No audio tracks available"));
       select.disabled = !rows.length;
     }
+    byId("player-track-note").textContent = trackNotice(tracks, playerStatus.tracks_available, ["playing","paused"].includes(playerStatus.state));
+  }
+
+  async function chooseAnotherStream() {
+    const current = playerStatus;
+    const record = collections.flatMap(c => c.movies || []).find(row => row.imdbId === current.imdb_id && row.type === current.type);
+    if (!record) { playerMessage("This title is not currently loaded. Playback is unchanged."); return; }
+    await showMovieWall();
+    showFilm(record);
+    if (current.type === "series") {
+      const episode = (record.episodes || []).find(ep => ep.season === current.season && ep.episode === current.episode);
+      if (!episode) {
+        byId("episode-metadata-status").textContent = "Select this episode when its details have loaded. Your playback was not stopped.";
+        return;
+      }
+      selectedSeason = episode.season;
+      selectedEpisode = episode;
+      renderEpisodes(record);
+      updateEpisodeSelection();
+    }
+    await openSources();
   }
 
   async function showPlayingDetails() {
@@ -1538,7 +1586,7 @@
       const details = [source.source_format, source.video_codec, source.dynamic_range, ...(source.audio || []), source.container, sourceSize(source.size_bytes)].filter(Boolean);
       copy.append(node("strong", "", [quality, source.source_format, source.video_codec].filter(Boolean).join(" · ")));
       copy.append(node("span", "source-technical", details.join(" · ")));
-      copy.append(node("span", "source-technical", source.languages?.length ? `Language hints: ${source.languages.join(", ")}` : "Languages not supplied by provider"));
+      copy.append(node("span", "source-technical", source.languages?.length ? `Provider language hints: ${source.languages.join(", ")}` : "Audio language unverified — check tracks after Play"));
       input.setAttribute("aria-label", `Select ${source.label || quality}`);
       choice.append(input, node("span", "source-quality-badge", quality), copy);
       const play = node("button", "small-button source-row-play", "Play this stream");
@@ -1663,13 +1711,16 @@
     player.volumeGroup.hidden = !active;
     player.fullscreen.hidden = !active && !nativeFullscreen;
     byId("player-mini").hidden = !active || !isNativeHost();
+    byId("player-mini-move").hidden = !miniPlayer;
+    byId("player-mini-resize").hidden = !miniPlayer;
+    byId("player-change-stream").disabled = busy || !active;
     byId("player-details-open").hidden = !active;
     byId("player-options-toggle").hidden = !active;
     byId("quick-play").hidden = false;
     byId("quick-play").disabled = busy || sourceBusy || !mediaTarget();
     updateTrackControls();
     player.close.disabled = busy;
-    const closeLabel = active ? "Stop playback and close controls" : "Close player controls";
+    const closeLabel = active ? "Hide playback controls without stopping" : "Close player controls";
     player.close.setAttribute("aria-label", closeLabel);
     player.close.title = closeLabel;
     const canControl = playerConnected && !busy && ["playing", "paused"].includes(state);
@@ -1726,9 +1777,12 @@
       muted: data.muted === true, fullscreen: data.fullscreen === true,
       type: data.type === "series" ? "series" : "movie", season: data.season ?? null, episode: data.episode ?? null,
       tracks: Array.isArray(data.tracks) ? data.tracks : [],
+      tracks_available: data.tracks_available === true,
     };
     const active = ["loading", "playing", "paused"].includes(playerStatus.state);
     if (playerStatus.state !== "playing") revealPlayerControls();
+    else if (nativePlayerMode && !miniPlayer && !controlsTimer
+      && !document.body.classList.contains("player-controls-hidden")) revealPlayerControls();
     setText(player.title, active ? playerStatus.title || "Movie Night player" : "Choose tonight’s film");
     const labels = { idle: "Ready when you are. Choose a film above.", loading: "Getting your film ready…", playing: "Enjoy your film", paused: "Paused. Ready when you are.", error: "Let’s try that again" };
     setText(player.state, labels[playerStatus.state]);
@@ -1858,13 +1912,17 @@
 
   async function closePlayerControls() {
     if (commandPending || launchPending || nativeActionPending) return;
-    if (["loading", "playing", "paused"].includes(playerStatus.state)) {
-      if (!await sendPlayerCommand("stop")) return;
+    if (nativePlayerMode && !miniPlayer && ["loading", "playing", "paused"].includes(playerStatus.state)) {
+      clearTimeout(controlsTimer);
+      controlsTimer = null;
+      byId("player-options").hidden = true;
+      byId("player-options-toggle").setAttribute("aria-expanded", "false");
+      document.body.classList.add("player-controls-hidden");
+      byId("player-reveal").hidden = false;
+      measureDock();
+      return;
     }
-    if (nativePlayerMode) {
-      try { await showMovieWall(); }
-      catch { playerMessage("The wall could not be reopened. Your player controls are still here."); return; }
-    }
+    // Stop is a separate deliberate action. Dismissing UI NEVER stops media.
     dockDismissed = true;
     updatePlayerControls();
     measureDock();
@@ -1995,6 +2053,14 @@
   byId("quick-play").addEventListener("click", quickPlay);
   byId("player-reveal").addEventListener("click", () => { revealPlayerControls(); player.dock.focus({preventScroll:true}); });
   byId("player-mini").addEventListener("click", () => setMiniPlayer(!miniPlayer).catch(() => playerMessage("Player view could not change. Playback continues.")));
+  miniLayout = mountMiniPlayerGeometry({moveHandle:byId("player-mini-move"),resizeHandle:byId("player-mini-resize")});
+  byId("player-change-stream").addEventListener("click", () => chooseAnotherStream().catch(() => playerMessage("Could not reopen stream selection. Your current playback was not stopped.")));
+  player.dock.addEventListener("pointerdown", (event) => {
+    pointerInteracting = Boolean(event.target.closest("input[type=range], select"));
+    revealPlayerControls();
+  });
+  window.addEventListener("pointerup", () => { pointerInteracting = false; });
+  window.addEventListener("pointercancel", () => { pointerInteracting = false; });
   byId("player-details-open").addEventListener("click", () => showPlayingDetails().catch(() => playerMessage("Title details could not open. Playback continues.")));
   byId("player-options-toggle").addEventListener("click", () => {
     const opened = byId("player-options").hidden;
@@ -2008,7 +2074,10 @@
   player.dock.addEventListener("pointermove", revealPlayerControls);
   player.dock.addEventListener("focusin", revealPlayerControls);
   player.dock.addEventListener("focusout", revealPlayerControls);
-  byId("native-video-placeholder").addEventListener("dblclick", togglePlayerFullscreen);
+  byId("native-video-placeholder").addEventListener("dblclick", () => {
+    if (miniPlayer) void setMiniPlayer(false);
+    else void togglePlayerFullscreen();
+  });
   byId("native-video-placeholder").addEventListener("pointermove", revealPlayerControls);
   player.fullscreen.addEventListener("click", togglePlayerFullscreen);
   player.watch.addEventListener("click", () => changePlayerView(true));
