@@ -50,7 +50,8 @@ export class CenteredCarousel {
       const card = event.target.closest('.cube-cover');
       if (!card || !root.contains(card)) return;
       const index = Number(card.dataset.index);
-      if (index === this.index) this.onOpen(this.items[index]);
+      if (this.presentation === 'rail') { this.select(index); this.onOpen(this.items[index]); }
+      else if (index === this.index) this.onOpen(this.items[index]);
       else this.select(index);
     });
     root.addEventListener('keydown', event => {
@@ -64,7 +65,7 @@ export class CenteredCarousel {
       } else if (event.key === 'Enter' && event.target === root) { event.preventDefault(); this.onOpen(this.items[this.index]); }
     });
     root.addEventListener('pointerdown', event => {
-      if (!event.isPrimary || event.button !== 0 || inputOwnedElsewhere(event.target, root)) return;
+      if (this.presentation === 'rail' || !event.isPrimary || event.button !== 0 || inputOwnedElsewhere(event.target, root)) return;
       this.pointer = { id: event.pointerId, x: event.clientX, y: event.clientY, drag: false };
     });
     root.addEventListener('pointermove', event => {
@@ -100,6 +101,16 @@ export class CenteredCarousel {
       if (Math.abs(this.wheel) >= 30) { this.move(this.wheel > 0 ? 1 : -1); this.wheel = 0; this.lastWheel = now; }
     }, { passive: false });
   }
+  setPresentation(value) {
+    const next = value === 'rail' ? 'rail' : 'centred';
+    if (next === this.presentation) return;
+    this.presentation = next;
+    this.root.classList.toggle('cube-rail', next === 'rail');
+    this.root.setAttribute('aria-label', next === 'rail'
+      ? 'Titles. Left and right browse; Enter opens the selected title.'
+      : 'Titles. Left and right browse; Enter opens the centred title.');
+    this.render();
+  }
   setItems(items, anchor = null) {
     const old = anchor || (this.items[this.index] && keyOf(this.items[this.index]));
     this.items = items;
@@ -109,7 +120,10 @@ export class CenteredCarousel {
   }
   select(index) {
     if (!this.items.length) return false;
-    this.index = wrap(index, this.items.length); this.render();
+    this.index = this.presentation === 'rail' && this.root.dataset.noWrap === 'true'
+      ? Math.max(0, Math.min(index, this.items.length - 1)) : wrap(index, this.items.length);
+    this.render();
+    if (this.presentation === 'rail') this.cards.get(keyOf(this.items[this.index]))?.scrollIntoView({block:'nearest',inline:'nearest',behavior:'instant'});
     this.onSelect(this.items[this.index], this.index); return true;
   }
   move(delta) { return this.select(this.index + delta); }
@@ -136,7 +150,12 @@ export class CenteredCarousel {
     const left = Math.min(4, Math.floor((count - 1) / 2));
     const right = Math.min(4, Math.ceil((count - 1) / 2));
     if (this.legacyIds) for (const card of this.cards.values()) card.removeAttribute('id');
-    if (count) for (let offset = -left; offset <= right; offset++) {
+    // Same cards/identity/input owner; Home uses a normal scrolling rail, not
+    // another carousel implementation or a reduced catalogue denominator.
+    const offsets = this.presentation === 'rail'
+      ? this.items.map((_, i) => i - this.index)
+      : Array.from({length:left + right + 1}, (_, i) => i - left);
+    if (count) for (const offset of offsets) {
       const bounded = this.root.dataset.noWrap === 'true';
       const rawIndex=this.index+offset;
       if(bounded&&(rawIndex<0||rawIndex>=count))continue;
@@ -151,7 +170,7 @@ export class CenteredCarousel {
       const presentation = JSON.stringify([label, movie.title, movie.poster || '', movie.year, movie.type]);
       if (card.dataset.presentation !== presentation) {
         // Preserve the focus-owning button and update only changed presentation.
-        card.replaceChildren(this.poster(movie, true), el('span', 'cube-cover-title', label), el('span', 'cube-cover-meta', [movie.year, movie.type === 'series' ? 'TV series' : 'Film'].filter(Boolean).join(' · ')));
+        card.replaceChildren(this.poster(movie, this.presentation !== 'rail' || index < 8), el('span', 'cube-cover-title', label), el('span', 'cube-cover-meta', [movie.year, movie.type === 'series' ? 'TV series' : 'Film'].filter(Boolean).join(' · ')));
         card.dataset.presentation = presentation;
       }
       card.dataset.record = key;
@@ -183,7 +202,7 @@ export class CenteredCarousel {
 }
 
 export async function mountFilterCubes(host) {
-  let record = null, draft = null, mode = 'wall', activeId = null, queryEdit = null, busy = false, syncing = false;
+  let record = null, draft = null, mode = 'wall', activeId = null, queryEdit = null, busy = false, syncing = false, homeRails = false;
   const nodes = new Map(), cache = new Map();
   const previewRows = new Map(), previewTimers = new Map();
 
@@ -563,6 +582,7 @@ export async function mountFilterCubes(host) {
     const query=effective(row),source=sourceFor(query),items=host.evaluate(source.movies,query);
     const anchor=n.carousel.items[n.carousel.index]?keyOf(n.carousel.items[n.carousel.index]):row.anchor;
     n.carousel.root.dataset.noWrap=String(!source.local&&source.hasMore);
+    n.carousel.setPresentation(homeRails?'rail':'centred');
     n.carousel.setItems(items,anchor); n.title.textContent=row.name;
     n.summary.textContent=host.summary(query);
     n.position.textContent=items.length?`${n.carousel.index+1} of ${items.length} matches${source.local?' · loops both ways':` loaded · ${source.hasMore?'more available':'end of catalogue'}`}`:source.loading?'Finding matching titles…':'No matching titles in the loaded source.';
@@ -622,6 +642,7 @@ export async function mountFilterCubes(host) {
       if(activate(r,movie)&&!queryEdit){r.anchor=keyOf(movie);}
       if(!s.local&&!s.error&&index>=carousel.items.length-4)void fetchPage(query,s);
     },onOpen:movie=>{const r=data()?.rows.find(r=>r.id===row.id);if(r&&activate(r,movie))host.open(movie);}});
+    carousel.setPresentation(homeRails?'rail':'centred');
     const controls=el('div','cube-row-controls');
     const prev=button('←',()=>{
       const r=data().rows.find(r=>r.id===row.id),src=r&&sourceFor(effective(r));
@@ -739,6 +760,18 @@ export async function mountFilterCubes(host) {
     });
   }
   return {
+    // Read-only projection of the existing confirmed document. No Home store.
+    savedBins:()=>record?record.rows.map(({id,name})=>({id,name})):[],
+    openSavedBin(id){
+      if(busy||pendingSave||draft||queryEdit||naming.open||deleting.open)return false;
+      const row=record?.rows.find(row=>row.id===id);
+      if(!row||!activate(row))return false;
+      mode='wall';updateControls();host.openBin?.(row);return true;
+    },
+    setHomeRails(value){
+      const next=value===true;if(homeRails===next)return;homeRails=next;
+      for(const n of nodes.values())n.carousel.setPresentation(homeRails?'rail':'centred');
+    },
     context:()=>record?{revision:record.revision,cube_id:activeId,query:clone(host.current())}:null,
     reviewOperation,
     createFromCurrent(){if(naming.open)return;openNaming(null,false,host.current());showStep(2);},

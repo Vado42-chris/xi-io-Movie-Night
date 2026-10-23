@@ -18,7 +18,7 @@
   const { mountEpisodeAutoContinue } = await import("/episode-auto-ui.mjs");
   let cubeHome = null, detailCarousel = null, activeCubeLabel = "";
   let episodeAuto = null;
-  let navigateMedia=null, mediaView='home', openedBin=null;
+  let navigateMedia=null, mediaView='home', openedBin=null, refreshHome=()=>{};
   let collections = [];
   const searchView={id:'global-results',kind:'search',name:'Search all movies & TV',
     description:'Search movies and TV across the available catalogue.',
@@ -474,6 +474,7 @@
       genres,
       runtime: typeof movie.runtime === "number" ? `${movie.runtime} min` : text(movie.runtime),
       rating: parseRating(movie.rating ?? movie.imdbRating ?? movie.imdb_rating),
+      resumeReferenceValid: !["tv", "series"].includes(movie.type) || Boolean(episodeCoordinates(movie)),
       lastPositionMs: Math.max(0, Number(movie.lastPositionMs) || 0),
       durationMs: Math.max(0, Number(movie.durationMs) || 0),
       lastUpdatedEpochMs: Math.max(0, Number(movie.lastUpdatedEpochMs) || 0),
@@ -738,6 +739,7 @@
         byId("library-feedback").textContent = "Your personal library is unavailable right now. You can still browse your collections.";
       }
       rebuildCollections();
+      refreshHome();
       const siteTitle = text(library.title) || "Movie Night";
       elements.siteTitle.textContent = siteTitle;
       document.title = siteTitle;
@@ -1216,7 +1218,7 @@
     return wrap;
   }
 
-  function movieCard(movie, index) {
+  function movieCard(movie, index, open = showFilm) {
     const tile = node("article", "movie-tile");
     const card = node("button", "movie-card");
     card.type = "button";
@@ -1247,7 +1249,7 @@
     const action = node("span", "movie-action");
     action.append(icon(movie.type === "series" ? "screen" : "play"), node("span", "", movie.type === "series" ? "View series" : "View film"));
     card.append(action);
-    card.addEventListener("click", () => showFilm(movie));
+    card.addEventListener("click", () => open(movie));
     const favorite = node("button", "card-favorite");
     favorite.type = "button";
     favorite.append(icon("heart"));
@@ -1444,7 +1446,7 @@
       }
       const copy = node("span", "episode-card-copy"), heading = node("strong", "", label); heading.id = titleId;
       copy.append(heading);
-      const facts = [ep.released ? `Aired ${ep.released.slice(0,10)}` : "Air date unavailable", ep.runtimeMinutes ? `${ep.runtimeMinutes} min` : ""];
+      const facts = [Number.isFinite(Date.parse(ep.released)) ? `${Date.parse(ep.released) > Date.now() ? "Scheduled" : "Aired"} ${ep.released.slice(0,10)}` : "Air date unavailable", ep.runtimeMinutes ? `${ep.runtimeMinutes} min` : ""];
       copy.append(node("span", "episode-card-facts", facts.filter(Boolean).join(" · ")));
       const history = episodeHistoryLabel(movie,ep);
       if (history) {
@@ -1481,7 +1483,7 @@
         selectedEpisode = ep;
         selectedSeason = ep.season;
         updateEpisodeSelection();
-        void quickPlay().catch(error => playerMessage(safePlayerError(error?.message)));
+        void playSelectedMovie().catch(error => playerMessage(safePlayerError(error?.message)));
       });
       card.append(details, watch); list.append(card);
     }
@@ -1642,7 +1644,7 @@
     // Every series entry uses the existing server metadata cache. Reopening
     // refreshes the hierarchy without another client cache, per-title repair,
     // or Refresh requirement. Already linked episodes remain visible while read.
-    if (wallSettings.plugins.cinemeta_enabled && (movie.type === "series" || !movie.detailsLoaded) && /^tt\d{5,12}$/.test(movie.imdbId)) void loadFilmDetails(movie, detailGeneration);
+    if (wallSettings.plugins.cinemeta_enabled && (movie.type === "series" || !movie.detailsLoaded) && /^tt\d{5,12}$/.test(movie.imdbId)) return loadFilmDetails(movie, detailGeneration);
   }
 
   function placeBrowseControls(inDetail) {
@@ -1661,6 +1663,7 @@
     byId("carousel-hint").hidden = !count;
     byId("carousel-empty").hidden = Boolean(count);
     byId("detail-expanded").hidden = !count || !detailsExpanded;
+    elements.dialog.dataset.detailsExpanded=String(detailsExpanded);
     byId("expand-details").setAttribute("aria-expanded", String(detailsExpanded));
     byId("expand-details").textContent = detailsExpanded ? "Less detail" : "More details";
     detailCarousel?.setItems(visibleMovies, selectedMovie ? mediaCardKey(selectedMovie) : null);
@@ -1810,6 +1813,7 @@
   function safePlayerError(code) {
     const key = typeof code === "string" ? code.toLowerCase() : "";
     if (key.includes("native_player") || key.includes("embedding")) return "The player window isn’t ready yet. Your film has not been started. Please try again.";
+    if (key.includes("playback_identity_unconfirmed")) return "The player did not confirm this title or episode. Check playback before trying again.";
     if (key.includes("source_mismatch")) return "These streams do not match the selected title or episode. Nothing has started. Search again.";
     if (key.includes("source_expired")) return "That source has expired. Search again and select a fresh source.";
     if (key.includes("plugin_disabled")) return "Torrentio is disabled in Movie Night settings. Enable it to choose a stream.";
@@ -1875,9 +1879,9 @@
     const target = mediaTarget();
     const sameMovie = sameMedia(target, playerStatus);
     const isSeries = selectedMovie?.type === "series";
-    player.play.disabled = !target || busy || (sameMovie && state === "loading");
+    player.play.disabled = busy || (!target && (!isSeries || !selectedMovie?.episodes?.length)) || (sameMovie && state === "loading");
     const playLabel = sameMovie && state === "paused" ? "Resume" : sameMovie && state === "playing" ? "Back to player" : sameMovie && state === "loading" ? "Getting ready…" : "Watch";
-    setText(player.playLabel, isSeries && !target ? "Select an episode" : launchPending ? "Getting your selection ready…" : playLabel);
+    setText(player.playLabel, isSeries && !target ? (selectedMovie?.episodes?.length ? "Choose episode" : detailController || !selectedMovie?.episodesLoaded && !selectedMovie?.episodeError ? "Loading episodes…" : "Episodes unavailable") : launchPending ? "Getting your selection ready…" : playLabel);
     player.play.setAttribute("aria-busy", String(launchPending));
     byId("choose-sources").disabled = busy || !target;
     byId("choose-sources").hidden = !(sameMovie && active);
@@ -2020,6 +2024,7 @@
         data = await playerRequest("play", { ...target, source_id: sourceId });
       }
       if (data?.state === "error") throw new Error(text(data.last_error) || "playback_error");
+      if (!sameMedia(target,data) || !["loading","playing","paused"].includes(data?.state)) throw new Error("playback_identity_unconfirmed");
       if (sourceId && data?.state && playerStates.has(data.state)) {
         episodeAuto?.remember(movie?.type === "series" ? movie : null, target,
           sourceChoices.find(source => source.id === sourceId) || null);
@@ -2234,7 +2239,12 @@
   byId("source-quality").addEventListener("change", renderSources);
   byId("source-range").addEventListener("change", renderSources);
   byId("source-form").addEventListener("submit", event => { event.preventDefault(); if (selectedSource) void playSelectedMovie(selectedSource); });
-  player.play.addEventListener("click", () => playSelectedMovie());
+  player.play.addEventListener("click", () => {
+    if(selectedMovie?.type==='series'&&!mediaTarget()){
+      byId('detail-episodes').scrollIntoView({block:'start',behavior:'instant'});byId('episode-season').focus({preventScroll:true});return;
+    }
+    void playSelectedMovie();
+  });
   document.addEventListener("keydown", event => {
     if (event.key !== "Escape" || elements.dialog.hidden || launchPending || event.defaultPrevented) return;
     event.preventDefault();
@@ -2398,6 +2408,35 @@
   // Same-origin shell exposes ONLY review entry and current query, never a generic executor.
   window.movieNightCubeContext = () => cubeHome?.context() || null;
   window.movieNightReviewCube = operation => cubeHome.reviewOperation(operation);
+  function resumableHistory() {
+    if(!libraryAvailable)return [];
+    const seen=new Set();
+    return [...personalLibrary.recent].sort((a,b)=>b.lastUpdatedEpochMs-a.lastUpdatedEpochMs).filter(movie=>{
+      const key=mediaCardKey(movie),position=movie.lastPositionMs,duration=movie.durationMs;
+      if(seen.has(key)||!movie.resumeReferenceValid||!/^tt\d{5,12}$/.test(movie.imdbId)
+        ||!Number.isFinite(position)||position<=0||!Number.isFinite(duration)||duration<=position
+        ||watchState(movie)==='watched'||movie.type==='series'&&!episodeCoordinates(movie))return false;
+      seen.add(key);return true;
+    });
+  }
+  async function openHistoryTitle(movie, resume=false) {
+    if(!libraryAvailable||launchPending||sourceBusy||commandPending||!cubeHome?.canNavigate())return;
+    const eligible=resumableHistory().find(row=>mediaCardKey(row)===mediaCardKey(movie));
+    if(!eligible)return;
+    selectCollection('personal-recent');
+    const pending=showFilm(eligible),generation=detailGeneration;
+    await pending;
+    if(!resume||elements.dialog.hidden||generation!==detailGeneration||selectedMovie!==eligible)return;
+    const target=mediaTarget(),ep=episodeCoordinates(eligible);
+    if(!target||target.imdb_id!==eligible.imdbId||target.type!==eligible.type
+      ||ep&&(target.season!==ep.season||target.episode!==ep.episode)){
+      player.feedback.textContent='The saved episode is not confirmed yet. Choose an episode or check its metadata.';return;
+    }
+    // The user's Resume action requests the existing exact-target flow. It does
+    // not select an arbitrary source or autoplay after a mere card selection.
+    await playSelectedMovie();
+  }
+
   // One media navigation controller over the retained collection and Bin owners.
   // Destination changes are presentation-only; saved queries still use the CAS writer.
   function mountMovieExperience() {
@@ -2448,6 +2487,39 @@
     const saveAsBin=node('button','small-button','Save these filters as a Bin');saveAsBin.type='button';saveAsBin.id='save-filters-as-bin';
     saveAsBin.addEventListener('click',()=>{filterDialog.close();cubeHome.createFromCurrent();});
     document.querySelector('.filter-footer').prepend(saveAsBin);
+    // Read-only task projections of the current local library and confirmed Bins.
+    // No profile/global history merge, new collection store or recommendation engine.
+    const home=node('section','home-tasks');home.id='home-tasks';home.setAttribute('aria-label','Your watching');
+    const continueSection=node('section','home-continue');continueSection.id='home-continue';
+    const continueTitle=node('h2','','Continue watching');continueSection.append(continueTitle);
+    const historyHint=node('p','home-hint','From this device’s viewing history. Choose a stream to resume.');continueSection.append(historyHint);
+    const resumeRail=node('div','home-resume-rail');resumeRail.setAttribute('aria-label','In-progress movies and episodes');continueSection.append(resumeRail);
+    const personal=node('section','home-bin-section');personal.append(node('h2','','Your Bins'));
+    const binLinks=node('div','home-bin-links');binLinks.id='home-bin-links';personal.append(binLinks);
+    const genres=node('nav','home-genres');genres.id='home-genres';genres.setAttribute('aria-label','Browse movies by genre');
+    genres.append(node('span','home-hint','Browse by genre'));
+    for(const genre of ['Action','Comedy','Sci-Fi','Fantasy','Western','Drama']){
+      const b=node('button','small-button',genre);b.type='button';
+      b.addEventListener('click',()=>{if(!choose('discover'))return;changeBrowseSettings({catalog:'top',genre,year:String(currentYear),search:''});});genres.append(b);
+    }
+    home.append(continueSection,personal,genres);byId('browse-controls-home').after(home);
+    let homeSignature='';
+    refreshHome=()=>{
+      const recent=resumableHistory(),bins=cubeHome.savedBins();
+      const signature=JSON.stringify([libraryAvailable,recent.map(m=>[mediaCardKey(m),m.title,m.poster,m.lastPositionMs,m.durationMs]),bins]);
+      if(signature===homeSignature)return;homeSignature=signature;
+      resumeRail.replaceChildren();continueSection.hidden=!recent.length;
+      for(const [index,movie] of recent.slice(0,6).entries()){
+        const tile=movieCard(movie,index,m=>{void openHistoryTitle(m);});tile.classList.add('home-resume-card');
+        const resume=node('button','primary-button home-resume',`Resume · ${clock(movie.lastPositionMs/1000)}`);resume.type='button';resume.dataset.resumeMedia=mediaCardKey(movie);
+        resume.setAttribute('aria-label',`Resume ${episodeCardLabel(movie)} at ${clock(movie.lastPositionMs/1000)}`);
+        resume.addEventListener('click',()=>{void openHistoryTitle(movie,true);});tile.append(resume);resumeRail.append(tile);
+      }
+      binLinks.replaceChildren();
+      for(const bin of bins){const b=node('button','small-button',bin.name);b.type='button';b.dataset.homeBin=bin.id;
+        b.addEventListener('click',()=>cubeHome.openSavedBin(bin.id));binLinks.append(b);}
+      const manage=node('button','text-button',bins.length?'Manage Bins':'Create your first Bin');manage.type='button';manage.addEventListener('click',()=>choose('bins'));binLinks.append(manage);
+    };
     const featured=()=>{
       for(const row of document.querySelectorAll('.cube-row')){
         // Select by saved source identity, never by the user's editable title.
@@ -2457,11 +2529,13 @@
       }
       const rows=[...document.querySelectorAll('.cube-row')];
       if(!rows.some(r=>r.classList.contains('experience-featured')))rows.slice(0,2).forEach(r=>r.classList.add('experience-featured'));
+      refreshHome();
     };
     function render(){
       document.body.dataset.movieExperience='watch';
       document.body.dataset.movieExperienceView=mediaView;
       document.body.dataset.binDetail=openedBin?'true':'false';
+      home.hidden=mediaView!=='home';cubeHome.setHomeRails(mediaView==='home');
       for(const [key,b] of Object.entries(tabs))b.setAttribute('aria-current',key===mediaView?'page':'false');
       heading.textContent=openedBin?openedBin.name:copy[mediaView][0];
       description.textContent=openedBin?'Search and filter this Bin. Its saved rules are unchanged until you edit and save them.':copy[mediaView][1];
