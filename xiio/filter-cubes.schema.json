@@ -92,7 +92,8 @@
               },
               "yearTo": {
                 "type": "string",
-                "pattern": "^(?:|(?:18|19|2[0-9])[0-9]{2})$"
+                "pattern": "^(?:|present|(?:18|19|2[0-9])[0-9]{2})$",
+                "description": "An inclusive fixed year, empty for no upper bound, or present for the current calendar year evaluated when browsing. Shared by manual and conversational cube proposals."
               },
               "include": {
                 "type": "array",
@@ -228,5 +229,8 @@
     "view": "wall",
     "selected_id": null,
     "rows": []
-  }
+  },
+  "x-write-features": [
+    "rolling-year-bound-v1"
+  ]
 }

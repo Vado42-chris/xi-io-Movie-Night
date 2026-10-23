@@ -151,6 +151,11 @@ export class CenteredCarousel {
 export async function mountFilterCubes(host) {
   let record = null, draft = null, mode = 'wall', activeId = null, queryEdit = null, busy = false, syncing = false;
   const nodes = new Map(), cache = new Map();
+  let activeReview = null, reviewOpening = false;
+  function finishReview(status) {
+    if(!activeReview)return;const review=activeReview;activeReview=null;
+    review.resolve({status,action:review.operation.action,cube_id:review.operation.cube_id,revision:record?.revision ?? null});
+  }
   let concurrent = 0; const queue = [];
   const toolbar = el('div', 'cube-toolbar'); toolbar.id = 'cube-toolbar';
   const viewSwitch = el('div', 'cube-view-switch'); viewSwitch.setAttribute('role', 'group'); viewSwitch.setAttribute('aria-label', 'Library presentation');
@@ -210,7 +215,7 @@ export async function mountFilterCubes(host) {
     for(const key of ['type','provider']) addField(key,key==='type'?'Content type':'Data source',f[key].enum.map(v=>[v,labels[key][v]||v]));
     addField('genre','Primary genre',[['','Any genre']]);
     addField('yearFrom','From year',null,'number',{min:'1800',max:'2999',step:'1',placeholder:'Any year'});
-    addField('yearTo','Through year',null,'number',{min:'1800',max:'2999',step:'1',placeholder:'No upper limit'});
+    addField('yearTo','Through year',null,'text',{pattern:f.yearTo.pattern,placeholder:'Any year or present'}).setAttribute('list','cube-current-year');
     addField('watch','Watch status',f.watch.enum.map(v=>[v,labels.watch[v]||v]));
     addField('rating','Minimum rating',null,'number',{min:String(f.rating.minimum),max:String(f.rating.maximum),step:'0.1'});
     addField('runtime','Maximum minutes',null,'number',{min:'1',max:'1440',step:'1',placeholder:'Any duration'});
@@ -237,7 +242,7 @@ export async function mountFilterCubes(host) {
   function validStep(){
     feedback.textContent='';
     for(const input of steps[wizardStep].querySelectorAll('input,select'))if(!input.checkValidity()){input.reportValidity();return false;}
-    if(wizardStep===1&&fields.yearFrom.value&&fields.yearTo.value&&Number(fields.yearFrom.value)>Number(fields.yearTo.value)){feedback.textContent='Choose an end year on or after the start year.';fields.yearTo.focus();return false;}
+    if(wizardStep===1&&fields.yearFrom.value&&fields.yearTo.value&&Number(fields.yearFrom.value)>(fields.yearTo.value==='present'?new Date().getUTCFullYear():Number(fields.yearTo.value))){feedback.textContent='Choose an end year on or after the start year.';fields.yearTo.focus();return false;}
     if(wizardStep===2&&!nameInput.value.trim()){feedback.textContent='Give this cube a name.';nameInput.focus();return false;}
     return true;
   }
@@ -254,10 +259,12 @@ export async function mountFilterCubes(host) {
     const focus=steps[wizardStep].querySelector('input,select');focus?.focus();
   }
   naming.addEventListener('cancel',event=>{if(busy)event.preventDefault();});
-  naming.addEventListener('close',()=>{updateControls();builderOrigin?.isConnected&&builderOrigin.focus({preventScroll:true});});
+  naming.addEventListener('close',()=>{if(activeReview)finishReview(pendingSave?'unconfirmed':activeReview.lastWriteState||'cancelled');updateControls();builderOrigin?.isConnected&&builderOrigin.focus({preventScroll:true});});
   const deleting = el('dialog', 'cube-naming'); deleting.id = 'cube-delete';
   const deleteText = el('p'); let deletingId = null;
   deleting.append(el('h2', '', 'Remove this cube row?'), deleteText, button('Remove row', () => removeCube(deletingId)), button('Keep row', () => deleting.close())); document.body.append(deleting);
+  deleting.addEventListener('cancel',event=>{if(busy)event.preventDefault();});
+  deleting.addEventListener('close',()=>{if(activeReview)finishReview(pendingSave?'unconfirmed':activeReview.lastWriteState||'cancelled');updateControls();});
   const data = () => draft || record;
   const notice = message => { status.textContent = message; if(naming.open)feedback.textContent=message; };
   const sameQuery = (a, b) => JSON.stringify([a.collectionId,a.browse,a.filters,a.search,a.genre,a.sort]) === JSON.stringify([b.collectionId,b.browse,b.filters,b.search,b.genre,b.sort]);
@@ -267,14 +274,14 @@ export async function mountFilterCubes(host) {
   const reconcile=button('Check saved layout',async()=>{
     if(busy||!pendingSave)return;busy=true;updateControls();
     try{const observed=await request();
-      if(equalLayout(observed,pendingSave)&&observed.revision>=pendingSave.revision){record=observed;pendingSave=null;activeId=record.selected_id;mode=record.view;draft=null;naming.open&&naming.close();renderRows();notice('Stored cube layout confirmed by readback.');}
+      if(equalLayout(observed,pendingSave)&&observed.revision>=pendingSave.revision){record=observed;pendingSave=null;activeId=record.selected_id;mode=record.view;draft=null;finishReview('confirmed');naming.open&&naming.close();deleting.open&&deleting.close();renderRows();notice('Stored cube layout confirmed by readback.');}
       else notice('The stored layout differs from this unconfirmed change. Your edits are preserved; no write was retried.');
     }catch{notice('The saved layout is still unconfirmed. No write was retried.');}finally{busy=false;updateControls();}
   });reconcile.id='cube-reconcile';toolbar.append(reconcile);
   async function request(payload) {
     const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),12000);
     try{
-      const response=await fetch('/api/filter-cubes',payload?{method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json','X-Movie-Night':'1'},body:JSON.stringify(payload)}:{cache:'no-store',signal:controller.signal});
+      const response=await fetch('/api/filter-cubes',payload?{method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json','X-Movie-Night':'1','X-Movie-Night-Cube-Features':(cubeContract?.['x-write-features']||[]).join(',')},body:JSON.stringify(payload)}:{cache:'no-store',signal:controller.signal});
       const value=await response.json();if(!response.ok||value.error){const error=new Error(value.error||'Filter cubes are unavailable.');error.httpStatus=response.status;throw error;}return value;
     }finally{clearTimeout(timeout);}
   }
@@ -288,7 +295,7 @@ export async function mountFilterCubes(host) {
       if(canonical(saved)!==canonical(observed)||!equalLayout(observed,attempted))throw new Error('readback_mismatch');
       record=observed;notice(message);return true;
     }catch(error){
-      if(phase==='write'&&[400,403,409,413].includes(error.httpStatus)){notice(`${error.message} Your edits remain here.`);return false;}
+      if(phase==='write'&&[400,403,409,413].includes(error.httpStatus)){if(activeReview)activeReview.lastWriteState='refused';notice(`${error.message} Your edits remain here.`);return false;}
       // An interrupted response can follow a landed write. Reconcile reads only.
       try{const observed=await request();if(equalLayout(observed,attempted)&&observed.revision>=attempted.revision){record=observed;notice(message);return true;}}catch{}
       pendingSave=attempted;notice('Save not confirmed. Your edits are preserved. Check saved layout before another write.');return false;
@@ -298,10 +305,11 @@ export async function mountFilterCubes(host) {
     for (const b of [wallButton,carouselButton,add,addBelow,unlock,save,cancel,querySave,confirm,nextStep,previous]) b.disabled = busy || !record || Boolean(pendingSave);
     // A modal makes the underlying toolbar inert. Move the ONE readback control
     // into its actions while open so recovery works with pointer and keyboard.
-    const recoveryHost=naming.open?actions:toolbar;
+    const recoveryHost=naming.open?actions:deleting.open?deleting:toolbar;
     if(reconcile.parentElement!==recoveryHost)recoveryHost.append(reconcile);
     reconcile.hidden=!pendingSave;reconcile.disabled=busy;addBelow.hidden=mode!=='carousel';
     if(naming.open)for(const control of form.querySelectorAll('input,select'))control.disabled=busy||Boolean(pendingSave)||(renameOnly&&control===source);
+    if(deleting.open)for(const control of deleting.querySelectorAll('button'))if(control!==reconcile)control.disabled=busy||Boolean(pendingSave);
     wallButton.setAttribute('aria-pressed', String(mode === 'wall')); carouselButton.setAttribute('aria-pressed', String(mode === 'carousel'));
     wallButton.disabled ||= Boolean(draft); carouselButton.disabled ||= Boolean(draft);
     unlock.hidden = mode !== 'carousel' || Boolean(draft); save.hidden = cancel.hidden = !draft;
@@ -324,15 +332,15 @@ export async function mountFilterCubes(host) {
     else if (activeId && !queryEdit) { const row = data().rows.find(r=>r.id===activeId); if (row) activate(row); }
     await commit({...record,view:next,selected_id:activeId}, next === 'carousel' ? 'Your live filter cubes. Unlock Edit home to arrange rows.' : 'Wall view uses the same source, filters and sorting.');
   }
-  function openNaming(id = null, rename = false) {
+  function openNaming(id = null, rename = false, proposed = null) {
     if (!record || busy || !cubeContract || pendingSave) return;
     if(queryEdit){notice('Save or cancel current filter edits before opening another cube.');return;}
     namingId=id;renameOnly=Boolean(id&&rename);builderOrigin=document.activeElement;
     const row=id?data().rows.find(r=>r.id===id):null;if(id&&!row)return;
-    builderQuery=clone(row||host.current());
+    builderQuery=clone(proposed||row||host.current());
     heading.textContent=renameOnly?'Rename cube':row?'Edit cube':'Create a filter cube';
     confirm.textContent=renameOnly?'Save name':row?'Save cube changes':'Create cube';
-    nameInput.value=row?.name||'';
+    nameInput.value=proposed?.name||row?.name||'';
     source.replaceChildren(...host.collections().map(c=>{const o=el('option','',c.name);o.value=c.id;return o;}));source.value=builderQuery.collectionId;source.disabled=renameOnly;
     const genres=[...new Set([...document.querySelectorAll('#include-genres input')].map(i=>i.value).concat(builderQuery.filters.include,builderQuery.filters.exclude,builderQuery.genre||[]))].filter(Boolean).sort();
     fields.genre.replaceChildren(...['',...genres].map(v=>{const o=el('option','',v||'Any genre');o.value=v;return o;}));
@@ -351,12 +359,12 @@ export async function mountFilterCubes(host) {
     const next=clone(data());
     if(renameOnly)next.rows.find(r=>r.id===namingId).name=nameInput.value.trim();
     else{
-      const query=builderValue();const row={...query,id:namingId||crypto.randomUUID(),name:nameInput.value.trim(),anchor:namingId?next.rows.find(r=>r.id===namingId)?.anchor||null:null};
+      const query=builderValue();const row={...query,id:namingId||activeReview?.operation.cube_id||crypto.randomUUID(),name:nameInput.value.trim(),anchor:namingId?next.rows.find(r=>r.id===namingId)?.anchor||null:null};
       if(namingId)next.rows[next.rows.findIndex(r=>r.id===namingId)]=row;else next.rows.push(row);
       next.selected_id=row.id;next.view='carousel';
     }
     if(draft){draft=next;activeId=next.selected_id;naming.close();mode='carousel';renderRows();notice('Layout changed. Save layout to keep it.');}
-    else if(await commit(next,renameOnly?'Cube name saved and read back.':'Cube saved and read back. Its contents stay live.')){activeId=record.selected_id;mode=record.view;naming.close();renderRows();}
+    else if(await commit(next,renameOnly?'Cube name saved and read back.':'Cube saved and read back. Its contents stay live.')){activeId=record.selected_id;mode=record.view;finishReview('confirmed');naming.close();renderRows();requestAnimationFrame(()=>nodes.get(activeId)?.root.scrollIntoView({block:'nearest',behavior:'auto'}));}
     else feedback.textContent=$('cube-status').textContent;
     updateControls();
   });
@@ -370,6 +378,15 @@ export async function mountFilterCubes(host) {
   }
   function cancelLayout() { if(busy||pendingSave)return; draft=null; activeId=record.selected_id; queryEdit=null; renderRows(); updateControls(); notice('Layout edits cancelled. Saved rows are unchanged.'); }
   async function removeCube(id) {
+    if(activeReview?.operation.action==='remove') {
+      if(busy||pendingSave||id!==activeReview.operation.cube_id)return;
+      const next=clone(record);next.rows=next.rows.filter(row=>row.id!==id);
+      if(next.selected_id===id)next.selected_id=next.rows[0]?.id||null;
+      if(await commit(next,'Cube removal saved and independently read back. Media and files are unchanged.')) {
+        activeId=record.selected_id;finishReview('confirmed');deleting.close();renderRows();
+      } else deleteText.textContent=status.textContent;
+      return;
+    }
     if (!draft || busy || pendingSave) return;
     draft.rows = draft.rows.filter(row=>row.id!==id); if(activeId===id)activeId=draft.selected_id=draft.rows[0]?.id||null;
     if(queryEdit===id)queryEdit=null;
@@ -431,7 +448,7 @@ export async function mountFilterCubes(host) {
     n.summary.textContent=host.summary(query);
     n.position.textContent=items.length?`${n.carousel.index+1} of ${items.length} matches${source.local?' · loops both ways':` loaded · ${source.hasMore?'more available':'end of catalogue'}`}`:source.loading?'Finding matching titles…':'No matching titles in the loaded source.';
     n.empty.hidden=Boolean(items.length); n.track.hidden=!items.length;
-    n.empty.textContent=source.error||(!host.catalogueEnabled()&&!source.local?'Catalogue browsing is disabled in Settings. Your cube is preserved.':'No matches yet. Adjust this cube’s filters or load more catalogue results.');
+    n.empty.textContent=source.error||(!host.catalogueEnabled()&&!source.local?'Catalogue browsing is disabled in Settings. Your cube is preserved.':source.local?`No matches in this ${source.movies.length}-title source. Your cube is saved. Edit its filters or choose another source.`:'No matches in the loaded catalogue results yet. Your cube is saved. Load more matches or edit its filters.');
     n.more.hidden=source.local||!source.hasMore;n.more.disabled=source.loading||!host.catalogueEnabled();n.more.textContent=source.loading?'Loading…':source.error?'Retry catalogue':'Load more matches';
     n.prev.disabled=n.next.disabled=items.length<2;
     if(!source.local&&!source.pages&&!source.error&&!source.loading)void fetchPage(query,source);
@@ -472,7 +489,37 @@ export async function mountFilterCubes(host) {
   }
   try{const response=await fetch('/api/filter-cubes/declaration',{cache:'no-store'});if(!response.ok)throw Error('Cube controls could not load their existing declaration.');cubeContract=await response.json();initializeBuilder(cubeContract);record=await request();mode=record.view;activeId=record.selected_id;if(activeId){const row=record.rows.find(r=>r.id===activeId);if(row)activate(row);}renderRows();if(mode==='carousel')notice('Your live filter cubes. Create another cube or edit any row without chat.');}
   catch(error){notice(error.message+' The existing wall remains available.');updateControls();}
+  async function reviewOperation(operation) {
+    // Draft ingress only. No filesystem/native dispatch or permission assertion.
+    if(!record||!cubeContract||busy||pendingSave||draft||queryEdit||activeReview||reviewOpening||naming.open||deleting.open)throw Error('Finish or reconcile the current cube edit first.');
+    if(!operation||Object.keys(operation).sort().join(',')!=='action,cube_id,expected_revision,row,source_scope'
+      ||!['create','edit','remove'].includes(operation.action)||!Number.isSafeInteger(operation.expected_revision)
+      ||typeof operation.cube_id!=='string'||!/^[A-Za-z0-9_-]{1,100}$/.test(operation.cube_id))throw Error('Malformed cube proposal. Nothing was changed.');
+    if(operation.action==='remove'&&operation.row!==null)throw Error('Malformed remove proposal.');
+    reviewOpening=true;let observed;try{observed=await request();}finally{reviewOpening=false;}
+    if(busy||pendingSave||draft||queryEdit||activeReview||naming.open||deleting.open)throw Error('A cube edit started while this proposal was being checked.');
+    if(operation.expected_revision!==record.revision||observed.revision!==record.revision)throw Error('Cube revision changed. Reopen the cube view and prepare a fresh proposal.');
+    const existing=record.rows.find(row=>row.id===operation.cube_id);
+    if(operation.action==='create'?Boolean(existing):!existing)throw Error('The cube identity no longer matches this operation.');
+    if(!host.collections().some(c=>c.id===operation.source_scope)||existing&&existing.collectionId!==operation.source_scope)throw Error('This proposal names a different or unavailable library source.');
+    if(operation.action!=='remove'&&(!operation.row||operation.row.id!==operation.cube_id||operation.row.collectionId!==operation.source_scope))throw Error('The proposed cube does not match its target source.');
+    return new Promise((resolve,reject)=>{
+      activeReview={operation:clone(operation),resolve};
+      try {
+      if(operation.action==='remove') {
+        deletingId=operation.cube_id;deleteText.textContent=`Remove “${existing.name}” from your saved home? This does not delete media, favorites or files. Removal is saved only when you confirm here.`;
+        deleting.showModal();updateControls();
+      } else {
+        openNaming(operation.action==='edit'?operation.cube_id:null,false,operation.row);
+        // The same editor exposes all interpreted fields before the user saves.
+        showStep(1);
+      }
+      } catch(error) { activeReview=null;reject(error); }
+    });
+  }
   return {
+    context:()=>record?{revision:record.revision,cube_id:activeId,query:clone(host.current())}:null,
+    reviewOperation,
     isCarousel:()=>mode==='carousel',
     refresh(){if(syncing)return;updateControls();for(const row of data()?.rows||[])if(nodes.get(row.id)?.visible)paintRow(row);},
     detailSourceChanged(){for(const row of data()?.rows||[])if(nodes.get(row.id)?.visible)paintRow(row);},

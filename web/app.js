@@ -905,7 +905,7 @@
     if (genre && !movie.genres.includes(genre)) return false;
     if (!terms.every((term) => movie.searchText.includes(term))) return false;
     if (rules.yearFrom !== "" && (!movie.year || movie.year < Number(rules.yearFrom))) return false;
-    if (rules.yearTo !== "" && (!movie.year || movie.year > Number(rules.yearTo))) return false;
+    if (rules.yearTo !== "" && (!movie.year || movie.year > (rules.yearTo === "present" ? new Date().getUTCFullYear() : Number(rules.yearTo)))) return false;
     const genres = movie.genres.map(normalize);
     if (rules.include.length && !(rules.genreMode === "all" ? rules.include.every((value) => genres.includes(normalize(value))) : rules.include.some((value) => genres.includes(normalize(value))))) return false;
     if (rules.exclude.some((value) => genres.includes(normalize(value)))) return false;
@@ -946,7 +946,7 @@
       button.addEventListener("click", () => { clear(); syncFilterControls(); renderFilms(); });
       return button;
     }));
-    const invalidYears = filters.yearFrom !== "" && filters.yearTo !== "" && Number(filters.yearFrom) > Number(filters.yearTo);
+    const invalidYears = filters.yearFrom !== "" && filters.yearTo !== "" && Number(filters.yearFrom) > (filters.yearTo === "present" ? new Date().getUTCFullYear() : Number(filters.yearTo));
     byId("filter-year-error").hidden = !invalidYears;
     byId("filter-year-to").setCustomValidity(invalidYears ? "Choose an end year on or after the start year." : "");
     byId("apply-filters").disabled = invalidYears;
@@ -963,7 +963,7 @@
     if (!value || typeof value !== "object") return defaultFilters();
     const numeric = (v, min, max) => v !== "" && v !== null && v !== undefined && Number.isFinite(Number(v)) && Number(v) >= min && Number(v) <= max ? String(Number(v)) : "";
     const genres = (v) => Array.isArray(v) ? [...new Set(v.filter((item) => typeof item === "string" && item.length <= 60))].slice(0, 50) : [];
-    return { yearFrom: numeric(value.yearFrom, 1800, 2999), yearTo: numeric(value.yearTo, 1800, 2999),
+    return { yearFrom: numeric(value.yearFrom, 1800, 2999), yearTo: value.yearTo === "present" ? "present" : numeric(value.yearTo, 1800, 2999),
       include: genres(value.include), exclude: genres(value.exclude), genreMode: value.genreMode === "all" ? "all" : "any",
       rating: Number(numeric(value.rating, 0, 10)) || 0, runtime: numeric(value.runtime, 1, 1440),
       type: ["movie", "series"].includes(value.type) ? value.type : "",
@@ -2083,7 +2083,7 @@
       const f = query.filters;
       return [collections.find(c => c.id === query.collectionId)?.name || "Source unavailable",
         query.search ? `Matching “${query.search}”` : "", f.provider ? `Provider: ${f.provider}` : "", query.genre, f.include.join(" + "),
-        f.exclude.length ? `Without ${f.exclude.join(", ")}` : "", f.yearFrom || f.yearTo ? `${f.yearFrom || "Any year"}–${f.yearTo || "present"}` : "",
+        f.exclude.length ? `Without ${f.exclude.join(", ")}` : "", f.yearFrom || f.yearTo ? `${f.yearFrom || "Any year"}–${f.yearTo === "present" ? "current year" : f.yearTo || "any year"}` : "",
         f.type === "series" ? "TV" : f.type === "movie" ? "Films" : "", f.rating ? `Rating ${f.rating}+` : "",
         f.runtime ? `Under ${f.runtime} min` : "", f.watch].filter(Boolean).join(" · ");
     },
@@ -2112,5 +2112,8 @@
     open(movie) { showFilm(movie); },
     openFilters() { byId("open-filters").click(); },
   });
+  // Same-origin shell exposes ONLY review entry and current query, never a generic executor.
+  window.movieNightCubeContext = () => cubeHome?.context() || null;
+  window.movieNightReviewCube = operation => cubeHome.reviewOperation(operation);
   void pollPlayer();
 })();

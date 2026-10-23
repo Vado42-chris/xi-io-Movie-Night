@@ -2,6 +2,22 @@
 
 Date: 2026-10-22. State: active prototype; settings and provider-filter source on main; provider UI visually read back in the reopened native app. Broader native and suite qualification remains open.
 
+## Approved concierge delivery, 2026-10-22
+
+Owner approved finishing/testing the existing chat-to-cube change, publishing through PR #8 and patching Aries. Continue Work `settings-sdk-publisher-audit-2026-09-26`, #5 and the existing writer branch. No new store, provider account, shell or autonomous-worker authority.
+
+The installed generation lacked both the cube-operation handler and shell/iframe bridge. Adopt the retained connection as one matched backend/shell/wall increment. Explicit supported genre/type/year cube requests now use the existing constraint parser and row declaration without generative title-list output. The owner's typo and `1985-to present` form are covered; rolling `present` remains stored, not frozen to a calendar year. Semantic requests not completely understood still use the existing schema-constrained model path. High fantasy is not asserted to be a supported separate genre: the proposal clearly discloses broader Fantasy matches, retains the dates, and requires review. No partial query is silently saved.
+
+Confirmation still uses the existing manual editor, revision writer, independent GET and cold reopen. Revealing a confirmed row also works when its query has zero matches; local-source empty text no longer suggests loading a worldwide catalogue. The selected source remains explicit and is never silently changed from the user's library. Older still-loaded chat clients fail with a specific update message, not a legacy recommendation-list fallback. The native app is not closed or reloaded by installation.
+
+Qualification: 82 top-level Python tests, 16 player tests, server check, JavaScript syntax and shell build pass. Actual Chromium plus the real HTTP handlers/file writer pass the two exact owner requests at 390 and 1440 pixels with independent cold-process readback. Those explicit requests perform zero inference calls. The full create/edit/remove/manual-parity/replay/wrong-source/uncertain-readback/reopen journey passes with fixture model status. Browser native bindings and media are simulated/blocked; this is not physical Tauri, real media, BINS admission or public Loki acceptance. Two test-harness timing/state errors are retained in private evidence: expecting deliberately closed chat to reopen, and reading an IntersectionObserver-painted card before its paint. Neither was hidden by weakening the required product outcome.
+
+Source publication, installed asset readback, owning-main acceptance and active-window adoption remain separate. No public LIVE promotion, credentials, original Nuvio data, existing cube/library contents, shared source or Loki routing is authorized by this increment. Rollback must retain readers/writers for any already-saved rolling-year values.
+
+## Conversational cube review, 2026-10-22
+
+Continue #5 / existing PR #8 / Work `settings-sdk-publisher-audit-2026-09-26`. The app-owned source connection is chat -> typed existing-schema row -> existing manual review -> explicit user save -> same revision writer -> separate stored readback -> confirmed cube ID/revision shown in the same chat. Create/edit/remove share this path. No automatic worker execution, BINS authorization, main acceptance or Loki delivery is implied. The shared declaration adds `yearTo="present"` for a rolling calendar-year bound; manual and chat consume it equally. Reproduce the real disposable HTTP journey with `verification/verify-concierge-cube-service.py`; its default model is a fixture, with explicit `MOVIE_NIGHT_REAL_MODEL=1` for the real local-model check. Read the dated ledger entry for evidence classes, historical dispatcher recovery, failed model responses and exact host/authority blockers. Preserve current manual behavior and user data.
+
 ## Cube builder and Shift-wheel consumer, 2026-10-22
 
 Continue Work `settings-sdk-publisher-audit-2026-09-26`, Movie Night #4/#5, existing PR #8 and shared intake #1347. The interrupted cube-controls implementation was recovered in place, not replaced. Reuse PR #7 / 28aca927's exact CenteredCarousel production class and base CSS, including the browser-rotated Shift+deltaX path. Regular vertical scrolling remains page-owned. Original donor evidence and earlier failures remain intact.

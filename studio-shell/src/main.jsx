@@ -213,7 +213,19 @@ function StudioMovieNight() {
     // Saving a collection only refreshes the catalogue. It never starts a film.
     wall.current?.contentWindow?.postMessage({ type: 'movie-night:library-updated', collectionId }, location.origin);
   }
-  const chat = <Concierge selection={selection} onOpenSettings={() => { setSettingsContext('concierge'); setSettingsOpen(true); }} onClose={closeConcierge} onCollectionSaved={reloadWall} />;
+  function getCubeContext() { return wall.current?.contentWindow?.movieNightCubeContext?.() || null; }
+  async function reviewCube(operation) {
+    const child=wall.current?.contentWindow;
+    if(!child||child.location.origin!==location.origin||typeof child.movieNightReviewCube!=='function')throw new Error('The cube editor is still loading. No change was made.');
+    if(nativeActive)throw new Error('Return to the library before reviewing a cube. Playback was not changed.');
+    const iframe=wall.current;
+    let onReload;
+    const interrupted=new Promise(resolve=>{onReload=()=>resolve({status:'unconfirmed',action:operation.action,cube_id:operation.cube_id,revision:null});iframe.addEventListener('load',onReload,{once:true});});
+    setChatOpen(false);
+    try { return await Promise.race([child.movieNightReviewCube(operation),interrupted]); }
+    finally { iframe.removeEventListener('load',onReload);openConcierge(); }
+  }
+  const chat = <Concierge getCubeContext={getCubeContext} onReviewCube={reviewCube} selection={selection} onOpenSettings={() => { setSettingsContext('concierge'); setSettingsOpen(true); }} onClose={closeConcierge} onCollectionSaved={reloadWall} />;
   const nativeFrame = native ? {
     maximized: nativeWindowState.maximized, fullscreen,
     startDragging: () => nativeWindowAction('drag'),
