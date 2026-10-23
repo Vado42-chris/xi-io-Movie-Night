@@ -3,6 +3,17 @@
 Read README.md, docs/CURRENT.md and xiio/managed-project.manifest.json first.
 Canonical source: Vado42-chris/xi-io-Movie-Night, branch main. This is the existing Aries app, adopted in place, not a new implementation.
 
+## Owner rules (2026-10-23): read first
+
+The full rules are in the xi-io.net AGENTS.md, under "Owner rules settled 2026-10-22/23". They apply here too:
+- **Failures stay visible and recoverable.** Keep the user's work, explain the failure, route it to the owning worker, and return the repair to the same screen. No empty `catch {}`, no defaults that look like real data, and every `fetch` checks `res.ok`.
+- **Report each rung of the evidence ladder separately:** source, reviewed, merged, installed, live, verified from outside.
+- **HTTP status is not identity,** and stored flags or hashes are not authority.
+- **Artifacts go to this repo, an owning bug or BINS, and are read back.** Chat carries only the link.
+- **Sable OS desktop is the customer's signed-in workspace,** and the public sites are its entry points.
+- **Every work item has a plain-language name next to its ID.**
+- **Pushes, merges, installs and live changes need explicit owner approval.**
+
 ## Ownership
 The app lane owns this repository, its main branch and the Aries Movie Night source. The user's dot owns suite registration and OS settings integration in Studio. Do not mutate Studio/framework checkouts from this lane. The owner reports Movie Night registration saved; its exact provider receipt is pending handoff, not independently verified here.
 
