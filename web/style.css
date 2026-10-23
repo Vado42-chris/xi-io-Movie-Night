@@ -472,6 +472,14 @@ body.detail-open { overflow: hidden; }
 .provider-field select { min-width:0; max-width:260px; text-overflow:ellipsis; }
 @media(max-width:620px) { .browse-toolbar .search-field { flex-basis:100%; } .browse-toolbar .provider-field { flex-basis:100%; } .provider-field select { flex:1; max-width:100%; } }
 
+/* Session-local episodic continuation controls share the existing player dock.
+   These never clip labels or cover the native video overlay. */
+.player-auto-next { display:inline-flex; align-items:center; gap:9px; min-height:44px; padding:8px 10px; white-space:nowrap; flex:0 0 auto; font-size:13px; color:var(--text); }
+.player-auto-next input { inline-size:20px; block-size:20px; accent-color:var(--accent); }
+.player-next-prompt { display:flex; align-items:center; flex-wrap:wrap; gap:12px; margin-top:12px; padding:12px 14px; border:1px solid var(--accent); border-radius:10px; background:var(--surface,#23221d); }
+.player-next-prompt span { flex:1 1 220px; font-size:14px; overflow-wrap:break-word; }
+.player-next-prompt .player-control { flex:0 0 auto; }
+#player-next-prompt[hidden], #player-auto-next-wrap[hidden] { display:none !important; }
 /* Native playback presentation uses the existing viewport and transport instance. */
 .player-reveal { position:fixed; right:12px; top:12px; z-index:22; background:var(--surface); color:var(--text); }
 body.native-player-mode.player-controls-hidden .player-dock { display:none; }

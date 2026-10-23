@@ -233,6 +233,7 @@
         <button id="player-mini" class="player-control" type="button" hidden>Mini player</button><button id="player-mini-move" class="player-control player-mini-handle" type="button" hidden aria-label="Move mini player, drag or use arrow keys">Move</button><button id="player-mini-resize" class="player-control player-mini-handle" type="button" hidden aria-label="Resize mini player, drag or use arrow keys">Size</button>
         <button id="player-details-open" class="player-control" type="button" hidden>Title details</button>
         <button id="player-options-toggle" class="player-control" type="button" aria-expanded="false" aria-controls="player-options" hidden>Audio &amp; subtitles</button>
+        <label id="player-auto-next-wrap" class="player-auto-next" hidden><input id="player-auto-next" type="checkbox"> Auto-play next episode</label>
                 <div id="player-volume-group" class="player-volume-group">
           <button id="player-mute" class="player-control player-icon-button" type="button" aria-label="Mute Aries" aria-pressed="false" title="Mute Aries" disabled><span id="player-volume-icon" class="control-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m11 5-6 4H2v6h3l6 4V5ZM15 8a6 6 0 0 1 0 8M18 5a10 10 0 0 1 0 14"/></svg></span></button>
           <label for="player-volume">Volume</label>
@@ -240,6 +241,11 @@
           <output id="player-volume-value" for="player-volume">100%</output>
         </div>
         <button id="player-fullscreen" class="player-control player-fullscreen" type="button" aria-label="Enter full screen on Aries" aria-pressed="false" title="Full screen on Aries" disabled><span id="player-fullscreen-icon" class="control-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/></svg></span><span id="player-fullscreen-label">Full screen</span></button>
+      </div>
+      <div id="player-next-prompt" class="player-next-prompt" role="status" aria-live="polite" hidden>
+        <span id="player-next-description">Next episode</span>
+        <button id="player-next-now" type="button" class="player-control">Play now</button>
+        <button id="player-next-cancel" type="button" class="player-control">Cancel</button>
       </div>
       <div id="player-options" class="player-options" hidden>
         <label>Audio language<select id="player-audio-track" aria-label="Audio language" disabled><option>No audio tracks available</option></select></label>

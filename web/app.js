@@ -15,7 +15,9 @@
   };
   const { CenteredCarousel, mountFilterCubes } = await import("/filter-cubes.mjs");
   const { mountMiniPlayerGeometry, shouldHideControls, trackLabel, trackNotice } = await import("/player-mini.mjs");
+  const { mountEpisodeAutoContinue } = await import("/episode-auto-ui.mjs");
   let cubeHome = null, detailCarousel = null, activeCubeLabel = "";
+  let episodeAuto = null;
   let collections = [];
   let curatedCollections = [];
   let collection = null;
@@ -100,7 +102,7 @@
   let nativeHeightSupported = true;
   let initialMovieOpened = false;
   let playerStatus = { state: "idle", title: "", imdb_id: "", position: 0, duration: 0, volume: 100, muted: false, fullscreen: false };
-  const playerStates = new Set(["idle", "loading", "playing", "paused", "error"]);
+  const playerStates = new Set(["idle", "loading", "playing", "paused", "ended", "error"]);
   const player = {
     play: byId("play-on-aries"), playLabel: byId("play-on-aries-label"), feedback: byId("playback-feedback"),
     dock: byId("player-dock"), artwork: byId("player-artwork"), title: byId("player-title"),
@@ -1703,7 +1705,7 @@
 
   function updatePlayerControls() {
     const state = playerStatus.state;
-    const active = ["loading", "playing", "paused"].includes(state);
+    const active = ["loading", "playing", "paused", "ended"].includes(state);
     const busy = commandPending || launchPending || nativeActionPending;
     player.dock.hidden = dockDismissed || (cubeHome?.isCarousel() && playerStatus.state === "idle");
     player.controls.hidden = !active;
@@ -1738,7 +1740,7 @@
     byId("close-dialog").disabled = launchPending;
     updateSourceAction();
     player.toggle.disabled = !canControl;
-    player.stop.disabled = !playerConnected || busy || !["loading", "playing", "paused"].includes(state);
+    player.stop.disabled = !playerConnected || busy || !["loading", "playing", "paused", "ended"].includes(state);
     player.fullscreen.disabled = isNativeHost() ? nativeActionPending : !canControl;
     [player.back, player.forward, player.mute, player.volume].forEach((control) => { control.disabled = !canControl; });
     const action = state === "paused" ? "Resume" : "Pause";
@@ -1779,14 +1781,15 @@
       tracks: Array.isArray(data.tracks) ? data.tracks : [],
       tracks_available: data.tracks_available === true,
     };
-    const active = ["loading", "playing", "paused"].includes(playerStatus.state);
+    const active = ["loading", "playing", "paused", "ended"].includes(playerStatus.state);
+    episodeAuto?.observe(playerStatus);
     if (playerStatus.state !== "playing") revealPlayerControls();
     else if (nativePlayerMode && !miniPlayer && !controlsTimer
       && !document.body.classList.contains("player-controls-hidden")) revealPlayerControls();
     setText(player.title, active ? playerStatus.title || "Movie Night player" : "Choose tonight’s film");
-    const labels = { idle: "Ready when you are. Choose a film above.", loading: "Getting your film ready…", playing: "Enjoy your film", paused: "Paused. Ready when you are.", error: "Let’s try that again" };
+    const labels = { idle: "Ready when you are. Choose a film above.", loading: "Getting your film ready…", playing: "Enjoy your film", paused: "Paused. Ready when you are.", ended: "Episode complete", error: "Let’s try that again" };
     setText(player.state, labels[playerStatus.state]);
-    const deviceLabels = { idle: "Ready", loading: "Starting…", playing: "Playing", paused: "Paused", error: "Check player" };
+    const deviceLabels = { idle: "Ready", loading: "Starting…", playing: "Playing", paused: "Paused", ended: "Episode complete", error: "Check player" };
     setText(player.deviceStatus, deviceLabels[playerStatus.state]);
     player.deviceIndicator.dataset.state = playerStatus.state;
     player.dock.dataset.state = playerStatus.state;
@@ -1841,6 +1844,7 @@
     const target = mediaTarget();
     if (!target || launchPending || commandPending || nativeActionPending) return;
     const movie = selectedMovie;
+    episodeAuto?.cancel();
     const currentSelection = sourceId && sourceTitle === mediaKey(target) && sourceChoices.some(source => source.id === sourceId);
     const sameActive = sameMedia(target, playerStatus) && ["paused", "playing", "loading"].includes(playerStatus.state);
     if (!sourceId && !sameActive) { await openSources(); return; }
@@ -1869,6 +1873,10 @@
         data = await playerRequest("play", { ...target, source_id: sourceId });
       }
       if (data?.state === "error") throw new Error(text(data.last_error) || "playback_error");
+      if (sourceId && data?.state && playerStates.has(data.state)) {
+        episodeAuto?.remember(movie?.type === "series" ? movie : null, target,
+          sourceChoices.find(source => source.id === sourceId) || null);
+      }
       if (data?.state && playerStates.has(data.state)) applyPlayerStatus(data);
       const shown = await showNativePlayer();
       if (shown !== false) playerMessage("");
@@ -1888,6 +1896,7 @@
 
   async function sendPlayerCommand(command, value) {
     if (commandPending || launchPending || nativeActionPending) return false;
+    if (command === "stop") episodeAuto?.remember(null, null);
     commandPending = true;
     playerRevision += 1;
     updatePlayerControls();
@@ -1941,6 +1950,38 @@
     const id = button.dataset.collection === "curated" ? curatedCollections[0]?.id : button.dataset.collection;
     selectCollection(id);
   }));
+  episodeAuto = mountEpisodeAutoContinue({
+    request: playerRequest,
+    isBusy: () => commandPending || launchPending || nativeActionPending || sourceBusy,
+    notify: playerMessage,
+    start: async (next, sourceId, isCurrent, previous) => {
+      if (!isNativeHost() || !isCurrent() || launchPending || commandPending || nativeActionPending
+          || playerStatus.state !== "ended" || playerStatus.type !== "series") return false;
+      const { episode_title, ...target } = next;
+      launchPending = true;
+      playerRevision++;
+      updatePlayerControls();
+      try {
+        // Race guard: an independent remote/manual selection may have changed
+        // the player while the next-source lookup was running.
+        const observed = await playerRequest("status");
+        if (!isCurrent() || observed.state !== "ended"
+            || observed.imdb_id !== previous?.imdb_id || observed.type !== "series"
+            || observed.season !== previous.season || observed.episode !== previous.episode) return false;
+        const prepared = await nativeCall("prepare_movie_player");
+        if (prepared !== true || !isCurrent()) return false;
+        const data = await playerRequest("play", { ...target, source_id: sourceId });
+        if (data?.state === "error" || !playerStates.has(data?.state) || data.state === "idle") return false;
+        applyPlayerStatus(data);
+        await showNativePlayer();
+        return true;
+      } finally {
+        launchPending = false;
+        updatePlayerControls();
+        void pollPlayer();
+      }
+    },
+  });
   byId("import-library").addEventListener("click", importPersonalLibrary);
   byId("favorite-detail").addEventListener("click", () => toggleFavorite(selectedMovie));
   byId("load-more").addEventListener("click", () => { if (collection?.kind === "browse") void loadBrowse(collection.type, true); });

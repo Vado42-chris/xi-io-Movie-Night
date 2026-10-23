@@ -866,7 +866,15 @@ class Player:
                     if isinstance(value, bool):
                         setattr(self, target, value)
                     result[target] = getattr(self, target)
-                if self.stop_requested:
+                # A verified mpv EOF is not a generic idle/stop/error. Retain
+                # the last series/season/episode until an explicit next load.
+                eof = (self.ipc(["get_property", "eof-reached"], optional=True) is True
+                       if not idle and self.media_type == "series" and not self.stop_requested else False)
+                if eof and isinstance(result.get("duration"), (float, int)) and result["duration"] > 0:
+                    self.has_played = True
+                    self.last_error = None
+                    result.update(state="ended", position=result["duration"], last_error=None)
+                elif self.stop_requested:
                     result.update(state="idle", position=None, duration=None, last_error=None)
                 elif idle:
                     if self.loading_since and not self.has_played:
@@ -916,6 +924,10 @@ class Player:
                 # A default applies only to an explicit new play, never a
                 # settings save, status read, or resume of the current film.
                 self.ipc(["set_property", "volume", volume])
+                # Keep an episodic file loaded at natural EOF so status can read
+                # mpv's actual eof-reached flag and retain the exact identity.
+                # Movies continue to use the original non-keeping behavior.
+                self.ipc(["set_property", "keep-open", "yes" if kind == "series" else "no"])
                 # Set a literal media title; only this fixed window-title template
                 # is expanded by mpv. Never display the provider's URL/filename.
                 self.ipc(["set_property", "force-media-title", display_title])

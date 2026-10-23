@@ -42,7 +42,7 @@ def _resume(target):
 def _observe_progress(server, result, force=False):
     """Persist only observed adapter progress through the existing library owner."""
     lock = getattr(server, "progress_lock", None)
-    if lock is None or result.get("state") not in ("playing", "paused"):
+    if lock is None or result.get("state") not in ("playing", "paused", "ended"):
         return
     item_id, kind = result.get("imdb_id"), result.get("type", "movie")
     season, episode = result.get("season"), result.get("episode")
