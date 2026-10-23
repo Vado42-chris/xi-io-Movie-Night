@@ -635,20 +635,31 @@ export async function mountFilterCubes(host) {
       carousel.move(1);
     });
     prev.setAttribute('aria-label',`Previous title in ${row.name}`);next.setAttribute('aria-label',`Next title in ${row.name}`);
-    controls.append(button('View all',()=>{
+    const viewAll=button('View all',()=>{
       const selected=data().rows.find(r=>r.id===row.id);
       if(selected&&activate(selected)){mode='wall';updateControls();host.openBin?.(selected);}
-    }),button('Edit Bin',()=>editQuery(data().rows.find(r=>r.id===row.id))),prev,next);
+    });
+    const edit=button('✎',()=>editQuery(data().rows.find(r=>r.id===row.id)),'bin-icon-action');
+    edit.setAttribute('aria-label',`Edit filters and details for ${row.name}`);
+    edit.title=`Edit ${row.name}`;
+    controls.append(viewAll,edit,prev,next);
     const actions=el('div','cube-row-edit');const up=button('Move up',()=>moveRow(row.id,data().rows.findIndex(r=>r.id===row.id)-1)),down=button('Move down',()=>moveRow(row.id,data().rows.findIndex(r=>r.id===row.id)+1));
     actions.append(up,down);
-    const management=el('details','bin-management');management.append(el('summary','','Manage Bin'));
+    const management=el('details','bin-management');
+    const manageSummary=el('summary','bin-icon-action','⋯');
+    manageSummary.setAttribute('aria-label',`More actions for ${row.name}`);
+    manageSummary.title=`More actions for ${row.name}`;
+    management.append(manageSummary);
     const managementActions=el('div','bin-management-actions');
     managementActions.append(button('Rename',()=>{management.open=false;openNaming(row.id,true);}),button('Remove Bin',()=>{
       if(busy||pendingSave)return;deleteOrigin=document.activeElement;deletingId=row.id;
       deleteText.textContent=`Remove “${data().rows.find(r=>r.id===row.id).name}”? Only this saved Bin is removed. Media, favorites and history stay in your library.`;
       deleting.showModal();updateControls();
     }));management.append(managementActions);controls.append(management);
-    const filterDisclosure=el('details','bin-filter-disclosure');filterDisclosure.append(el('summary','','Filter this Bin'),quick);
+    const filterDisclosure=el('details','bin-filter-disclosure');
+    const filterSummary=el('summary','','⚙ Filters');
+    filterSummary.setAttribute('aria-label',`Filter titles in ${row.name}`);
+    filterDisclosure.append(filterSummary,quick);
     header.append(handle,copy,controls,filterDisclosure);const empty=el('p','cube-row-empty');const more=button('Load more matches',()=>{const r=data().rows.find(r=>r.id===row.id),q=effective(r);void fetchPage(q,sourceFor(q));});
     const foot=el('div','cube-row-footer');foot.append(position,more);root.append(header,actions,track,empty,foot);
     let drag=null;

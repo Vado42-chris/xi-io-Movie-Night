@@ -112,3 +112,16 @@
 .bin-filter-disclosure[open]{padding-bottom:12px}
 .cube-builder-actions{z-index:2}
 .cube-builder-feedback:not(:empty){padding:10px;border:1px solid var(--accent);border-radius:8px}
+
+/* Task-level polish: preserve accessible names while reducing repeated text. */
+.cube-row-heading{column-gap:clamp(10px,1.25vw,20px);row-gap:12px;padding-bottom:10px}
+.cube-row-controls{gap:8px;align-items:center}
+.cube-row-controls .bin-icon-action,.bin-management>.bin-icon-action{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;width:44px;padding:0 8px;font-size:22px;line-height:1;border:1px solid var(--line);border-radius:9px;background:var(--surface-raised);color:var(--text);box-sizing:border-box}
+.bin-management>.bin-icon-action{list-style:none;cursor:pointer}
+.bin-management>.bin-icon-action::-webkit-details-marker{display:none}
+.bin-management[open]>.bin-icon-action{border-color:var(--accent);color:var(--accent)}
+.bin-filter-disclosure{padding-top:0;margin-top:0}
+.bin-filter-disclosure>summary{font-size:12px;color:var(--muted);padding:10px 8px}
+.cube-row-summary{max-width:75ch;line-height:1.55}
+.cube-row-controls button:focus-visible,.bin-management>.bin-icon-action:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+@media(max-width:650px){.cube-row-controls{margin-left:0;gap:6px}.cube-row-heading{padding:14px 14px 10px}.cube-row-controls button:first-child{min-height:44px}}
