@@ -1,5 +1,20 @@
 # Current handoff
 
+## Discovery recovery, 2026-10-23
+
+Continue existing Work `settings-sdk-publisher-audit-2026-09-26`, Movie Night #5 / PR #8. The owner's BATMAN VS TEENAGE screenshot showed simultaneous search failures, not proof the title is absent from the provider. Before this patch, live Cinemeta and the local API both returned `tt9775360` with its 2019 title; a separate permitted source lookup returned six sources without playing anything. Retries and truthful state, rather than a hard-coded title or another provider registry, are the bounded repair.
+
+Movie and TV searches now render independently. Transient 502/503/504 reads receive one bounded recovery attempt per type; a manual retry addresses only failed or stale types and does not advance a successful cursor. Superseded requests are invalidated immediately on input. Search text is not counted as a local filter; search outage, successful empty response, partial results and cached data have distinct user-visible states. Bin query filtering depends on its own source identity, not which unrelated collection is currently visible.
+
+The existing in-memory catalogue cache can supply a nonempty exact-path snapshot for at most 15 minutes beyond normal expiry when a live refresh fails. It labels the response stale, never extends expiry on failure, never supplies another query/type/offset, and never substitutes metadata readback or authorization. No new storage or provider integration.
+
+Executed writer qualification on the exact parent aa9154b: expanded browser suite 2/18 before versus 18/18 after (nine cases at two widths, not 18 independent bugs). Twelve cache cases: seven pass/five error before, twelve pass after. Full Python application suite 108/108 including those twelve, existing catalogue self-tests 12/12, player suite 16/16, syntax/server/diff checks pass. Existing manual HTTP writer/cold-readback journeys pass at 390/768/1280 with zero AI calls. Their edit-button lookup now uses the already-published pencil control's exact accessible name; no click-first workaround. Live catalogue/title/artwork passed at 390/1280 with candidate app.js; only player polling was simulated and all writes blocked. Installation and served-file readback are recorded separately in the PR return.
+
+Reproduce: `python3 verification/verify-discovery-recovery.py . OUTPUT`, with existing MOVIE_NIGHT_PLAYWRIGHT/MOVIE_NIGHT_CHROME configured. The runner generates synthetic fixtures from the repository schemas and intercepts every browser request; no running service or private account is required. Preserve the baseline and earlier imperfect two-pending-response race fixture logs as superseded harness evidence.
+
+Still open: independent peer review, accepted-main adoption, native and real-media playback, broader provider connections, Loki-server/Aries-client streaming, BINS shared authorization, Articles adoption and worker return. No AI/quorum, public hosting, credential, Nuvio mutation or new Work is claimed.
+
+
 Date: 2026-10-22. State: active prototype; settings and provider-filter source on main; provider UI visually read back in the reopened native app. Broader native and suite qualification remains open.
 
 ## Independent concierge replay and build prerequisites, 2026-10-22

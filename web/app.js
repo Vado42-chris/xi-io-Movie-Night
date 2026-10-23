@@ -23,7 +23,7 @@
   const searchView={id:'global-results',kind:'search',name:'Search all movies & TV',
     description:'Search movies and TV across the available catalogue.',
     movies:[],loading:false,error:'',pages:0,query:'',generation:0,controller:null,
-    hasMore:false,cursors:{movie:0,series:0},more:{movie:true,series:true},failed:[]};
+    hasMore:false,cursors:{movie:0,series:0},more:{movie:true,series:true},failed:[],pending:[],stale:[],staleCursors:{}};
   let searchDelay,searchReturn=null;
 
   let curatedCollections = [];
@@ -550,7 +550,7 @@
         options.body = JSON.stringify(payload);
       }
       const response = await fetch(path, options);
-      if (!response.ok) throw new Error("request_failed");
+      if (!response.ok) { const error = new Error("request_failed"); error.httpStatus = response.status; throw error; }
       const data = await response.json();
       if (!data || typeof data !== "object" || data.error) throw new Error("request_failed");
       return data;
@@ -783,7 +783,7 @@
     collection = (typeof target === "number" ? collections[target] : collections.find((item) => item.id === target)) || collections[0];
     if (!collection) return;
     elements.picker.value = collection.id;
-    elements.sort.querySelector('option[value="rank"]').textContent = collection.kind === "curated" ? "Curated order" : collection.kind === "browse" ? "Catalogue order" : "Library order";
+    elements.sort.querySelector('option[value="rank"]').textContent = collection.kind === "curated" ? "Curated order" : collection.kind === "browse" ? "Catalogue order" : collection.kind === "search" ? "Search relevance" : "Library order";
     if (collection.kind === "browse") renderCatalogueControls(collection);
     elements.title.textContent = collection.name;
     elements.description.textContent = collection.description || "Old favorites. New discoveries. A great night in.";
@@ -864,59 +864,88 @@
     }
   }
 
-  async function loadEverywhere(query,more=false) {
+  async function loadEverywhere(query,more=false,retryOnly=false) {
     const q=String(query||'').trim().slice(0,160),view=searchView;
     if(q.length<2||!wallSettings.plugins.cinemeta_enabled)return;
     if(more&&view.loading)return;
     if(!more||q!==view.query){
       view.controller?.abort();view.generation++;view.movies=[];view.pages=0;
-      view.more={movie:true,series:true};view.cursors={movie:0,series:0};view.failed=[];view.query=q;
+      view.more={movie:true,series:true};view.cursors={movie:0,series:0};
+      view.failed=[];view.stale=[];view.staleCursors={};view.query=q;
     }
+    const retryTypes=new Set([...view.failed,...view.stale]);
+    const types=['movie','series'].filter(type=>retryOnly?retryTypes.has(type):view.more[type]);
+    if(!types.length)return;
     view.controller?.abort();
     const ctl=new AbortController(),version=view.generation;view.controller=ctl;
-    view.loading=true;view.error='';view.name='Results for “'+q+'”';
-    if(collection!==view){collection=view;elements.picker.value=view.id;renderFilms();}
-    const types=['movie','series'].filter(type=>view.more[type]);
-    const outcomes=await Promise.allSettled(types.map(async type=>{
-      const skip=view.cursors[type];
-      const result=await requestJSON('/api/browse?'+new URLSearchParams({
-        type,catalog:'top',search:q,skip:String(skip)}),undefined,ctl.signal);
-      if(!Array.isArray(result.movies)||typeof result.has_more!=='boolean'||
-        result.has_more&&(!Number.isInteger(result.next_skip)||result.next_skip<=skip))throw Error('invalid_page');
-      return {type,skip,result};
-    }));
-    if(view.controller!==ctl||view.generation!==version||ctl.signal.aborted)return;
-    const keys=new Set(view.movies.map(movieKey)),failed=[];
-    for(let i=0;i<outcomes.length;i++){
-      const event=outcomes[i],type=types[i];
-      if(event.status!=='fulfilled'){failed.push(type);continue;}
-      const {result,skip}=event.value;
-      for(let pos=0;pos<result.movies.length;pos++){
-        const raw=result.movies[pos],movie=normalizeMovie({...raw,type:raw.type||type},skip+pos);
-        if(movie&&!keys.has(movieKey(movie))){keys.add(movieKey(movie));view.movies.push(movie);}
+    view.pending=[...types];view.loading=true;view.name='Results for “'+q+'”';
+    const current=()=>view.controller===ctl&&view.generation===version&&!ctl.signal.aborted;
+    const labels={movie:'Movie',series:'TV'};
+    const update=()=>{
+      view.hasMore=Object.values(view.more).some(Boolean);
+      view.error=view.failed.length
+        ? view.failed.map(type=>labels[type]).join(' and ')+' search is temporarily unavailable. Available results are kept.' : '';
+      view.loading=view.pending.length>0;
+      if(collection===view)selectCollection(view.id);
+    };
+    collection=view;elements.picker.value=view.id;update();
+    await Promise.all(types.map(async type=>{
+      const skip=retryOnly&&view.stale.includes(type)?view.staleCursors[type]:view.cursors[type];
+      try{
+        let result;
+        // Read-only recovery, once per failed type. Never repeat a save/playback
+        // operation, bypass settings, change providers, or advance a good cursor.
+        for(let attempt=0;attempt<2;attempt++){
+          if(!current())return;
+          try{
+            result=await requestJSON('/api/browse?'+new URLSearchParams({
+              type,catalog:'top',search:q,skip:String(skip)}),undefined,ctl.signal);
+            break;
+          }catch(error){
+            if(!current()||attempt===1||![502,503,504].includes(error.httpStatus))throw error;
+            await new Promise(resolve=>setTimeout(resolve,150));
+          }
+        }
+        if(!current())return;
+        if(!Array.isArray(result?.movies)||typeof result.has_more!=='boolean'||
+          result.has_more&&(!Number.isInteger(result.next_skip)||result.next_skip<=skip))throw Error('invalid_page');
+        const keys=new Set(view.movies.map(movieKey));
+        for(let pos=0;pos<result.movies.length;pos++){
+          const raw=result.movies[pos],movie=normalizeMovie({...raw,type:raw.type||type},skip+pos);
+          if(movie&&movie.type===type&&!keys.has(movieKey(movie))){keys.add(movieKey(movie));view.movies.push(movie);}
+        }
+        view.failed=view.failed.filter(value=>value!==type);
+        view.stale=view.stale.filter(value=>value!==type);
+        if(result.stale===true||result.freshness==='stale'){
+          view.stale.push(type);view.staleCursors[type]=skip;
+        }else delete view.staleCursors[type];
+        view.more[type]=result.has_more;
+        view.cursors[type]=result.has_more?result.next_skip:skip;view.pages++;
+      }catch{
+        if(current()&&!view.failed.includes(type))view.failed.push(type);
+      }finally{
+        if(current()){view.pending=view.pending.filter(value=>value!==type);update();}
       }
-      view.more[type]=result.has_more;
-      view.cursors[type]=result.has_more?result.next_skip:skip;view.pages++;
-    }
-    view.failed=failed;view.hasMore=Object.values(view.more).some(Boolean);
-    view.error=failed.length?'Some catalogue results are temporarily unavailable: '+failed.join(', ')+'. Retry for those results.':'';
-    view.loading=false;view.controller=null;
-    if(collection===view)selectCollection(view.id);
+    }));
+    if(current()){view.controller=null;view.loading=false;update();}
   }
   function searchEverywhere(){
     clearTimeout(searchDelay);
     const q=elements.search.value.trim();
     // Personal-library and Bin searches stay in their selected source.
     if(mediaView==='library'||openedBin){renderFilms();return;}
+    // Invalidate at the keystroke, not after debounce. An older request cannot
+    // paint its results under the new query while the next request is waiting.
+    searchView.controller?.abort();searchView.controller=null;searchView.generation++;
+    searchView.pending=[];searchView.loading=false;
     if(q.length<2){
-      searchView.controller?.abort();searchView.generation++;searchView.loading=false;
       if(collection===searchView){const id=searchReturn?.id||'browse-movie';collection=null;selectCollection(id);}
       else renderFilms();
       return;
     }
     if(collection!==searchView){
       searchReturn=collection;filters=defaultFilters();elements.genre.value='';elements.sort.value='rank';
-    }
+    }else{searchView.movies=[];searchView.failed=[];searchView.stale=[];searchView.query=q;searchView.loading=true;renderFilms();}
     searchDelay=setTimeout(()=>{void loadEverywhere(q);},275);
   }
   async function importPersonalLibrary() {
@@ -1039,7 +1068,7 @@
     const chips = [];
     const add = (label, clear) => chips.push({ label, clear });
     if (filters.provider) add(`Provider: ${filters.provider === 'nuvio' ? 'Nuvio' : 'Cinemeta'}`, () => { filters.provider = ''; });
-    if (elements.search.value.trim()) add(`“${elements.search.value.trim()}”`, () => { elements.search.value = ""; });
+    if (collection !== searchView && elements.search.value.trim()) add(`“${elements.search.value.trim()}”`, () => { elements.search.value = ""; });
     if (elements.genre.value) add(elements.genre.value, () => { elements.genre.value = ""; });
     if (filters.yearFrom !== "" || filters.yearTo !== "") add(`${filters.yearFrom || "Any year"} – ${filters.yearTo || "any year"}`, () => { filters.yearFrom = filters.yearTo = ""; });
     for (const genre of filters.include) add(`${filters.genreMode === "all" ? "Includes" : "Genre"}: ${genre}`, () => { filters.include = filters.include.filter((value) => value !== genre); });
@@ -1069,8 +1098,11 @@
     byId("filter-year-to").setCustomValidity(invalidYears ? "Choose an end year on or after the start year." : "");
     byId("apply-filters").disabled = invalidYears;
     byId("apply-filters").textContent = `Show ${titleCount(visibleCount)}`;
-    const scope = (collection?.kind === "browse" || collection?.kind === "search")
-      ? `Filters apply to the ${collection.movies.length} loaded titles, not the entire catalogue. Load more to explore further.`
+    const scope = collection === searchView
+      ? (searchView.loading ? 'Searching movie and TV catalogues…'
+        : searchView.failed.length ? 'Search is incomplete. A failed catalogue response does not mean the title is unavailable.'
+        : 'Search results from Cinemeta. Finding a title does not confirm a playable source.')
+      : collection?.kind === "browse" ? `Filters apply to the ${collection.movies.length} loaded titles, not the entire catalogue. Load more to explore further.`
       : `Filters apply to the ${collection?.movies.length || 0} titles in this collection.`;
     byId("filter-scope").textContent = scope;
     byId("drawer-filter-scope").textContent = scope;
@@ -1248,11 +1280,11 @@
 
   function filterMovieQuery(movies, query) {
     refreshProviderMembership();
-    const sourceProvider = ["browse-movie", "browse-series"].includes(query.collectionId) ? "cinemeta" : null;
+    const sourceProvider = ["browse-movie", "browse-series", "global-results"].includes(query.collectionId) ? "cinemeta" : null;
     const terms = normalize(query.search.trim()).split(/\s+/).filter(Boolean);
     const genre = query.genre;
     const sort = query.sort;
-    const visible = movies.filter((movie) => matchesFilters(movie, collection===searchView?[]:terms, genre, query.filters, sourceProvider));
+    const visible = movies.filter((movie) => matchesFilters(movie, query.collectionId===searchView.id?[]:terms, genre, query.filters, sourceProvider));
     visible.sort((left, right) => {
       if (sort === "title") return collator.compare(left.title, right.title) || left.rank - right.rank;
       if (sort === "year-desc") return (right.year || 0) - (left.year || 0) || left.rank - right.rank;
@@ -1272,7 +1304,7 @@
     visibleMovies = visible;
     const fragment = document.createDocumentFragment();
     if (!cubeHome?.isCarousel()) visible.forEach((movie, index) => fragment.append(movieCard(movie, index)));
-    if (collection.kind === "browse" && collection.loading && !collection.movies.length) {
+    if ((collection.kind === "browse" || collection.kind === "search") && collection.loading && !collection.movies.length) {
       for (let index = 0; index < 6; index += 1) { const skeleton = node("div", "skeleton-card"); skeleton.setAttribute("aria-hidden", "true"); fragment.append(skeleton); }
     }
     elements.grid.replaceChildren(fragment);
@@ -1296,8 +1328,8 @@
     if (collection.kind === "browse" || collection.kind === "search") {
       const catalogueEnabled = wallSettings.plugins.cinemeta_enabled;
       byId("load-more").disabled = collection.loading || !catalogueEnabled;
-      byId("load-more").hidden = !catalogueEnabled || (!collection.hasMore && !collection.error);
-      byId("load-more").textContent = collection.loading ? "Searching…" : collection.error ? "Retry missing provider" : "Find more titles";
+      byId("load-more").hidden = !catalogueEnabled || (!collection.hasMore && !collection.error && !(collection === searchView && searchView.stale.length));
+      byId("load-more").textContent = collection.loading ? "Searching…" : collection.error ? "Retry search" : collection === searchView && searchView.stale.length ? "Refresh search" : "Find more titles";
       const pageLabel = collection.pages ? `${collection.pages} ${collection.pages === 1 ? "page" : "pages"} explored · ` : "";
       byId("browse-feedback").textContent = collection.error || (!collection.hasMore && !collection.loading ? `${pageLabel}You’ve reached the end of these catalogue results.` : `${pageLabel}Keep loading to explore the full list. Filters apply to loaded titles.`);
       if (!catalogueEnabled) {
@@ -1307,6 +1339,26 @@
         byId("browse-feedback").textContent = "Cinemeta catalogue browsing is turned off in Settings.";
       }
       byId("catalog-search-button").disabled = !catalogueEnabled;
+    }
+    if (collection === searchView && wallSettings.plugins.cinemeta_enabled) {
+      const noReceived=collection.movies.length===0;
+      const unresolved=searchView.failed.length>0;
+      if(!collection.loading && !visible.length){
+        byId("empty-title").textContent = unresolved && noReceived ? "Search is unavailable"
+          : filtered && !noReceived ? "No search results match these filters" : "No titles found for this search";
+        byId("empty-description").textContent = unresolved && noReceived
+          ? "The catalogue did not respond. Your search is kept. Retry without changing your filters."
+          : !noReceived ? "Clear a filter to see the titles already found."
+          : "Try another title or spelling. This search does not cover every media service.";
+        byId("empty-reset").hidden = !filtered || noReceived;
+      }
+      const notes=[];
+      if(collection.loading)notes.push('Searching '+searchView.pending.map(type=>type==='movie'?'movies':'TV').join(' and ')+'…');
+      if(unresolved)notes.push(collection.error);
+      if(searchView.stale.length)notes.push('Showing cached catalogue results. Refresh to check for current results.');
+      if(!notes.length)notes.push(collection.hasMore ? 'More search results are available.' : 'Search complete for the current catalogue.');
+      byId("browse-feedback").textContent=notes.join(' ');
+      if(noReceived && unresolved && !collection.loading)elements.count.textContent='Search incomplete';
     }
     if (!elements.dialog.hidden) syncCarouselSelection();
     cubeHome?.refresh();
@@ -2084,7 +2136,7 @@
   byId("import-library").addEventListener("click", importPersonalLibrary);
   byId("favorite-detail").addEventListener("click", () => toggleFavorite(selectedMovie));
   byId("load-more").addEventListener("click",()=>{
-    if(collection===searchView){for(const type of searchView.failed)searchView.more[type]=true;void loadEverywhere(searchView.query,true);}
+    if(collection===searchView){void loadEverywhere(searchView.query,true,Boolean(searchView.failed.length||searchView.stale.length));}
     else if(collection?.kind==="browse")void loadBrowse(collection.type,true);
   });
   byId("catalog-source").addEventListener("change", () => {

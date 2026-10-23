@@ -40,7 +40,7 @@ const reports=[];
    assert.equal(bin.filters.yearFrom,'1985');assert.equal(bin.filters.yearTo,'present');assert.equal(bin.genre,'Western');
    assert.equal(await row(id).isVisible(),true);assert.equal(await page.locator('body').getAttribute('data-movie-experience-view'),'bins');
    assert.equal(saved.document.rows.length,initial.document.rows.length+1);report.checks.push('keyboard-reachable New Bin, manual Western query, actual POST/GET, saved Bin visible');
-   await row(id).getByRole('button',{name:'Edit Bin',exact:true}).click();await page.locator('#cube-builder-next').click();
+   await row(id).getByRole('button',{name:'Edit filters and details for Westerns '+width,exact:true}).click();await page.locator('#cube-builder-next').click();
    await page.locator('#cube-rule-yearFrom').fill('1995');await page.locator('#cube-builder-next').click();await page.locator('#cube-confirm').click();await page.locator('#cube-naming').waitFor({state:'hidden'});
    assert.equal((await state()).document.rows.find(r=>r.id===id).filters.yearFrom,'1995');
    await rename(id,'Modern Westerns '+width);await page.locator('#cube-confirm').click();await page.locator('#cube-naming').waitFor({state:'hidden'});

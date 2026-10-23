@@ -34,6 +34,7 @@ CATALOGUE_HOST = "cinemeta-catalogs.strem.io"
 MAX_REDIRECTS = 2
 TIMEOUT = 8.0
 CACHE_SECONDS = 300
+STALE_CATALOGUE_SECONDS = 900  # Existing in-memory cache only; never metadata/entitlement.
 MAX_RESPONSE = 4 * 1024 * 1024
 CATALOGUE_PAGE_SIZE = 50
 LEGACY_SEARCH_PAGE_SIZE = 100
@@ -296,8 +297,23 @@ def _cached(path, make_result):
         if cached and cached[0] > now:
             _cache.move_to_end(path)
             return deepcopy(cached[1])
-        _cache.pop(path, None)
-    result = make_result(_fetch_document(path))
+        # Keep a bounded successful catalogue snapshot while refreshing. Failure
+        # must not erase known titles or turn an outage into an empty catalogue.
+        if cached and cached[0] + STALE_CATALOGUE_SECONDS <= now:
+            _cache.pop(path, None)
+            cached = None
+    try:
+        result = make_result(_fetch_document(path))
+    except CatalogueError as exc:
+        if (exc.status in (502, 503, 504) and path.startswith("/catalog/")
+                and cached and isinstance(cached[1].get("movies"), list)
+                and cached[1]["movies"]
+                and cached[0] + STALE_CATALOGUE_SECONDS > time.monotonic()):
+            result = deepcopy(cached[1])
+            result.update(stale=True, freshness="stale",
+                          warning="Showing cached catalogue results; live refresh is unavailable.")
+            return result  # Do not extend the original expiry on a failed refresh.
+        raise
     # Missing episode metadata is not an empty authoritative hierarchy. Do not
     # cache it as success and suppress recovery on the next ordinary card open.
     movie = result.get("movie") if isinstance(result, dict) else None
