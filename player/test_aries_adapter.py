@@ -187,7 +187,7 @@ class PlayerControlTest(unittest.TestCase):
             player = self.player(directory)
             player.socket_state = Mock(return_value=("live", None))
             values = {"idle-active": False, "pause": True, "time-pos": 9.0, "duration": 8520,
-                      "volume": 50, "mute": True, "fullscreen": True}
+                      "volume": 50, "mute": True, "fullscreen": True, "track-list": []}
             player.ipc = Mock(side_effect=lambda command, optional=False: values[command[1]])
             player.prepare_embedding_for_play = Mock(side_effect=AssertionError("Reads/resume must not migrate"))
             result = player.status()

@@ -1,0 +1,49 @@
+diff --git a/src/components/chat/ChatDockSlot.jsx b/src/components/chat/ChatDockSlot.jsx
+index 82fe83e..63bcc1e 100644
+--- a/src/components/chat/ChatDockSlot.jsx
++++ b/src/components/chat/ChatDockSlot.jsx
+@@ -1 +1,2 @@
+-import React, { useEffect, useRef } from 'react';
++import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
++import { createPortal } from 'react-dom';
+@@ -11 +12 @@ import { DEVICE } from '@/lib/chatSnap.mjs';
+-export default function ChatDockSlot({ id, label, workRef, category = 'Work surface', coordinate = null, fill = false }) {
++export default function ChatDockSlot({ id, label, workRef, category = 'Work surface', coordinate = null, fill = false, withinFrame = false }) {
+@@ -49 +50 @@ export default function ChatDockSlot({ id, label, workRef, category = 'Work surf
+-  if (device !== DEVICE.DESKTOP) {
++  if (!withinFrame && device !== DEVICE.DESKTOP) {
+@@ -77 +78 @@ export default function ChatDockSlot({ id, label, workRef, category = 'Work surf
+-            : `xi-chat-dock relative border-[hsl(var(--glass-edge))]/15 ${side === 'left' ? 'border-r lg:order-first' : 'border-l'}`} min-h-0 min-w-0 flex flex-col${whiteLabel ? ' xi-white-label' : ''}`
++            : `xi-chat-dock relative border-[hsl(var(--glass-edge))]/15 ${side === 'left' ? 'border-r order-first' : 'border-l'}`} min-h-0 min-w-0 flex flex-col${whiteLabel ? ' xi-white-label' : ''}`
+@@ -117 +118,29 @@ export default function ChatDockSlot({ id, label, workRef, category = 'Work surf
+-}
+\ No newline at end of file
++}
++
++/** Keep one existing conversation instance while its presentation moves.
++ * This owns DOM placement and focus only, never draft storage, Work or authority.
++ * Native cross-window undocking requires the existing host lifecycle separately.
++ */
++export function PersistentChatPortal({ children, panelId, target, fallbackRef, parkingRef, open, focusOnOpenRef, composerSelector }) {
++  const [container] = useState(() => {
++    const node = document.createElement('div');
++    node.id = panelId;
++    node.className = 'xi-chat-session';
++    return node;
++  });
++  useLayoutEffect(() => {
++    const destination = open ? (target || fallbackRef.current) : parkingRef.current;
++    if (!destination) return;
++    const focused = container.contains(document.activeElement) ? document.activeElement : null;
++    // Passing a new portal target would remount its React children. Move this
++    // stable DOM container instead, retaining state and any pending operation.
++    if (container.parentNode !== destination) destination.appendChild(container);
++    container.hidden = !open;
++    if (open && focusOnOpenRef.current) {
++      focusOnOpenRef.current = false;
++      container.querySelector(composerSelector)?.focus({ preventScroll: true });
++    } else if (open && focused?.isConnected) focused.focus({ preventScroll: true });
++  }, [container, target, open, fallbackRef, parkingRef, focusOnOpenRef, composerSelector]);
++  useLayoutEffect(() => () => container.remove(), [container]);
++  return createPortal(children, container, panelId);
++}

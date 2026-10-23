@@ -206,6 +206,7 @@ export default function MovieSettings({ open, context = 'browsing', store, trans
   return <dialog ref={dialog} id="movie-settings" className="movie-settings" aria-labelledby="movie-settings-title" onCancel={event => { event.preventDefault(); close(); }} onClose={() => { if (open) close(); }}>
     <form className="movie-settings-form" onSubmit={save}>
       <header className="movie-settings-heading"><div className="movie-settings-mark"><SettingsIcon size={22} /></div><div><p>Movie Night · Aries</p><h2 id="movie-settings-title">Settings</h2></div><button type="button" className="shell-icon-button" aria-label="Close settings" onClick={close} disabled={Boolean(busy)}><X size={21} /></button></header>
+      <p className="settings-notice" role="status">Showing Movie Night’s local settings. The shared OS settings catalogue is not connected in this build.</p>
       <div className="movie-settings-search"><Search size={18} /><input type="search" aria-label="Search Movie Night settings" placeholder="Search settings, plugins, playback…" value={query} onChange={event => setQuery(event.target.value)} /></div>
       <div className="settings-transfer" aria-label="Preference file actions">
         <button type="button" className="shell-button" disabled={!store.ready || Boolean(busy) || !supportsTransfer(DECLARATION, 'export')} onClick={exportPreferences}>Export preferences</button>

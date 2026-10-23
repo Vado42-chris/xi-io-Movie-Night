@@ -1,0 +1,2 @@
+   Compiling movie-night-desktop v0.1.0 (<private-candidate-workspace>/source/desktop)
+    Finished `release` profile [optimized] target(s) in 24.58s

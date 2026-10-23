@@ -104,6 +104,61 @@ systemctl --user status personal-movie-night.service personal-movie-night-player
 
 The checked-in `personal-movie-night.service` is an older catalogue-only template. It lacks the installed playback gateway arguments; do not overwrite the current installed units with that template. Opening the application does not require restarting either service.
 
+## Reproduce the concierge checks from a clean checkout
+
+Use a full Git checkout of the exact reviewed commit, not a source export: an
+existing regression test inspects Git history. Generated `studio-web/` files are
+intentionally not committed. `/studio/` serves that built directory, so the shell
+must be built before any browser journey. The test runner now refuses a missing
+or incomplete build before starting its HTTP server, rather than allowing a
+misleading catalogue-load error to obscure the missing prerequisite.
+
+The shell's committed `studio-shell/package-lock.json` was recovered from the
+Aries release custody. All 184 installed packages used for the `e099a15` build
+matched its version, download URL and integrity entries. Do not regenerate it
+with an unconstrained install merely to run tests. The clean replay used Node
+22.23.2, npm 10.9.8 and the commands below; no dependency upgrade is implied.
+
+Run these commands only in a dedicated review checkout, never an active runtime
+or a shared/symlinked `node_modules` directory:
+
+```sh
+python3 -m venv /tmp/movie-night-review-venv
+/tmp/movie-night-review-venv/bin/python -m pip install -r requirements.txt
+npm --prefix studio-shell ci --ignore-scripts --no-audit --no-fund
+npm --prefix studio-shell run build
+/tmp/movie-night-review-venv/bin/python -m unittest discover -p 'test_*.py'
+/tmp/movie-night-review-venv/bin/python -m unittest discover -s player -p 'test_*.py'
+```
+
+The browser harness also needs Playwright and a compatible Chrome/Chromium
+executable. These are explicit test-environment prerequisites, not app runtime
+dependencies. Reuse an authorized installation or prepare disposable tooling:
+
+```sh
+TOOLS="$(mktemp -d)"
+npm --prefix "$TOOLS" install --ignore-scripts --no-audit --no-fund --save-exact playwright@1.57.0
+export MOVIE_NIGHT_PLAYWRIGHT="$TOOLS/node_modules/playwright"
+export MOVIE_NIGHT_CHROME="/absolute/path/to/chrome-or-chromium"
+RESULTS="$(mktemp -d)"
+for WIDTH in 390 1440; do
+  MOVIE_NIGHT_EXACT_REQUESTS=1 MOVIE_NIGHT_TEST_WIDTH="$WIDTH" \
+    /tmp/movie-night-review-venv/bin/python verification/verify-concierge-cube-service.py \
+    "$PWD" "$RESULTS/exact-$WIDTH"
+done
+```
+
+The last command uses a disposable private cube store, fixture library and model
+status, and simulated native bindings. The two exact requests use deterministic
+filters and make **zero inference calls**. Inspect `summary.json` and the browser
+report for separate status/inference counts, real save/readback and cold-reopen
+results. Passing them does not qualify semantic model requests, real media,
+physical Tauri controls, authorized BINS access, public hosting or release approval.
+
+The locked clean build reproduced the installed `e099a15` HTML, JavaScript and
+CSS byte-for-byte on the observed Linux toolchain. This is a measured build result,
+not a promise of bit-identical output on every operating system or toolchain.
+
 ## Verification and exact current limits
 
 The source includes separate checks for the browser window frame, actual native OS-window controls, native video surface, playback controls, and live browsing. The latest report from a target run is the evidence for that build; a successful source build or mocked browser check does not prove real-source video/audio playback.

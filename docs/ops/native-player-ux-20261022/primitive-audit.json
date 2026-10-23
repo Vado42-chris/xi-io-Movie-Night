@@ -1,0 +1,158 @@
+{
+  "base": "816b15233c90f7a846e919fb94e8c0316a14eec5",
+  "repository": "Vado42-chris/xi-io-Movie-Night",
+  "bug": 3,
+  "shared_intake": "Vado42-chris/xi-io.net#1347",
+  "parent_work": "settings-sdk-publisher-audit-2026-09-26",
+  "kind": "bounded primitive audit over current main and same-writer candidate, NOT a new registry",
+  "count": 16,
+  "findings": [
+    {
+      "priority": "P0",
+      "requirement": "Cross-surface input routing",
+      "evidence_level": "SOURCE_CONFIRMED; fullscreen candidate built, native gestures NOT_TESTED",
+      "source": "desktop/src/native.rs; studio-shell/src/main.jsx; web/app.js; player/native-input.conf",
+      "finding": "WebView, iframe and native video own separate input paths. Existing main has no native video-to-host gesture bridge.",
+      "owner_boundary": "Existing host adapter and app input bindings",
+      "acceptance": "Focus each surface; Escape exits actual fullscreen without stop/load; video double-click toggles once; typing in chat never invokes media shortcuts."
+    },
+    {
+      "priority": "P0",
+      "requirement": "Shortcut and preference parity",
+      "evidence_level": "OBSERVED_IDLE_MPV; no media started",
+      "source": "player/native-input.conf; xiio/settings.schema.json /playback/seek_seconds",
+      "finding": "Actual mpv with candidate input file retains LEFT/RIGHT seek -5/+5, while declared application default is 10. Native wheel/right-click/q/Enter remain separate default behaviors.",
+      "owner_boundary": "Existing player adapter and declaration consumer",
+      "acceptance": "Use one declared skip preference through button, keyboard and native video; classify each remaining default intentionally; no unintended quit/next from context change."
+    },
+    {
+      "priority": "P0",
+      "requirement": "Escape independent of playback readiness",
+      "evidence_level": "SOURCE_CONFIRMED; candidate not installed",
+      "source": "web/app.js updatePlayerControls/togglePlayerFullscreen; desktop/src/native.rs",
+      "finding": "Main couples fullscreen availability to active playback/control readiness. The candidate separates it and adds native exit, but needs installed blocked/loading/disconnected verification.",
+      "owner_boundary": "Existing host action owner",
+      "acceptance": "Escape and visible Exit work while paused/loading, source lookup pending, player disconnected and controls hidden; no recovery action reloads media."
+    },
+    {
+      "priority": "P0",
+      "requirement": "Native surface focus and accessibility handoff",
+      "evidence_level": "UNQUALIFIED_NATIVE_BOUNDARY",
+      "source": "desktop/src/native.rs initialize_host/apply_viewport; web/app.js",
+      "finding": "Native video is a separate GTK/X11 surface above the WebView. A DOM focus ring or underlying dblclick handler does not prove native focus escape or accessible controls.",
+      "owner_boundary": "Existing frame/native integration owner",
+      "acceptance": "Tab/Shift+Tab traverse video, controls, modal and chat; focus returns to invoker; no hidden controls receive input; true mouse/touch hit tests, not DOM event dispatch only."
+    },
+    {
+      "priority": "P0",
+      "requirement": "Draft and pending-operation continuity",
+      "evidence_level": "PRIOR_BROWSER_REPRODUCTION + SOURCE_CONFIRMED",
+      "source": "studio-shell/src/Concierge.jsx; studio-shell/src/main.jsx; studio-shell/src/Settings.jsx",
+      "finding": "Chat prompt/busy/proposal live in a component remounted at docking changes; previous host replay loses drafts at 1024/1023 and close/reopen. Settings close ignores dirty state and opening replaces draft.",
+      "owner_boundary": "Existing chat/frame/settings owners under #1347",
+      "acceptance": "Resize/dock/hide/reopen while editing and awaiting a response; preserve the same conversation, draft and operation; provide deliberate discard rather than accidental loss."
+    },
+    {
+      "priority": "P1",
+      "requirement": "Real undock and reopen lifecycle",
+      "evidence_level": "SOURCE_CONFIRMED_MISSING_NATIVE_BINDING",
+      "source": "studio-shell/vendor/src/lib/chatDockStore.js detachChat; studio-shell/src/main.jsx; desktop/src/native.rs",
+      "finding": "DETACH changes store layout. Native host builds only main, authorizes only main and has no owned chat-window creation/focus/reopen adapter. Arbitrary new windows are correctly denied.",
+      "owner_boundary": "Existing shared chat/window owner",
+      "acceptance": "Undock creates one authorized native child with same conversation; close/reopen/redock preserve it; do not enable arbitrary window.open or replace the chat engine."
+    },
+    {
+      "priority": "P0",
+      "requirement": "File export completion and native save binding",
+      "evidence_level": "SOURCE_CONTRADICTION; native save not attempted",
+      "source": "studio-shell/src/Settings.jsx:161-170; desktop/src/native.rs on_download",
+      "finding": "Settings clicks a Blob download and immediately reports Exported; native host denies downloads. No saved-file completion is observed by that UI.",
+      "owner_boundary": "Existing settings + native file/BINS adapter owner",
+      "acceptance": "User-selected scoped destination; cancel/error/success distinct; read back resulting preferences file before claiming saved. Keep broad download denial until a bounded existing adapter is wired."
+    },
+    {
+      "priority": "P1",
+      "requirement": "Desktop identity and pin/relaunch",
+      "evidence_level": "DESKTOP_FILE_VALID; NOT_PINNED; WINDOW_ASSOCIATION_UNVERIFIED",
+      "source": "desktop/open-movie-night; installed personal-movie-night.desktop; desktop/tauri.conf.json",
+      "finding": "Installed desktop file validates and launcher has single-instance logic. It is not in favorites; template is untracked. Matching actual WM_CLASS and dock launch/relaunch remains unverified.",
+      "owner_boundary": "Existing MN-005, indexed in Movie Night #3",
+      "acceptance": "Match app identifier, executable, icon and actual window class; cold launch/focus existing/minimized restore/pin survive restart without duplicate instances or changing other favorites."
+    },
+    {
+      "priority": "P1",
+      "requirement": "Native geometry and monitor restoration",
+      "evidence_level": "SOURCE_CONFIRMED_GAP",
+      "source": "desktop/src/native.rs builder; WindowFrame.jsx onGeometryChange; studio-shell/src/main.jsx openingGeometry",
+      "finding": "Native always opens 1280x800 with 760x540 minimum; geometry persistence callback is skipped for native. Browser geometry saving is not native restore.",
+      "owner_boundary": "Existing frame/native geometry owner",
+      "acceptance": "Persist/restore native geometry with monitor-safe bounds and scaling; unplug monitor and reopen; distinguish native minimum from phone browser test dimensions."
+    },
+    {
+      "priority": "P0",
+      "requirement": "Recoverable native viewport publication",
+      "evidence_level": "EXECUTED_EXACT_SOURCE_WITH_INJECTED_FAILURE",
+      "source": "studio-shell/src/main.jsx publishViewport",
+      "finding": "One rejected set_movie_viewport permanently sets failed=true. Eight simulated frames produce only one attempt, with no rebind/retry path.",
+      "owner_boundary": "Existing native viewport binding owner",
+      "acceptance": "Bounded geometry-only retry or explicit Reconnect; observed healthy state clears error; pause/resume/load remain untouched; no unbounded retry or media restart."
+    },
+    {
+      "priority": "P0",
+      "requirement": "Media/session identity on all state-changing actions",
+      "evidence_level": "EXECUTED_MOCK_BOUNDARY; no player used",
+      "source": "web/app.js sendPlayerCommand; player/aries_adapter.py Adapter.post",
+      "finding": "Ordinary seek/skip/pause/stop omit identity; adapter accepts omission. Explicit wrong identity is rejected. Candidate track actions bind movie/episode identity but the older path remains optional and has no playback-generation token.",
+      "owner_boundary": "Existing product player/domain adapter owner",
+      "acceptance": "A control captured for A cannot seek/stop B after source or episode switch; bind exact media and session generation; stale actions have zero effect. Keep emergency host escape independent."
+    },
+    {
+      "priority": "P1",
+      "requirement": "Independent playback and presentation state",
+      "evidence_level": "SOURCE_CONFIRMED_MISSING_MAIN_PATHS; candidate partial",
+      "source": "web/app.js nativePlayerMode/closePlayerControls/setMiniPlayer; desktop/src/native.rs set_mode",
+      "finding": "Main has wall versus full player, and close controls stops playback. Candidate mini view is within the same window, not OS picture-in-picture; repeated mode callback currently resets mini state.",
+      "owner_boundary": "Existing media presentation consumer",
+      "acceptance": "Normal/fullscreen/mini/details/hidden controls do not load media; stop and quit are separate deliberate actions; preserve source, timeline, tracks and focus."
+    },
+    {
+      "priority": "P1",
+      "requirement": "Runtime capabilities and media options",
+      "evidence_level": "SOURCE_CONFIRMED_MISSING_MAIN_UI; track candidate partial",
+      "source": "player/aries_adapter.py tracks/command/status; web/index.html; web/app.js",
+      "finding": "Main lacks audio/subtitle selection, scene markers, chapters, playback speed and output-device UI. Candidate exposes enumerated tracks only. Buffering/seeking/ended and capability-specific states are not fully projected.",
+      "owner_boundary": "Existing media adapter plus shared typed choice/status controls",
+      "acceptance": "Only observed tracks/rates/devices exposed; subtitle Off; real command/readback; no-track is not loading. Scene bookmarks retain exact movie/episode/time and persist through existing authorized data custody."
+    },
+    {
+      "priority": "P1",
+      "requirement": "Explicit Quick Play source policy",
+      "evidence_level": "EXISTING_RESOLVER_REUSED; candidate not installed",
+      "source": "player/aries_adapter.py Resolver.sources; web/app.js quickPlay",
+      "finding": "Resolver already ranks eligible sources by declared quality and smaller-encode preference. Candidate Quick Play selects that ordering only after explicit click. No measured bandwidth or adaptive-quality evidence exists.",
+      "owner_boundary": "Existing source-selection owner",
+      "acceptance": "Explicit click binds current title/source; stale/absent choices fail; show actual preference basis; manual selection remains; bandwidth unknown never becomes measured-safe."
+    },
+    {
+      "priority": "P1",
+      "requirement": "OS media, power, startup and recovery integration",
+      "evidence_level": "NOT_FOUND_IN_INSPECTED_APP_BINDINGS; OS_EFFECTS_UNTESTED",
+      "source": "desktop/src/native.rs; desktop/Cargo.toml; desktop/open-movie-night; web/app.js",
+      "finding": "No app-owned MPRIS/MediaSession binding found. Sleep/inhibition and device-loss policy are not qualified. Launcher checks process, not frontend readiness; external loopback page has no owned startup-recovery surface. mpv may independently inhibit screensaver; do not claim OS absence from source scan.",
+      "owner_boundary": "Existing native host/system-service owners",
+      "acceptance": "Media keys address correct session; inhibit only appropriate states; resume/device removal retains safe state; missing host/bridge offers retry without blank trapped window or media restart."
+    },
+    {
+      "priority": "P1",
+      "requirement": "Utilities, provider setup and effect capability binding",
+      "evidence_level": "SOURCE_CONFIRMED_UNBOUND_STUDIO_SERVICES",
+      "source": "studio-shell/host/studio-services.js; studio-shell/src/Settings.jsx; app_settings.py",
+      "finding": "App settings declaration works but is not the full OS catalogue. Managed account/functions/entities explicitly throw STUDIO_SERVICE_UNBOUND. BINS/cloud imports and OAuth setup cannot be inferred from connector access or shell icons.",
+      "owner_boundary": "Existing API Glass Box/plugin Work + BINS + settings owners, no new connector lane",
+      "acceptance": "Cog opens full shared catalogue at app; BINS opens authorized scope; real connection test/write/readback; queued worker/connector available is not installed app binding. Preserve existing Work and return route."
+    }
+  ],
+  "installed_acceptance": "OPEN",
+  "quorum": "NOT_OBTAINED",
+  "source_effects": "No application, service, favorites, credentials or user data changed by audit probes; one private idle mpv fixture used and stopped."
+}

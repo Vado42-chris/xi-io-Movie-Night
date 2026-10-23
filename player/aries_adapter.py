@@ -293,13 +293,22 @@ class Source:
         return {"id": self.id, "label": self.label, "quality": self.quality, **self.technical}
 
 
+def provider_description(stream):
+    """Read bounded hints privately; never return the provider text to the UI."""
+    hints = stream.get("behaviorHints")
+    filename = hints.get("filename") if isinstance(hints, dict) else None
+    return " ".join(value[:4000] for value in
+                    [stream.get("name"), stream.get("title"), stream.get("description"), filename]
+                    if isinstance(value, str))[:12000]
+
+
 def technical_metadata(stream, description):
     """Extract fixed-vocabulary hints, never provider text, URLs or headers.
 
     These labels describe provider claims, not measured decoder capabilities.
     Unknown fields stay empty; the UI must not invent HDR, audio or language.
     """
-    data = str(description)[:4000]
+    data = (str(description)[:4000] + " " + provider_description(stream))[:16000]
     size = source_size(stream, data)
     codec = ("AV1" if re.search(r"\bAV1\b", data, re.I) else
              "HEVC / H.265" if re.search(r"\b(?:HEVC|[xh][ ._-]?265)\b", data, re.I) else
@@ -316,7 +325,23 @@ def technical_metadata(stream, description):
                            ("7.1", r"(?<!\d)7\.1(?!\d)"), ("5.1", r"(?<!\d)5\.1(?!\d)")]:
         if re.search(pattern, data, re.I) and not (label == "DTS" and "DTS-HD" in audio):
             audio.append(label)
+    # Fixed vocabulary only. These are provider hints, not verified player tracks.
+    languages = [label for label, pattern in [
+        ("English", r"\b(?:English|ENG)\b"), ("French", r"\b(?:French|FRA|FRE)\b"),
+        ("Spanish", r"\b(?:Spanish|SPA)\b"), ("German", r"\b(?:German|GER|DEU)\b"),
+        ("Italian", r"\b(?:Italian|ITA)\b"), ("Japanese", r"\b(?:Japanese|JPN)\b"),
+        ("Korean", r"\b(?:Korean|KOR)\b"), ("Portuguese", r"\b(?:Portuguese|POR)\b"),
+        ("Multiple languages", r"\b(?:MULTI|MULTILANGUAGE|DUAL[ ._-]?AUDIO)\b")]
+        if re.search(pattern, data, re.I)]
+    source_format = next((label for label, pattern in [
+        ("Blu-ray remux", r"\bREMUX\b"), ("Blu-ray", r"\b(?:Blu[ ._-]?Ray|BDRip)\b"),
+        ("WEB-DL", r"\bWEB[ ._-]?DL\b"), ("WEBRip", r"\bWEB[ ._-]?RIP\b"),
+        ("HDTV", r"\bHDTV\b")]
+        if re.search(pattern, data, re.I)), "")
+    container = next((ext.upper() for ext in ["mkv", "mp4", "webm", "avi", "m4v", "ts"]
+                      if re.search(r"\." + ext + r"(?:\s|$)", data, re.I)), "")
     return {"provider": "Torrentio", "availability": "RD cached", "video_codec": codec,
+            "languages": languages, "source_format": source_format, "container": container,
             "dynamic_range": dynamic_range, "audio": audio,
             "size_bytes": int(size) if math.isfinite(size) else None,
             "metadata_basis": "provider-reported"}
@@ -423,7 +448,7 @@ class Resolver:
                 headers = stream_headers(stream)
             except ValueError:
                 continue
-            text = name + " " + str(stream.get("title", ""))[:3000]
+            text = provider_description(stream)
             quality_match = re.search(r"(?<![0-9])(2160|1080|720|480|360)p\b", text, re.I)
             quality = quality_match.group(1) + "p" if quality_match else ("2160p" if re.search(r"\b4k\b", text, re.I) else "unknown")
             rank = qualities.index(quality)
@@ -767,7 +792,8 @@ class Player:
             target = self.embed_target()
             if target:
                 command += ["--wid=" + str(target), "--vo=gpu", "--gpu-context=x11egl",
-                            "--osc=no", "--osd-bar=no", "--keep-open=no"]
+                            "--osc=no", "--osd-bar=no", "--keep-open=no",
+                            "--input-conf=" + str(Path(__file__).with_name("native-input.conf"))]
             self.process = subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
                                             stderr=subprocess.DEVNULL, start_new_session=True, close_fds=True)
         except Exception:
@@ -789,6 +815,31 @@ class Player:
     def number(value):
         return round(float(value), 3) if isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value) else None
 
+    def tracks(self, include_probe=False):
+        """Expose bounded mpv track labels, plus explicit read success for status."""
+        try:
+            raw = self.ipc(["get_property", "track-list"], optional=True)
+        except (SafeError, KeyError):
+            raw = None
+        if not isinstance(raw, list):
+            return ([], False) if include_probe else []
+        rows = []
+        for track in raw[:128]:
+            if not isinstance(track, dict) or track.get("type") not in ("audio", "sub"):
+                continue
+            track_id = track.get("id")
+            if type(track_id) is not int or not 0 <= track_id <= 100000:
+                continue
+            def label(key, limit):
+                value = track.get(key)
+                if not isinstance(value, str) or "://" in value:
+                    return ""
+                return "".join(c for c in value if ord(c) >= 32)[:limit]
+            rows.append({"id": track_id, "type": track["type"], "language": label("lang", 32),
+                         "title": label("title", 160), "codec": label("codec", 40),
+                         "selected": track.get("selected") is True})
+        return (rows, True) if include_probe else rows
+
     def status(self):
         with self.lock:
             result = self.snapshot()
@@ -804,6 +855,10 @@ class Player:
                     return result
                 idle = self.ipc(["get_property", "idle-active"])
                 paused = self.ipc(["get_property", "pause"], optional=True)
+                if idle:
+                    result["tracks"], result["tracks_available"] = [], False
+                else:
+                    result["tracks"], result["tracks_available"] = self.tracks(include_probe=True)
                 for target, prop in (("position", "time-pos"), ("duration", "duration"), ("volume", "volume")):
                     result[target] = self.number(self.ipc(["get_property", prop], optional=True))
                 for target, prop in (("muted", "mute"), ("fullscreen", "fullscreen")):
@@ -811,7 +866,15 @@ class Player:
                     if isinstance(value, bool):
                         setattr(self, target, value)
                     result[target] = getattr(self, target)
-                if self.stop_requested:
+                # A verified mpv EOF is not a generic idle/stop/error. Retain
+                # the last series/season/episode until an explicit next load.
+                eof = (self.ipc(["get_property", "eof-reached"], optional=True) is True
+                       if not idle and self.media_type == "series" and not self.stop_requested else False)
+                if eof and isinstance(result.get("duration"), (float, int)) and result["duration"] > 0:
+                    self.has_played = True
+                    self.last_error = None
+                    result.update(state="ended", position=result["duration"], last_error=None)
+                elif self.stop_requested:
                     result.update(state="idle", position=None, duration=None, last_error=None)
                 elif idle:
                     if self.loading_since and not self.has_played:
@@ -861,6 +924,10 @@ class Player:
                 # A default applies only to an explicit new play, never a
                 # settings save, status read, or resume of the current film.
                 self.ipc(["set_property", "volume", volume])
+                # Keep an episodic file loaded at natural EOF so status can read
+                # mpv's actual eof-reached flag and retain the exact identity.
+                # Movies continue to use the original non-keeping behavior.
+                self.ipc(["set_property", "keep-open", "yes" if kind == "series" else "no"])
                 # Set a literal media title; only this fixed window-title template
                 # is expanded by mpv. Never display the provider's URL/filename.
                 self.ipc(["set_property", "force-media-title", display_title])
@@ -888,7 +955,15 @@ class Player:
             commands = {"pause": ["set_property", "pause", True], "resume": ["set_property", "pause", False],
                         "toggle": ["cycle", "pause"], "stop": ["stop"],
                         "mute": ["cycle", "mute"], "fullscreen": ["cycle", "fullscreen"]}
-            if name in ("seek", "volume", "skip"):
+            if name in ("audio-track", "subtitle-track"):
+                kind = "audio" if name == "audio-track" else "sub"
+                if kind == "sub" and value == "off":
+                    command = ["set_property", "sid", "no"]
+                elif type(value) is int and any(row["id"] == value and row["type"] == kind for row in self.tracks()):
+                    command = ["set_property", "aid" if kind == "audio" else "sid", value]
+                else:
+                    raise SafeError("bad_request")
+            elif name in ("seek", "volume", "skip"):
                 if not isinstance(value, (int, float)) or isinstance(value, bool) or not math.isfinite(value):
                     raise SafeError("bad_request")
                 if name == "seek" and 0 <= value <= 86400:
@@ -960,6 +1035,8 @@ class Adapter:
                     raise SafeError("bad_request")
                 return 202, self.player.play(source, start) if start else self.player.play(source)
             if set(payload) - {"command", "value", "imdb_id", "type", "season", "episode"} or not isinstance(payload.get("command"), str):
+                raise SafeError("bad_request")
+            if payload.get("command") in ("audio-track", "subtitle-track") and "imdb_id" not in payload:
                 raise SafeError("bad_request")
             if any(key in payload for key in ("imdb_id", "type", "season", "episode")):
                 imdb_id, _, kind, season, episode = media_input(payload)

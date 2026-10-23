@@ -1,5 +1,6 @@
 """Private live-query cubes and home layout. Never edits library or account files."""
 import copy
+from datetime import datetime, timezone
 import fcntl
 import json
 import os
@@ -40,7 +41,8 @@ def validate(value):
         raise CubeError('invalid_cube_identity', 'Each filter cube needs one distinct identity.')
     for row in value['rows']:
         f = row['filters']
-        if f['yearFrom'] and f['yearTo'] and int(f['yearFrom']) > int(f['yearTo']):
+        through = datetime.now(timezone.utc).year if f['yearTo'] == 'present' else int(f['yearTo']) if f['yearTo'] else None
+        if f['yearFrom'] and through is not None and int(f['yearFrom']) > through:
             raise CubeError('invalid_year_range', 'The end year must follow the start year.')
         if not row['name'].strip():
             raise CubeError('cube_name_required', 'Give this filter cube a name.')
@@ -160,6 +162,15 @@ def handle(handler):
             payload = decode(raw)
         except (ValueError, OSError, TypeError, RecursionError):
             raise CubeError('invalid_cube_document', 'The cube document could not be read. Nothing was changed.') from None
+        # Compatibility, not permission: old clients normalize an unknown rolling
+        # bound to empty. Refuse their writes before they can erase that meaning.
+        payload = validate(payload)
+        current = read_document()
+        uses_rolling = any(row.get('filters', {}).get('yearTo') == 'present'
+                           for document in (current, payload) if isinstance(document, dict)
+                           for row in document.get('rows', []) if isinstance(row, dict))
+        if uses_rolling and handler.headers.get('X-Movie-Night-Cube-Features') != ','.join(CONTRACT['x-write-features']):
+            raise CubeError('cube_writer_update_required', 'This cube uses a newer year rule. Reopen Movie Night before saving; your stored cubes were not changed.', 409)
         handler.json_response(200, save_document(payload))
     except CubeError as error:
         handler.json_response(error.status, {'error': error.message, 'code': error.code})

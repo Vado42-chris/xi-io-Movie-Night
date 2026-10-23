@@ -1,0 +1,382 @@
+{
+  "scope": "shared window template source qualification, existing Movie Night PR #8 and framework #1347",
+  "work": "settings-sdk-publisher-audit-2026-09-26",
+  "basis_commit": "cfad09fe70a5f3f1bdc4aeb588bb8c4064467ad1",
+  "source_qualification_only": true,
+  "native_calls_simulated": true,
+  "network_reply_fixture": true,
+  "real_playback_writes": 0,
+  "adoption_order": [
+    "Movie Night",
+    "Inbox",
+    "Resume",
+    "Calendar",
+    "Timesheets",
+    "sam_law"
+  ],
+  "baseline": {
+    "source": "actual shared WindowFrame, ChatDockSlot and Movie Night consumer",
+    "native": "SIMULATED_ONLY",
+    "network": "chat response fixture; player blocked; read-only catalogue/settings",
+    "fallback": false,
+    "allocationMethod": "actual frame CSS allocation, verified by bounding box; not OS resize",
+    "checks": [
+      {
+        "name": "BINS/chat/Settings belong to the existing left rail, separate from lifecycle",
+        "pass": true
+      },
+      {
+        "name": "wide content and right chat do not overlap",
+        "pass": true
+      },
+      {
+        "name": "480px allocated pane in a 1920px browser has reachable chat",
+        "pass": false,
+        "error": "narrow layout leaves the content as an unusable sliver"
+      },
+      {
+        "name": "real reflow retains DOM instance, draft, selection and focus",
+        "pass": true
+      },
+      {
+        "name": "close returns focus and left-rail restore retains the same conversation",
+        "pass": true
+      },
+      {
+        "name": "in-flight response is neither lost nor resent across hide/reflow",
+        "pass": true
+      },
+      {
+        "name": "unbound BINS is not represented as an authorized file operation",
+        "pass": true
+      },
+      {
+        "name": "allocation 320px has no outer horizontal overflow and a single conversation",
+        "pass": true
+      },
+      {
+        "name": "allocation 390px has no outer horizontal overflow and a single conversation",
+        "pass": true
+      },
+      {
+        "name": "allocation 768px has no outer horizontal overflow and a single conversation",
+        "pass": true
+      },
+      {
+        "name": "allocation 1280px has no outer horizontal overflow and a single conversation",
+        "pass": true
+      },
+      {
+        "name": "allocation 1920px has no outer horizontal overflow and a single conversation",
+        "pass": true
+      },
+      {
+        "name": "short-height utility rail controls are scroll-reachable",
+        "pass": true
+      },
+      {
+        "name": "no unhandled errors or unexpected domain writes",
+        "pass": true
+      }
+    ],
+    "errors": [],
+    "writes": [
+      {
+        "path": "/api/concierge/chat",
+        "method": "POST",
+        "intercepted": true
+      }
+    ],
+    "failures": [
+      "480px allocated pane in a 1920px browser has reachable chat"
+    ],
+    "browser": "152.0.7961.0",
+    "pass": false
+  },
+  "candidate": {
+    "source": "actual shared WindowFrame, ChatDockSlot and Movie Night consumer",
+    "native": "SIMULATED_ONLY",
+    "network": "chat response fixture; player blocked; read-only catalogue/settings",
+    "fallback": false,
+    "allocationMethod": "actual frame CSS allocation, verified by bounding box; not OS resize",
+    "checks": [
+      {
+        "name": "BINS/chat/Settings belong to the existing left rail, separate from lifecycle",
+        "pass": true
+      },
+      {
+        "name": "wide content and right chat do not overlap",
+        "pass": true
+      },
+      {
+        "name": "480px allocated pane in a 1920px browser has reachable chat",
+        "pass": true
+      },
+      {
+        "name": "real reflow retains DOM instance, draft, selection and focus",
+        "pass": true
+      },
+      {
+        "name": "close returns focus and left-rail restore retains the same conversation",
+        "pass": true
+      },
+      {
+        "name": "in-flight response is neither lost nor resent across hide/reflow",
+        "pass": true
+      },
+      {
+        "name": "unbound BINS is not represented as an authorized file operation",
+        "pass": true
+      },
+      {
+        "name": "allocation 320px has no outer horizontal overflow and a single conversation",
+        "pass": true
+      },
+      {
+        "name": "allocation 390px has no outer horizontal overflow and a single conversation",
+        "pass": true
+      },
+      {
+        "name": "allocation 768px has no outer horizontal overflow and a single conversation",
+        "pass": true
+      },
+      {
+        "name": "allocation 1280px has no outer horizontal overflow and a single conversation",
+        "pass": true
+      },
+      {
+        "name": "allocation 1920px has no outer horizontal overflow and a single conversation",
+        "pass": true
+      },
+      {
+        "name": "short-height utility rail controls are scroll-reachable",
+        "pass": true
+      },
+      {
+        "name": "short-height composer can be brought fully into view",
+        "pass": true
+      },
+      {
+        "name": "no unhandled errors or unexpected domain writes",
+        "pass": true
+      }
+    ],
+    "errors": [],
+    "writes": [
+      {
+        "path": "/api/concierge/chat",
+        "method": "POST",
+        "intercepted": true
+      }
+    ],
+    "failures": [],
+    "browser": "152.0.7961.0",
+    "pass": true
+  },
+  "container_rules_removed": {
+    "source": "actual shared WindowFrame, ChatDockSlot and Movie Night consumer",
+    "native": "SIMULATED_ONLY",
+    "network": "chat response fixture; player blocked; read-only catalogue/settings",
+    "fallback": true,
+    "allocationMethod": "actual frame CSS allocation, verified by bounding box; not OS resize",
+    "checks": [
+      {
+        "name": "BINS/chat/Settings belong to the existing left rail, separate from lifecycle",
+        "pass": true
+      },
+      {
+        "name": "wide content and right chat do not overlap",
+        "pass": true
+      },
+      {
+        "name": "480px allocated pane in a 1920px browser has reachable chat",
+        "pass": true
+      },
+      {
+        "name": "real reflow retains DOM instance, draft, selection and focus",
+        "pass": true
+      },
+      {
+        "name": "close returns focus and left-rail restore retains the same conversation",
+        "pass": true
+      },
+      {
+        "name": "in-flight response is neither lost nor resent across hide/reflow",
+        "pass": true
+      },
+      {
+        "name": "unbound BINS is not represented as an authorized file operation",
+        "pass": true
+      },
+      {
+        "name": "allocation 320px has no outer horizontal overflow and a single conversation",
+        "pass": true
+      },
+      {
+        "name": "allocation 390px has no outer horizontal overflow and a single conversation",
+        "pass": true
+      },
+      {
+        "name": "allocation 768px has no outer horizontal overflow and a single conversation",
+        "pass": true
+      },
+      {
+        "name": "allocation 1280px has no outer horizontal overflow and a single conversation",
+        "pass": true
+      },
+      {
+        "name": "allocation 1920px has no outer horizontal overflow and a single conversation",
+        "pass": true
+      },
+      {
+        "name": "short-height utility rail controls are scroll-reachable",
+        "pass": true
+      },
+      {
+        "name": "short-height composer can be brought fully into view",
+        "pass": true
+      },
+      {
+        "name": "fallback truly removes container query rules",
+        "pass": true
+      },
+      {
+        "name": "no unhandled errors or unexpected domain writes",
+        "pass": true
+      }
+    ],
+    "errors": [],
+    "writes": [
+      {
+        "path": "/api/concierge/chat",
+        "method": "POST",
+        "intercepted": true
+      }
+    ],
+    "failures": [],
+    "browser": "152.0.7961.0",
+    "removedContainerRules": 1,
+    "pass": true
+  },
+  "source_patch_reconstruction": [
+    {
+      "file": "src/components/desktop/WindowFrame.jsx",
+      "source_digest": "8a40aa6f6734f2290c6cba2283032f07d9bcd3dcc065b61017dec3f96f5cf243",
+      "upstream_sha256": "9fe963dc791a73c880693bdea85d9a338f84a7b233990a6c401ada87f586baae",
+      "patch_reconstructs_exact_bytes": true,
+      "format": "git-generated zero-context diff, exact upstream digest required"
+    },
+    {
+      "file": "src/components/chat/ChatDockSlot.jsx",
+      "source_digest": "2f097d562db3b02ab7f297ec41d9f8c2238a2c90eb318d456d115f8b7f089861",
+      "upstream_sha256": "4a3c25ac0fa2a6de1902ad14305ff7d0cd4341c50c2dd0e4833eff0f334fb354",
+      "patch_reconstructs_exact_bytes": true,
+      "format": "git-generated zero-context diff, exact upstream digest required"
+    },
+    {
+      "file": "src/components/desktop/embedded.css",
+      "source_digest": "3f91f8e4e4100fd9617dffb804da8f9011ef073150869960d1eb22d157db7d32",
+      "upstream_sha256": "27148e4823d23e4b1670ccf98b40e65892b3c6d47887218bb89c3da7e5425712",
+      "patch_reconstructs_exact_bytes": true,
+      "format": "git-generated zero-context diff, exact upstream digest required"
+    }
+  ],
+  "other_checks": {
+    "player_unit_tests": 16,
+    "settings_unit_tests": 19,
+    "shell_build": "PASS"
+  },
+  "retained_harness_limits": [
+    "First harness constrained only a parent of a fixed-position frame and therefore did not prove allocated width. That run was superseded by measured actual-frame allocation.",
+    "Initial diff serialization failed because the upstream file lacks a final newline; git-generated patches with explicit upstream SHA-256 and result hash verification replaced that failed packaging attempt."
+  ],
+  "open": [
+    "independent source review",
+    "accepted main",
+    "installed native readback",
+    "physical keyboard/pointer/touch and full-screen lifecycle",
+    "true native chat undock/redock",
+    "canonical shared bridge draft-store adoption",
+    "full shared Settings catalogue binding",
+    "authorized BINS binding",
+    "chroma and contrast qualification",
+    "other product consumers",
+    "RETURN/APPLY_RETURN"
+  ],
+  "source_files_sha256": {
+    "docs/architecture/shared-shell-foundation.md": "fdb09398142adca1001fb8e70eef68b0a1ca6e576487e406eb7a5a6f47977343",
+    "studio-shell/patches/window-frame-native-window.patch": "e8e381830c5601ddf834dbeace2d9bfe30cccf7afafa7886d551e9dff234e1a2",
+    "studio-shell/patches/chat-dock-window-template.patch": "42eda5ba780ac803d4251b4ccfcee6249e91c1b3f8fd0b028677fc745afbbdf9",
+    "studio-shell/patches/embedded-window-template.patch": "4f0e369e29f528540be87996a5a8f541f0899acafe59bfde77aa920868c1212a",
+    "studio-shell/src/Settings.jsx": "5203dbca58d0981582d2ad03c3996f317ff9ad767025a2f0f4cfed14dda4b8cf",
+    "studio-shell/src/main.jsx": "5314442eff2182a684771f258168157488568816d458cc4a2ef72e2881471605",
+    "studio-shell/src/style.css": "55f8b16bd0b623cb8278008acb7a2bcb3797a9ca38723ee181e46e284cf1103e",
+    "studio-shell/vendor/provenance.json": "499d47c048459a10386d717a7a6fbfa8a0cf5f6701f3bf2597a5a72787c58e91",
+    "studio-shell/vendor/src/components/chat/ChatDockSlot.jsx": "2f097d562db3b02ab7f297ec41d9f8c2238a2c90eb318d456d115f8b7f089861",
+    "studio-shell/vendor/src/components/desktop/WindowFrame.jsx": "8a40aa6f6734f2290c6cba2283032f07d9bcd3dcc065b61017dec3f96f5cf243",
+    "studio-shell/vendor/src/components/desktop/embedded.css": "3f91f8e4e4100fd9617dffb804da8f9011ef073150869960d1eb22d157db7d32",
+    "verification/verify-window-template.cjs": "1d615a0699eff8641fc6fa084911e078e3d03ed3b0cc2ac170c4471f57542443"
+  },
+  "native_action_guard": "All native calls except layout publication and state reads are test failures; all attempted playback writes are intercepted, rejected and counted.",
+  "consumer_reuse_guards": {
+    "observed_at": "2026-10-22T20:03:54.236913+00:00",
+    "basis_commit": "bff9a0d855c869de901e12a20b0caf4a6db84d5c",
+    "runner_sha256": "5e7ff98e84022a43358bc580e2ddc52b5a38bbd9e71fdb234592a245c1cdb862",
+    "operations": "read-only served-asset/source checks; isolated browser contexts; one mocked chat reply",
+    "runs": {
+      "browser": {
+        "report_sha256": "7785e0e2a20e57a4dbf32770d739f96d0ccd3fa07f3619310ca7eb9d81c51c2e",
+        "checks": 20,
+        "test_pass": true,
+        "failed_checks": [],
+        "browser_started": true,
+        "evidence_class": "BROWSER_COMPONENT_REGRESSION",
+        "consumer_acceptance": {
+          "bins": "BLOCKED_SERVICE_UNBOUND",
+          "fullSettingsCatalogue": "NOT_EXERCISED",
+          "nativeWindow": "NOT_EXERCISED",
+          "lokiHosting": "NOT_EXERCISED",
+          "parentReturn": "NOT_EXERCISED"
+        }
+      },
+      "without_container_queries": {
+        "report_sha256": "70aabefbb4e816c1d9a793af156aa54a55dc2f1abf2c795693444e66b23362d7",
+        "checks": 21,
+        "test_pass": true,
+        "failed_checks": [],
+        "browser_started": true,
+        "evidence_class": "BROWSER_COMPONENT_REGRESSION",
+        "consumer_acceptance": {
+          "bins": "BLOCKED_SERVICE_UNBOUND",
+          "fullSettingsCatalogue": "NOT_EXERCISED",
+          "nativeWindow": "NOT_EXERCISED",
+          "lokiHosting": "NOT_EXERCISED",
+          "parentReturn": "NOT_EXERCISED"
+        }
+      },
+      "stale_build_negative": {
+        "report_sha256": "f243bca01afd4aaf59ea058481655f1bd7e779a67fa80147ec1380ab74bfb976",
+        "checks": 3,
+        "test_pass": false,
+        "failed_checks": [
+          "actual Aries-served shell assets match selected build bytes"
+        ],
+        "browser_started": false,
+        "evidence_class": "BROWSER_COMPONENT_REGRESSION",
+        "consumer_acceptance": {
+          "bins": "NOT_EXERCISED",
+          "fullSettingsCatalogue": "NOT_EXERCISED",
+          "nativeWindow": "NOT_EXERCISED",
+          "lokiHosting": "NOT_EXERCISED",
+          "parentReturn": "NOT_EXERCISED"
+        }
+      }
+    },
+    "negative_control_expected_to_fail": true,
+    "original_failures_preserved": true,
+    "runtime_source_changed": false,
+    "bins_binding_changed": false,
+    "independent_reviewer": null,
+    "accepted_main": null
+  }
+}

@@ -4,7 +4,7 @@
   "files": [
     {
       "file": "src/components/desktop/WindowFrame.jsx",
-      "sha256": "4c20a220bccd7bf10e2a3b754331e573a58f0cb791852b22a33456347a3d00ac",
+      "sha256": "8a40aa6f6734f2290c6cba2283032f07d9bcd3dcc065b61017dec3f96f5cf243",
       "source": {
         "kind": "git",
         "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
@@ -12,9 +12,11 @@
       },
       "local_patch": {
         "file": "../patches/window-frame-native-window.patch",
-        "sha256": "dcbc3618b08d757989b431dd435e700a14f03aff88b2fcb261a8bb16ef4c8c55",
+        "sha256": "e8e381830c5601ddf834dbeace2d9bfe30cccf7afafa7886d551e9dff234e1a2",
         "upstream_sha256": "9fe963dc791a73c880693bdea85d9a338f84a7b233990a6c401ada87f586baae",
-        "description": "Opt-in nativeWindow delegation, titleBarActions, onOpenSettings and footerStatus for the personal Movie Night native host. Native mouse operations use mousedown after window-manager grabs; pen/touch use pointerdown. Existing browser desktop defaults remain."
+        "description": "Existing nativeWindow delegation and left-rail utility slice retained. Shared allocated-container content/chat layout replaces browser-width assumptions. No BINS or full-catalogue service binding is implied. Canonical shared-owner adoption and installed acceptance remain open.",
+        "context_lines": 0,
+        "apply": "Require upstream_sha256 equality first, then git apply --unidiff-zero; verify resulting sha256."
       }
     },
     {
@@ -54,10 +56,18 @@
     },
     {
       "file": "src/components/chat/ChatDockSlot.jsx",
-      "sha256": "4a3c25ac0fa2a6de1902ad14305ff7d0cd4341c50c2dd0e4833eff0f334fb354",
+      "sha256": "2f097d562db3b02ab7f297ec41d9f8c2238a2c90eb318d456d115f8b7f089861",
       "source": {
         "kind": "qualified-renderer",
         "path": "/media/chrishallberg/Storage 22/001_Flatpack_installs/xi-io-studio/workspaces/base44-app-qualified/src/components/chat/ChatDockSlot.jsx"
+      },
+      "local_patch": {
+        "file": "../patches/chat-dock-window-template.patch",
+        "sha256": "42eda5ba780ac803d4251b4ccfcee6249e91c1b3f8fd0b028677fc745afbbdf9",
+        "upstream_sha256": "4a3c25ac0fa2a6de1902ad14305ff7d0cd4341c50c2dd0e4833eff0f334fb354",
+        "description": "Frame-scoped rendering does not switch DOM type at browser breakpoints. PersistentChatPortal retains one existing chat instance across hide/reparent/reflow, without creating another store, engine or authority plane. Canonical shared-owner adoption and installed acceptance remain open.",
+        "context_lines": 0,
+        "apply": "Require upstream_sha256 equality first, then git apply --unidiff-zero; verify resulting sha256."
       }
     },
     {
@@ -194,11 +204,19 @@
     },
     {
       "file": "src/components/desktop/embedded.css",
-      "sha256": "27148e4823d23e4b1670ccf98b40e65892b3c6d47887218bb89c3da7e5425712",
+      "sha256": "3f91f8e4e4100fd9617dffb804da8f9011ef073150869960d1eb22d157db7d32",
       "source": {
         "kind": "git",
         "commit": "94c49141a132ed00cdd72d0457911fc40523794f",
         "path": "base44-donor/xi-io-node/src/components/desktop/embedded.css"
+      },
+      "local_patch": {
+        "file": "../patches/embedded-window-template.patch",
+        "sha256": "4f0e369e29f528540be87996a5a8f541f0899acafe59bfde77aa920868c1212a",
+        "upstream_sha256": "27148e4823d23e4b1670ccf98b40e65892b3c6d47887218bb89c3da7e5425712",
+        "description": "Shared utility rail and chat-session layout, with container-query enhancement and conservative single-pane fallback. Consumer-specific fixed chat width removed. Canonical shared-owner adoption and installed acceptance remain open.",
+        "context_lines": 0,
+        "apply": "Require upstream_sha256 equality first, then git apply --unidiff-zero; verify resulting sha256."
       }
     },
     {

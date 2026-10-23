@@ -107,3 +107,34 @@
 @media (prefers-reduced-motion: reduce) {
   .xi-chroma.xi-embedded { transition: none; }
 }
+
+/* Existing left rail, distinct utilities and lifecycle controls. No new palette. */
+.window-left-rail { min-height:0; padding-block:8px; gap:8px; }
+.window-left-rail .window-rail-glyph { margin-top:0; margin-bottom:0; }
+.window-left-rail .window-rail-actions { flex:0 1 auto; min-height:0; max-height:calc(100% - 80px); overflow-y:auto; overscroll-behavior:contain; padding:4px 0; }
+.window-utility-zone, .window-lifecycle-controls { display:flex; flex-direction:column; align-items:center; gap:4px; flex:none; }
+.window-utility-zone { padding-bottom:8px; margin-bottom:8px; border-bottom:1px solid hsl(var(--border)); }
+.window-utility-button { display:flex; align-items:center; justify-content:center; flex:none; width:40px; height:40px; border:1px solid transparent; color:hsl(var(--foreground)); background:transparent; cursor:pointer; }
+.window-utility-button:hover { background:hsl(var(--foreground) / .06); }
+.window-utility-button:focus-visible { outline:2px solid hsl(var(--foreground)); outline-offset:-3px; }
+.window-utility-button:disabled { color:hsl(var(--muted-foreground)); cursor:not-allowed; }
+.window-lifecycle-controls > button { flex:none; }
+.xi-chat-session { width:100%; height:100%; min-width:0; min-height:0; }
+.xi-chat-session[hidden] { display:none; }
+
+/* Frame-owned layout. A narrow allocated window is not a narrow browser.
+ * Conservative no-container-query fallback shows one usable pane at a time.
+ * The same iframe and chat instance stay mounted, preserving local state.
+ */
+.xi-window-work-area {
+  container: xiio-window-body / inline-size;
+  flex-direction: row;
+  min-width: 0;
+}
+.xi-window-work-area[data-chat-open="true"] > .xi-window-primary { display:none; }
+.xi-window-work-area > .xi-chat-dock { flex:1 1 0; width:auto; max-width:100%; min-width:0; min-height:0; }
+.xi-window-work-area[data-chat-side="left"] > .xi-chat-dock { order:-1; }
+@container xiio-window-body (min-width: 48rem) {
+  .xi-window-work-area[data-chat-open="true"] > .xi-window-primary { display:block; }
+  .xi-window-work-area > .xi-chat-dock { flex:0 1 clamp(18rem, 30%, 24rem); }
+}

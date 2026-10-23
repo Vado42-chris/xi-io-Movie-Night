@@ -21,7 +21,7 @@ const results=[];
     await p.goto(base,{waitUntil:'domcontentloaded'});
     await p.waitForFunction(()=>document.querySelectorAll('.movie-card').length===100&&document.getElementById('cube-add')&&!document.getElementById('cube-add').disabled);
     await p.locator('#cube-view-carousel').click();await p.locator('.cube-welcome').waitFor();
-    async function add(name){await p.locator('#cube-add').click();await p.locator('#cube-name').fill(name);await p.locator('#cube-confirm').click();await p.locator('#cube-naming').waitFor({state:'hidden'});}
+    async function add(name){await p.locator('#cube-add').click();await p.locator('#cube-builder-next').click();await p.locator('#cube-builder-next').click();await p.locator('#cube-name').fill(name);await p.locator('#cube-confirm').click();await p.locator('#cube-naming').waitFor({state:'hidden'});}
     await add('All classics');
     let row=p.locator('.cube-row').first();await row.locator('.cube-cover[aria-current=true]').waitFor();
     assert.equal(await row.locator('.cube-cover').count(),9,'Only the nearest nine cards render');

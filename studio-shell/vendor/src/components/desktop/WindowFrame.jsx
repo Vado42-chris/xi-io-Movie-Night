@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, useDragControls, useMotionValue } from 'framer-motion';
-import { X, Minus, Maximize2, Minimize2, GripVertical, Settings, Layout, Command, Cpu, Database, Activity, GitBranch, Layers, Pin } from 'lucide-react';
+import { X, Minus, Maximize2, Minimize2, GripVertical, Settings, Layout, Command, Cpu, Database, Activity, GitBranch, Layers, Pin, Sparkles } from 'lucide-react';
 import { SystemFileBar, SystemFileFrame } from '@/components/framework/sdk';
 import ChatDockSlot from '@/components/chat/ChatDockSlot';
 import WindowChatLanes from './WindowChatLanes';
@@ -707,7 +707,8 @@ function WindowFrameContent({
 
             {/* LEFT RAIL - THE GLYPH PANEL */}
             <div 
-                className={`w-16 border-r border-border flex flex-col items-center py-6 gap-6 z-20 shrink-0 relative xi-grid cursor-grab active:cursor-grabbing select-none ${hot ? 'xi-desktop-glass-hot' : 'xi-desktop-glass-chrome'}`}
+                data-window-rail="left"
+                className={`window-left-rail w-16 border-r border-border flex flex-col items-center py-6 gap-6 z-20 shrink-0 relative xi-grid cursor-grab active:cursor-grabbing select-none ${hot ? 'xi-desktop-glass-hot' : 'xi-desktop-glass-chrome'}`}
                 {...chromeDragProps}
                 onDoubleClick={maximizeFromChrome}
             >
@@ -731,7 +732,7 @@ function WindowFrameContent({
                 {/* App Glyph — held at its own size. It is a mark, not a
                     flexible row, and must never be the thing that gives way when
                     the rail is short of room. */}
-                <div className="mt-2 mb-4 shrink-0 relative group/glyph">
+                <div className="window-rail-glyph mt-2 mb-4 shrink-0 relative group/glyph">
                     {/* Bare glyph, sized so the rail's geometry does not move. No
                         plate and no hairline behind it. */}
                     <div className="w-10 h-10 rounded-none flex items-center justify-center text-white relative z-10">
@@ -790,7 +791,33 @@ function WindowFrameContent({
                     is the whole point: these are the controls that get a window
                     out of the way, and they are the last thing that may ever be
                     pushed off the edge. */}
-                <div className="relative z-30 shrink-0 flex flex-col gap-3 w-full px-3 pb-4" onPointerDown={(e) => e.stopPropagation()}>
+                <div className="window-rail-actions relative z-30 flex flex-col w-full" data-no-window-drag
+                    onPointerDown={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}
+                    onDoubleClick={(e) => e.stopPropagation()}>
+                    {/* Host callbacks bind existing services. Absence is unavailable,
+                        never a fabricated successful BINS or Settings operation. */}
+                    {(props.onOpenSettings || props.onOpenChat || props.onOpenBins) && (
+                        <div className="window-utility-zone" role="group" aria-label={`${title} window utilities`}>
+                            <button type="button" data-window-utility="bins" className="window-utility-button"
+                                onClick={props.onOpenBins} disabled={typeof props.onOpenBins !== 'function'}
+                                title={props.onOpenBins ? 'Open BINS library' : 'BINS: authorized library binding is not connected'}
+                                aria-label={props.onOpenBins ? 'Open BINS library' : 'BINS library unavailable: not connected'}>
+                                <Database className={CHROME_ICON.bar} aria-hidden="true" />
+                            </button>
+                            <button type="button" data-window-utility="chat" className="window-utility-button"
+                                ref={props.chatButtonRef} onClick={props.onOpenChat} disabled={typeof props.onOpenChat !== 'function'}
+                                aria-expanded={props.chatOpen === true} aria-controls={props.chatPanelId}
+                                title="Open or restore @ibal" aria-label="Open or restore @ibal">
+                                <Sparkles className={CHROME_ICON.bar} aria-hidden="true" />
+                            </button>
+                            <button type="button" data-window-utility="settings" className="window-utility-button"
+                                onClick={props.onOpenSettings} disabled={typeof props.onOpenSettings !== 'function'}
+                                title="Settings" aria-label={`Open ${title} settings`}>
+                                <Settings className={CHROME_ICON.bar} aria-hidden="true" />
+                            </button>
+                        </div>
+                    )}
+                    <div className="window-lifecycle-controls" role="group" aria-label={`${title} window controls`}>
                     {props.onPin && (
                         <button onClick={props.onPin} className="w-10 h-10 rounded-none hover:bg-foreground/[0.06] flex items-center justify-center text-muted-foreground hover:text-[hsl(var(--color-intent))] transition-colors" title="Pin to Desktop">
                             <Pin className={CHROME_ICON.bar} />
@@ -805,6 +832,7 @@ function WindowFrameContent({
                     <button onClick={onClose} className="w-10 h-10 rounded-none hover:bg-[hsl(var(--color-warning))]/15 flex items-center justify-center text-muted-foreground hover:text-[hsl(var(--color-warning))] transition-colors" title="Close" aria-label="Close window">
                         <X className={CHROME_ICON.bar} />
                     </button>
+                    </div>
                 </div>
             </div>
 
@@ -920,9 +948,11 @@ function WindowFrameContent({
                      * means every colour window resolves through one material
                      * instead of each inventing its own glass. */
                     data-article-layer={hot ? 'intent' : 'state'}
-                    className="flex-1 min-h-0 overflow-hidden relative xi-grid flex flex-col lg:flex-row xi-articles-glass"
+                    data-chat-open={Boolean(dock.open && dock.binding?.id === props.chatTarget?.id)}
+                    data-chat-side={dock.side === 'left' ? 'left' : 'right'}
+                    className="xi-window-work-area flex-1 min-h-0 overflow-hidden relative xi-grid flex xi-articles-glass"
                 >
-                    <div className="flex-1 min-h-0 min-w-0 overflow-hidden relative">{children}</div>
+                    <div className="xi-window-primary flex-1 min-h-0 min-w-0 overflow-hidden relative">{children}</div>
                     {/* ── THE THREE SNAP POINTS ────────────────────────────────
                         Top, left and bottom, so a window can carry three
                         conversations at once — one about what it IS, one about
@@ -937,7 +967,7 @@ function WindowFrameContent({
                         ChatDockSlot: the seam lives on the dock because the
                         dock is the one thing all three hosts share, and a seam
                         written into each host would be three seams. */}
-                    {props.chatTarget && <ChatDockSlot {...props.chatTarget} />}
+                    {props.chatTarget && <ChatDockSlot {...props.chatTarget} withinFrame />}
                 </div>
 
                 {/* Status Footer */}
@@ -948,7 +978,7 @@ function WindowFrameContent({
                     </div>
                     <div className="flex items-center gap-2">
                         <span>{window.isSecureContext ? 'HTTPS CONTEXT' : 'INSECURE CONTEXT'}</span>
-                        {props.onOpenSettings ? <button type="button" className="window-settings-cog" title={`${title} settings`} aria-label={`Open ${title} settings`} onClick={props.onOpenSettings}><Settings className="w-4 h-4" /></button> : <Settings className="w-3 h-3" />}
+                        {/* Settings is in the persistent left utility zone, not this status footer. */}
                     </div>
                 </div>
             </div>

@@ -34,6 +34,7 @@ CATALOGUE_HOST = "cinemeta-catalogs.strem.io"
 MAX_REDIRECTS = 2
 TIMEOUT = 8.0
 CACHE_SECONDS = 300
+STALE_CATALOGUE_SECONDS = 900  # Existing in-memory cache only; never metadata/entitlement.
 MAX_RESPONSE = 4 * 1024 * 1024
 CATALOGUE_PAGE_SIZE = 50
 LEGACY_SEARCH_PAGE_SIZE = 100
@@ -296,8 +297,28 @@ def _cached(path, make_result):
         if cached and cached[0] > now:
             _cache.move_to_end(path)
             return deepcopy(cached[1])
-        _cache.pop(path, None)
-    result = make_result(_fetch_document(path))
+        # Keep a bounded successful catalogue snapshot while refreshing. Failure
+        # must not erase known titles or turn an outage into an empty catalogue.
+        if cached and cached[0] + STALE_CATALOGUE_SECONDS <= now:
+            _cache.pop(path, None)
+            cached = None
+    try:
+        result = make_result(_fetch_document(path))
+    except CatalogueError as exc:
+        if (exc.status in (502, 503, 504) and path.startswith("/catalog/")
+                and cached and isinstance(cached[1].get("movies"), list)
+                and cached[1]["movies"]
+                and cached[0] + STALE_CATALOGUE_SECONDS > time.monotonic()):
+            result = deepcopy(cached[1])
+            result.update(stale=True, freshness="stale",
+                          warning="Showing cached catalogue results; live refresh is unavailable.")
+            return result  # Do not extend the original expiry on a failed refresh.
+        raise
+    # Missing episode metadata is not an empty authoritative hierarchy. Do not
+    # cache it as success and suppress recovery on the next ordinary card open.
+    movie = result.get("movie") if isinstance(result, dict) else None
+    if isinstance(movie, dict) and movie.get("type") == "series" and "episodes" not in movie:
+        return result
     with _cache_lock:
         _cache[path] = (time.monotonic() + CACHE_SECONDS, deepcopy(result))
         _cache.move_to_end(path)
@@ -415,6 +436,20 @@ def browse(params):
     return _cached(path, make_result)
 
 
+def _episode_people(value):
+    """Names only from explicit episode credits. Never inherit series cast."""
+    if isinstance(value, str):
+        value = [value]
+    if not isinstance(value, list):
+        return []
+    names = []
+    for person in value[:40]:
+        name = _text(person.get("name") if isinstance(person, dict) else person, 120)
+        if name and name not in names:
+            names.append(name)
+    return names
+
+
 def episode_records(raw, series_id):
     """Public episode metadata only. Stream URLs and provider hints never pass through."""
     if not isinstance(raw, list):
@@ -435,10 +470,21 @@ def episode_records(raw, series_id):
                 datetime.fromisoformat(released.replace("Z", "+00:00"))
             except ValueError:
                 released = ""
+        rating = video.get("rating")
+        try:
+            rating = float(rating) if not isinstance(rating, bool) else None
+        except (ValueError, TypeError, OverflowError):
+            rating = None
+        if rating is not None and (not math.isfinite(rating) or not 0 <= rating <= 10):
+            rating = None
+        runtime = video.get("runtime")
+        if type(runtime) not in (int, float) or not math.isfinite(runtime) or not 0 < runtime <= 1440:
+            runtime = None
         found[identity] = {"id": identity, "season": season, "episode": episode,
-            "title": _text(video.get("title"), 300) or f"Episode {episode}",
-            "overview": _text(video.get("overview"), 2000), "released": released,
-            "thumbnail": _poster(video.get("thumbnail"))}
+            "title": _text(video.get("title"), 300) or _text(video.get("name"), 300) or f"Episode {episode}",
+            "overview": _text(video.get("overview"), 2000) or _text(video.get("description"), 2000), "released": released,
+            "thumbnail": _poster(video.get("thumbnail")), "rating": rating, "runtime_minutes": runtime,
+            **{key: _episode_people(video.get(key)) for key in ("cast", "guest_stars", "director", "writer")}}
     return sorted(found.values(), key=lambda row: (row["season"], row["episode"]))
 
 
@@ -467,8 +513,12 @@ def meta(params):
                                              if isinstance(value, str) and _text(value, 120))) if isinstance(values, list) else []
         for key in ("country", "awards", "language"):
             record[key] = _text(raw.get(key), 800)
-        if media_type == "series":
-            record["episodes"] = episode_records(raw.get("videos"), imdb_id)
+        if media_type == "series" and isinstance(raw.get("videos"), list):
+            episodes = episode_records(raw["videos"], imdb_id)
+            # Explicit [] means no episodes returned. Missing, malformed, or an
+            # entirely rejected nonempty list remains incomplete, not empty.
+            if episodes or not raw["videos"]:
+                record["episodes"] = episodes
         record["metadata_source"] = "Cinemeta"
         return {"movie": record, "source": "Cinemeta", "type": media_type}
 
