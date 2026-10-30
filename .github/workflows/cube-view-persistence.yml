@@ -4,6 +4,8 @@ on:
     paths:
       - 'web/filter-cubes.mjs'
       - 'verification/test-cube-view-persistence.cjs'
+      - 'verification/test-cube-view-browser.cjs'
+      - 'verification/cube-persistence-fixture.py'
       - '.github/workflows/cube-view-persistence.yml'
   push:
     branches:
@@ -11,11 +13,13 @@ on:
     paths:
       - 'web/filter-cubes.mjs'
       - 'verification/test-cube-view-persistence.cjs'
+      - 'verification/test-cube-view-browser.cjs'
+      - 'verification/cube-persistence-fixture.py'
       - '.github/workflows/cube-view-persistence.yml'
 permissions:
   contents: read
 jobs:
-  cube-view-save:
+  cube-view-source:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -25,5 +29,53 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24.22.1'
-      - name: Real source function with isolated persistence hostiles
+      - name: Exact production source function with isolated persistence hostiles
         run: node --test verification/test-cube-view-persistence.cjs
+
+  cube-view-docker-integration:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.55.0-noble
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+      - name: Provision isolated browser and schema validation
+        run: |
+          apt-get update -qq
+          DEBIAN_FRONTEND=noninteractive apt-get install -y -qq python3-jsonschema
+          npm install --prefix /tmp/movie-night-test --no-save --no-package-lock --ignore-scripts playwright@1.55.0
+          python3 -c 'from jsonschema import Draft202012Validator; print("schema available")'
+      - name: Real file-store HTTP persistence and browser restart
+        env:
+          MOVIE_NIGHT_PLAYWRIGHT: /tmp/movie-night-test/node_modules/playwright
+          MOVIE_NIGHT_TEST_OUTPUT: verification/results
+        run: |
+          node --check web/filter-cubes.mjs
+          node --test verification/test-cube-view-persistence.cjs
+          python3 -m unittest test_filter_cubes
+          node verification/test-cube-view-browser.cjs
+      - name: Package source-only patch and exact-generation evidence
+        run: |
+          mkdir -p qualified
+          git diff --binary "$(git merge-base HEAD origin/main)" HEAD > qualified/movie-night-cube-view.patch
+          git archive --format=tar HEAD \
+            web/filter-cubes.mjs \
+            verification/test-cube-view-persistence.cjs \
+            verification/test-cube-view-browser.cjs \
+            verification/cube-persistence-fixture.py | gzip -n > qualified/movie-night-cube-view-source.tar.gz
+          sha256sum qualified/movie-night-cube-view.patch qualified/movie-night-cube-view-source.tar.gz > qualified/SHA256SUMS
+          git rev-parse HEAD > qualified/SOURCE_HEAD
+      - uses: actions/upload-artifact@v4
+        with:
+          name: movie-night-cube-view-candidate
+          path: |
+            qualified/
+            verification/results/cube-view-browser.json
+          if-no-files-found: error
+          retention-days: 7
