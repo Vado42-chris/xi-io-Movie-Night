@@ -60,6 +60,20 @@ jobs:
           node --test verification/test-cube-view-persistence.cjs
           python3 -m unittest test_filter_cubes
           node verification/test-cube-view-browser.cjs
+      - name: Test combination with active carousel PR 7 in disposable checkout
+        env:
+          MOVIE_NIGHT_PLAYWRIGHT: /tmp/movie-night-test/node_modules/playwright
+          MOVIE_NIGHT_TEST_OUTPUT: verification/results
+        run: |
+          git -c safe.directory="$GITHUB_WORKSPACE" fetch --no-tags origin 28aca927f532475b10f5a7f3d7bb3ec4db025246
+          git -c safe.directory="$GITHUB_WORKSPACE" worktree add --detach /tmp/movie-night-pr7-compat HEAD
+          cd /tmp/movie-night-pr7-compat
+          git -c safe.directory="$PWD" -c user.name='XI-IO Integration Test' -c user.email='ci@example.invalid' merge --no-commit --no-ff 28aca927f532475b10f5a7f3d7bb3ec4db025246
+          node --check web/filter-cubes.mjs
+          node --test verification/test-cube-view-persistence.cjs
+          python3 -m unittest test_filter_cubes
+          node verification/test-cube-view-browser.cjs
+          cp verification/results/cube-view-browser.json "$GITHUB_WORKSPACE/verification/results/pr7-compat-browser.json"
       - name: Package source-only patch and exact-generation evidence
         run: |
           mkdir -p qualified
