@@ -174,11 +174,14 @@ export async function mountFilterCubes(host) {
     }
   }
   async function switchMode(next) {
-    if (!record || busy || draft) return;
-    mode = next; updateControls();
-    if (next === 'carousel') renderRows();
+    if (!record || busy || draft || next === mode) return;
+    // Persist first. A rejected or uncertain save must not change the visible view.
+    const saved = await commit({...record,view:next,selected_id:activeId}, next === 'carousel' ? 'Your live filter cubes. Unlock Edit home to arrange rows.' : 'Wall view uses the same source, filters and sorting.');
+    if (!saved) return;
+    mode = record.view;
+    updateControls();
+    if (mode === 'carousel') renderRows();
     else if (activeId && !queryEdit) { const row = data().rows.find(r=>r.id===activeId); if (row) activate(row); }
-    await commit({...record,view:next,selected_id:activeId}, next === 'carousel' ? 'Your live filter cubes. Unlock Edit home to arrange rows.' : 'Wall view uses the same source, filters and sorting.');
   }
   function openNaming(id = null) {
     if (!record || busy) return;
