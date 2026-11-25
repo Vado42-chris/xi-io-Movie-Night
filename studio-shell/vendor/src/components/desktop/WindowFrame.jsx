@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, useDragControls, useMotionValue } from 'framer-motion';
-import { X, Minus, Maximize2, Minimize2, GripVertical, Settings, Layout, Command, Cpu, Database, Activity, GitBranch, Layers, Pin } from 'lucide-react';
+import { X, Minus, Maximize2, Minimize2, GripVertical, Settings, Layout, Command, Cpu, Database, Activity, GitBranch, Layers, Pin, MessageSquare } from 'lucide-react';
 import { SystemFileBar, SystemFileFrame } from '@/components/framework/sdk';
 import ChatDockSlot from '@/components/chat/ChatDockSlot';
 import WindowChatLanes from './WindowChatLanes';
-import { useChatDock } from '@/lib/chatDockStore';
+import { useChatDock, snapChat, setChatOpen, setChatSide } from '@/lib/chatDockStore';
 import { identityOf } from '@/lib/surfaceIdentity.mjs';
 import { glassSideFor } from '@/lib/paneContract.mjs';
 import { ContextMenu, ContextMenuTrigger, ContextMenuContent, ContextMenuItem, ContextMenuSeparator } from '@/components/ui/context-menu';
@@ -53,6 +53,9 @@ const Rune = ({ icon, active, label }) => {
    you cannot get hold of again. */
 const MIN_WIDTH = 400;
 const MIN_HEIGHT = 300;
+const CHAT_DRAWER_MIN_WIDTH = 280;
+const CHAT_DRAWER_DEFAULT_WIDTH = 360;
+const CHAT_DRAWER_MAX_WIDTH = 640;
 
 export default function WindowFrame(props) {
     return <SystemFileFrame><WindowFrameContent {...props} /></SystemFileFrame>;
@@ -116,6 +119,48 @@ function WindowFrameContent({
     const [hot, setHot] = useState(false);
     const dock = useChatDock();
     const chatDragging = Boolean(dock.dragging);
+    const [chatDrawerWidth, setChatDrawerWidth] = useState(CHAT_DRAWER_DEFAULT_WIDTH);
+    const chatTargetId = props.chatTarget?.id || null;
+    const chatBoundHere = Boolean(chatTargetId && dock.binding?.id === chatTargetId);
+    const chatDrawerOpen = Boolean(chatBoundHere && dock.open);
+
+    const toggleWindowChat = (event) => {
+        event?.preventDefault?.();
+        event?.stopPropagation?.();
+        if (!chatTargetId) return;
+        if (chatDrawerOpen) {
+            setChatOpen(false);
+            return;
+        }
+        setChatSide('right');
+        if (chatBoundHere) {
+            setChatOpen(true);
+            return;
+        }
+        snapChat(chatTargetId);
+    };
+
+    const beginChatDrawerResize = (event) => {
+        if (!chatDrawerOpen) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const startX = event.clientX;
+        const startWidth = chatDrawerWidth;
+        const maxForWindow = Math.max(
+            CHAT_DRAWER_MIN_WIDTH,
+            Math.min(CHAT_DRAWER_MAX_WIDTH, size.width - 220),
+        );
+        const onMove = (moveEvent) => {
+            const next = startWidth + (startX - moveEvent.clientX);
+            setChatDrawerWidth(Math.max(CHAT_DRAWER_MIN_WIDTH, Math.min(maxForWindow, next)));
+        };
+        const onUp = () => {
+            window.removeEventListener('pointermove', onMove);
+            window.removeEventListener('pointerup', onUp);
+        };
+        window.addEventListener('pointermove', onMove);
+        window.addEventListener('pointerup', onUp);
+    };
     const dropProps = {
         onDragEnter: (event) => {
             if (!chatDragging) return;
@@ -864,10 +909,29 @@ function WindowFrameContent({
                         {identity.title}
                     </span>
                     <AttachedChips hostId={props.windowId} />
-                    {titleBarActions && (
+                    {(props.chatTarget || titleBarActions) && (
                         <div className="ml-auto shrink-0 flex items-center gap-2" data-no-window-drag
                             onPointerDown={(event) => event.stopPropagation()}
                             onDoubleClick={(event) => event.stopPropagation()}>
+                            {props.chatTarget && (
+                                <button
+                                    type="button"
+                                    data-window-chat-launcher="1"
+                                    data-window-chat-state={chatDrawerOpen ? 'OPEN' : 'CLOSED'}
+                                    aria-label={chatDrawerOpen ? 'Close chat drawer' : 'Open chat drawer'}
+                                    aria-pressed={chatDrawerOpen}
+                                    title={chatDrawerOpen ? 'Close chat drawer' : 'Open @ibal chat'}
+                                    onClick={toggleWindowChat}
+                                    className={cn(
+                                        'w-8 h-8 flex items-center justify-center border transition-colors',
+                                        chatDrawerOpen
+                                            ? 'border-[hsl(var(--color-intent))] bg-[hsl(var(--color-intent))]/10 text-[hsl(var(--color-intent))]'
+                                            : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-foreground/[0.06] hover:border-border',
+                                    )}
+                                >
+                                    <MessageSquare className={CHROME_ICON.bar} aria-hidden="true" />
+                                </button>
+                            )}
                             {titleBarActions}
                         </div>
                     )}
@@ -932,12 +996,37 @@ function WindowFrameContent({
                     {props.chatTarget && (
                         <WindowChatLanes targetId={props.chatTarget.id} label={props.chatTarget.label} />
                     )}
-                    {/* A chat snapped here anchors to THIS edge — the frame's
-                        own border — and draws the seam that says so. See
-                        ChatDockSlot: the seam lives on the dock because the
-                        dock is the one thing all three hosts share, and a seam
-                        written into each host would be three seams. */}
-                    {props.chatTarget && <ChatDockSlot {...props.chatTarget} />}
+                    {/* Baseline single-chat drawer. The existing ChatDockSlot
+                        remains the sole conversation projection; this wrapper owns
+                        only the shared right-side geometry. Narrow layouts retain
+                        Movie Night's existing native/tablet concierge projection. */}
+                    {props.chatTarget && (
+                        <div
+                            data-window-chat-drawer={props.chatTarget.id}
+                            data-window-chat-drawer-open={chatDrawerOpen ? '1' : '0'}
+                            data-window-chat-drawer-side="right"
+                            className={cn(
+                                'relative shrink-0 min-h-0 overflow-hidden transition-[width] duration-150 hidden lg:block',
+                                chatDrawerOpen && 'border-l border-border',
+                            )}
+                            style={{
+                                width: chatDrawerOpen ? `${chatDrawerWidth}px` : '0px',
+                                flexBasis: chatDrawerOpen ? `${chatDrawerWidth}px` : '0px',
+                            }}
+                        >
+                            {chatDrawerOpen && (
+                                <button
+                                    type="button"
+                                    data-window-chat-resize-handle="1"
+                                    aria-label="Resize chat drawer"
+                                    title="Drag to resize chat drawer"
+                                    onPointerDown={beginChatDrawerResize}
+                                    className="absolute inset-y-0 left-0 z-50 w-2 -translate-x-1/2 cursor-col-resize bg-transparent focus:outline-none focus:ring-1 focus:ring-[hsl(var(--color-intent))]"
+                                />
+                            )}
+                            <ChatDockSlot {...props.chatTarget} />
+                        </div>
+                    )}
                 </div>
 
                 {/* Status Footer */}
